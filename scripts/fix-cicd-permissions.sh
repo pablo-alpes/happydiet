@@ -16,11 +16,12 @@ echo ""
 
 gcloud config set project "$PROJECT_ID"
 
-echo ">>> Granting roles to happydiet-cicd (required for gcloud run deploy --source)..."
+echo ">>> Granting roles to happydiet-cicd (required for gcloud builds submit)..."
 for role in \
   roles/run.admin \
   roles/artifactregistry.writer \
   roles/cloudbuild.builds.builder \
+  roles/cloudbuild.builds.viewer \
   roles/iam.serviceAccountUser \
   roles/storage.objectAdmin \
   roles/aiplatform.user; do
