@@ -7,10 +7,13 @@
 #import "QCCentralManager.h"
 #import "QCScanView.h"
 
+static const NSTimeInterval kConnectionTimeoutSeconds = 35;
+
 @interface QCScanViewController () <UITableViewDataSource, UITableViewDelegate, QCCentralManagerDelegate>
 @property (nonatomic, strong) QCScanView *scanView;
 @property (nonatomic, strong) NSArray<QCBlePeripheral *> *peripherals;
 @property (nonatomic, copy, nullable) void (^onDeviceSelected)(CBPeripheral *);
+@property (nonatomic, strong) NSTimer *connectionTimeoutTimer;
 @end
 
 @implementation QCScanViewController
@@ -43,6 +46,7 @@
 }
 
 - (void)cancelTapped {
+    [self cancelConnectionTimeout];
     [[QCCentralManager shared] stopScan];
     [[QCCentralManager shared] remove];
     UIViewController *presenter = self.navigationController ? self.navigationController.presentingViewController : self.presentingViewController;
@@ -51,6 +55,7 @@
 
 - (void)viewDidDisappear:(BOOL)animated {
     [super viewDidDisappear:animated];
+    [self cancelConnectionTimeout];
     [[QCCentralManager shared] stopScan];
 }
 
@@ -62,6 +67,7 @@
 
 - (void)didState:(QCState)state {
     if (state == QCStateConnected && self.onDeviceSelected) {
+        [self cancelConnectionTimeout];
         CBPeripheral *p = [QCCentralManager shared].connectedPeripheral;
         if (p) self.onDeviceSelected(p);
     }
@@ -89,13 +95,42 @@
     [self.scanView.indicatorView startAnimating];
     [[QCCentralManager shared] stopScan];
 
+    [self cancelConnectionTimeout];
+    self.connectionTimeoutTimer = [NSTimer scheduledTimerWithTimeInterval:kConnectionTimeoutSeconds target:self selector:@selector(connectionTimedOut:) userInfo:nil repeats:NO];
+    [[NSRunLoop currentRunLoop] addTimer:self.connectionTimeoutTimer forMode:NSRunLoopCommonModes];
+
     QCBlePeripheral *per = self.peripherals[indexPath.row];
     [[QCCentralManager shared] connect:per.peripheral timeout:30 deviceType:QCDeviceTypeGlasses];
+}
+
+- (void)cancelConnectionTimeout {
+    [self.connectionTimeoutTimer invalidate];
+    self.connectionTimeoutTimer = nil;
+}
+
+- (void)connectionTimedOut:(NSTimer *)timer {
+    [self cancelConnectionTimeout];
+    [self.scanView.indicatorView stopAnimating];
+    [[QCCentralManager shared] stopScan];
+    [[QCCentralManager shared] remove];
+    if (self.onConnectionTimeout) {
+        self.onConnectionTimeout();
+    } else {
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Connection Timed Out"
+                                                                       message:@"The glasses did not respond in time. Try: 1) Put glasses closer. 2) Use WiFi transfer (enter SSID from glasses display)."
+                                                                preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
+            UIViewController *presenter = self.navigationController ? self.navigationController.presentingViewController : self.presentingViewController;
+            [presenter dismissViewControllerAnimated:YES completion:nil];
+        }]];
+        [self presentViewController:alert animated:YES completion:nil];
+    }
 }
 
 #pragma mark - QCCentralManagerDelegate (connection failure)
 - (void)didFailConnected:(CBPeripheral *)peripheral error:(NSError *)error {
     dispatch_async(dispatch_get_main_queue(), ^{
+        [self cancelConnectionTimeout];
         [self.scanView.indicatorView stopAnimating];
         NSString *msg = error.localizedDescription ?: @"Connection failed";
         UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Connection Failed" message:msg preferredStyle:UIAlertControllerStyleAlert];

@@ -30,4 +30,8 @@ export interface ComplianceResult {
   uncertainItems?: string[];
   suggestions: string[];
   detalle?: string;
+  calorieWarning?: string;
+  mealKcal?: number;
+  dailyKcalTotal?: number;
+  kcalTarget?: number;
 }

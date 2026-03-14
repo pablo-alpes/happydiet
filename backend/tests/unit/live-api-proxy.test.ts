@@ -54,9 +54,10 @@ describe('live-api-proxy', () => {
       expect(out.setup.model).toContain('us-central1');
       expect(out.setup.tools).toBeDefined();
       const decls = out.setup.tools[0].function_declarations;
-      expect(decls).toHaveLength(2);
+      expect(decls).toHaveLength(3);
       expect(decls.map((d: { name: string }) => d.name)).toContain('analyze_meal');
       expect(decls.map((d: { name: string }) => d.name)).toContain('give_task');
+      expect(decls.map((d: { name: string }) => d.name)).toContain('generate_meal_image');
     });
 
     it('includes context in system instruction when provided', () => {

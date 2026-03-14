@@ -111,10 +111,10 @@ final class HeyCyanWiFiTransfer {
 
         NEHotspotConfigurationManager.shared.apply(config) { error in
             if let e = error {
-                completion(.failure(HeyCyanError(message: "WiFi: \(e.localizedDescription)")))
+                completion(.failure(HeyCyanError(message: "WiFi: \(e.localizedDescription). Ensure glasses are in transfer mode.")))
                 return
             }
-            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 2) {
+            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 3) {
                 discoverAndDownload(completion: completion)
             }
         }

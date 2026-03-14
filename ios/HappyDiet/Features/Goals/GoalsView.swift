@@ -9,15 +9,12 @@ import SwiftUI
 
 struct GoalsView: View {
     @EnvironmentObject var dataStore: CoachDataStore
-    @State private var weightInput: Double?
-    @State private var weightNote = ""
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
                     targetsCard
-                    weightLogCard
                 }
                 .padding()
                 .padding(.bottom, 100)
@@ -66,6 +63,9 @@ struct GoalsView: View {
                     .font(.subheadline)
                     .foregroundStyle(Theme.accent)
             }
+            Text("Log weight and meals in the Track tab.")
+                .font(.caption)
+                .foregroundStyle(Theme.textMuted)
             Text("Compliance goals")
                 .font(.subheadline.bold())
                 .padding(.top, 8)
@@ -88,53 +88,4 @@ struct GoalsView: View {
         return parts.joined(separator: " • ")
     }
 
-    private var weightLogCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text("Log weight")
-                .font(.headline)
-            Text("Log your weight and optional note (e.g. how you feel, hunger level).")
-                .font(.caption)
-                .foregroundStyle(Theme.textMuted)
-            HStack(spacing: 12) {
-                TextField("kg", value: $weightInput, format: .number)
-                    .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
-                    .foregroundStyle(.primary)
-                    .frame(width: 80)
-                TextField("Optional note", text: $weightNote)
-                    .textFieldStyle(.roundedBorder)
-                    .foregroundStyle(.primary)
-                Button("Log") {
-                    if let kg = weightInput, kg >= 30, kg <= 300 {
-                        dataStore.addWeight(kg: kg, note: weightNote)
-                        weightInput = nil
-                        weightNote = ""
-                    }
-                }
-                .buttonStyle(.borderedProminent)
-                .tint(Theme.accent)
-                .disabled(weightInput == nil)
-            }
-            if !dataStore.weightEntries.isEmpty {
-                ForEach(dataStore.weightEntries.prefix(8)) { e in
-                    HStack {
-                        Text("\(e.kg) kg")
-                            .font(.subheadline.bold())
-                        Text(e.date)
-                            .font(.caption)
-                            .foregroundStyle(Theme.gray)
-                        if !e.note.isEmpty {
-                            Text("• \(e.note)")
-                                .font(.caption)
-                                .foregroundStyle(Theme.textMuted)
-                        }
-                        Spacer()
-                    }
-                    .padding(.vertical, 4)
-                }
-            }
-        }
-        .padding()
-        .cardStyle()
-    }
 }

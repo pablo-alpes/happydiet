@@ -55,6 +55,16 @@ describe('reporterAgent', () => {
     expect(out.message).toContain('Watch out: ice cream');
   });
 
+  it('shows +N more suffix when many non-compliant items exist', () => {
+    const out = reporterAgent({
+      score: 20,
+      compliantItems: [],
+      nonCompliantItems: ['a', 'b', 'c', 'd', 'e'],
+      suggestions: [],
+    });
+    expect(out.message).toContain('(+1 more)');
+  });
+
   it('includes suggestions when not default "Keep up the good choices!"', () => {
     const out = reporterAgent({
       score: 50,
@@ -85,5 +95,78 @@ describe('reporterAgent', () => {
     });
     expect(out.message).toContain('Off plan');
     expect(out.message).toContain('0%');
+  });
+
+  it('includes calorie warning when present', () => {
+    const out = reporterAgent({
+      score: 40,
+      compliantItems: ['steak', 'sausage'],
+      nonCompliantItems: [],
+      suggestions: ['Extreme calorie intake (~4000 kcal).'],
+      calorieWarning: 'This meal is ~4000 kcal — that is a calorie bomb.',
+      mealKcal: 4000,
+      dailyKcalTotal: 5000,
+      kcalTarget: 2000,
+    });
+    expect(out.message).toContain('calorie bomb');
+    expect(out.calorieWarning).toContain('calorie bomb');
+    expect(out.mealKcal).toBe(4000);
+    expect(out.dailyKcalTotal).toBe(5000);
+    expect(out.kcalTarget).toBe(2000);
+  });
+
+  it('shows reasonable portion for low calorie meals without warning', () => {
+    const out = reporterAgent({
+      score: 100,
+      compliantItems: ['salad', 'chicken'],
+      nonCompliantItems: [],
+      suggestions: ['Keep up the good choices!'],
+      estimatedKcal: 450,
+    });
+    expect(out.message).toContain('reasonable portion');
+  });
+
+  it('does not show Keep it up when calorie warning is present', () => {
+    const out = reporterAgent({
+      score: 82,
+      compliantItems: ['chicken'],
+      nonCompliantItems: [],
+      suggestions: [],
+      calorieWarning: 'This meal is ~1000 kcal — a bit heavy.',
+    });
+    expect(out.message).toContain('a bit heavy');
+    expect(out.message).not.toContain('Keep it up');
+  });
+
+  it('does not show reasonable portion when estimatedKcal is 0', () => {
+    const out = reporterAgent({
+      score: 100,
+      compliantItems: ['salad'],
+      nonCompliantItems: [],
+      suggestions: ['Keep up the good choices!'],
+      estimatedKcal: 0,
+    });
+    expect(out.message).not.toContain('reasonable portion');
+  });
+
+  it('does not show reasonable portion when estimatedKcal exceeds 800', () => {
+    const out = reporterAgent({
+      score: 100,
+      compliantItems: ['salad'],
+      nonCompliantItems: [],
+      suggestions: ['Keep up the good choices!'],
+      estimatedKcal: 900,
+    });
+    expect(out.message).not.toContain('reasonable portion');
+  });
+
+  it('suggests swapping off-plan items when both compliant and non-compliant present', () => {
+    const out = reporterAgent({
+      score: 60,
+      compliantItems: ['chicken'],
+      nonCompliantItems: ['cake'],
+      suggestions: [],
+    });
+    expect(out.message).toContain('swap the off-plan items');
   });
 });

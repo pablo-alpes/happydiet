@@ -2,30 +2,14 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>CFBundleName</key>
-	<string>HappyDiet</string>
 	<key>CFBundleDisplayName</key>
 	<string>HappyDiet</string>
 	<key>CFBundleExecutable</key>
 	<string>HappyDiet</string>
 	<key>CFBundleIdentifier</key>
 	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
-	<key>NSCameraUsageDescription</key>
-	<string>HappyDiet needs camera access to capture meal photos for diet compliance analysis.</string>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>HappyDiet needs photo library access to select meal images for analysis.</string>
-	<key>NSMicrophoneUsageDescription</key>
-	<string>HappyDiet may use the microphone for voice feedback when the Live API is available.</string>
-	<key>NSBluetoothAlwaysUsageDescription</key>
-	<string>HappyDiet needs Bluetooth to connect to HeyCyan glasses for meal capture.</string>
-	<key>NSBluetoothPeripheralUsageDescription</key>
-	<string>HappyDiet needs Bluetooth to communicate with HeyCyan glasses.</string>
-	<key>NSLocalNetworkUsageDescription</key>
-	<string>HappyDiet connects to your backend server and HeyCyan glasses on the local network for the Live Coach and meal capture.</string>
-	<key>UIBackgroundModes</key>
-	<array>
-		<string>bluetooth-central</string>
-	</array>
+	<key>CFBundleName</key>
+	<string>HappyDiet</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
@@ -33,6 +17,29 @@
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
 	</dict>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>HappyDiet needs Bluetooth to connect to HeyCyan glasses for meal capture.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>HappyDiet needs Bluetooth to communicate with HeyCyan glasses.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>HappyDiet needs camera access to capture meal photos for diet compliance analysis.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>HappyDiet connects to your backend server and HeyCyan glasses on the local network for the Live Coach and meal capture.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>HappyDiet may use the microphone for voice feedback when the Live API is available.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>HappyDiet needs photo library access to select meal images for analysis.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>bluetooth-central</string>
+		<string>bluetooth-peripheral</string>
+		<string>processing</string>
+		<string>nearby-interaction</string>
+		<string>location</string>
+		<string>external-accessory</string>
+		<string>audio</string>
+		<string>fetch</string>
+	</array>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

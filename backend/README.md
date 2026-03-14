@@ -2,6 +2,8 @@
 
 Tool endpoints for Live API: `analyze_meal`, `meals`.
 
+**Live API proxy** (`ws://host/live`): Proxies WebSocket to Vertex AI Live API. Translates client formats (camelCase, `audio`) to Vertex wire format (snake_case, `media_chunks`). See [docs/stack-architecture.md](../docs/stack-architecture.md#proxy-format-translation).
+
 ## Quick Start
 
 ```bash

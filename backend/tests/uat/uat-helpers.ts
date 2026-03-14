@@ -16,6 +16,16 @@ export function createInMemoryMealRepo() {
         .filter((m) => m.userId === userId)
         .sort((a, b) => (b.timestamp as Date).getTime() - (a.timestamp as Date).getTime());
     },
+    async getDailyKcal() {
+      return 0;
+    },
+    async deleteAllByUser(userId: string) {
+      const before = meals.length;
+      for (let i = meals.length - 1; i >= 0; i--) {
+        if (meals[i].userId === userId) meals.splice(i, 1);
+      }
+      return before - meals.length;
+    },
     _getAll: () => [...meals],
   };
 }

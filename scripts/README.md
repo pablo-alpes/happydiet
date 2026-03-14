@@ -11,13 +11,27 @@ Programmatic deployment for Cloud Run. **Bonus:** [Gemini Live Agent Challenge](
 
 | Script | Purpose |
 |-------|---------|
+| `bootstrap-cloud.sh` | **Full programmatic setup** — APIs, Firestore, SA, deploy, GitHub secrets instructions |
 | `setup-gcp.sh` | Enable APIs (Vertex AI, Firestore, Cloud Run, etc.) |
+| `setup-production.sh` | Full production setup (APIs, Firestore DBs, .env) |
 | `deploy.sh` | Run tests + deploy backend to Cloud Run |
 | `verify.sh` | Health check deployed service |
 | `test-ci.sh` | Simulate Cloud Build test step (npm ci, test:ci, build) |
 | `smoke-test.sh` | Post-deploy smoke test (health + meals) |
 
 ## Usage
+
+### Quick start (full bootstrap)
+
+```bash
+# From repo root — one command for everything
+chmod +x scripts/*.sh
+gcloud auth login && gcloud auth application-default login
+./scripts/bootstrap-cloud.sh YOUR_PROJECT_ID
+# Follow output to add GitHub secrets (GCP_PROJECT_ID, GCP_SA_KEY)
+```
+
+### Step-by-step
 
 ```bash
 # From repo root

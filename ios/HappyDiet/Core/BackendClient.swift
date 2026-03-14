@@ -85,9 +85,37 @@ struct Meal: Decodable, Identifiable {
 
     var displayId: String { id ?? UUID().uuidString }
 
+    /// Inferred meal moment from timestamp (breakfast &lt;11h, lunch 11–17h, dinner ≥17h) when mealMoment is nil or "other"
+    var inferredMealMoment: String? {
+        if let m = mealMoment, !m.isEmpty, m.lowercased() != "other" {
+            return m
+        }
+        guard let ts = timestamp else { return nil }
+        let date = ISO8601DateFormatter().date(from: ts) ?? ISO8601DateFormatter().date(from: ts + "Z")
+        guard let d = date else { return nil }
+        let hour = Calendar.current.component(.hour, from: d)
+        if hour < 11 { return "breakfast" }
+        if hour < 17 { return "lunch" }
+        return "dinner"
+    }
+
     enum CodingKeys: String, CodingKey {
         case id, userId, timestamp, mealMoment, ingredients, estimatedKcal
         case complianceScore, compliantItems, nonCompliantItems, suggestions, dietVersion
+    }
+
+    init(id: String?, userId: String?, timestamp: String?, mealMoment: String?, ingredients: [String], estimatedKcal: Int?, complianceScore: Double, compliantItems: [String], nonCompliantItems: [String], suggestions: [String], dietVersion: String?) {
+        self.id = id
+        self.userId = userId
+        self.timestamp = timestamp
+        self.mealMoment = mealMoment
+        self.ingredients = ingredients
+        self.estimatedKcal = estimatedKcal
+        self.complianceScore = complianceScore
+        self.compliantItems = compliantItems
+        self.nonCompliantItems = nonCompliantItems
+        self.suggestions = suggestions
+        self.dietVersion = dietVersion
     }
 
     init(from decoder: Decoder) throws {
@@ -139,12 +167,13 @@ final class BackendClient {
         self.session = URLSession.shared
     }
 
-    /// POST /analyze-meal
+    /// POST /analyze-meal (90s timeout — Vision + compliance can take 30–60s)
     func analyzeMeal(imageBase64: String, userId: String = HappyDietConfig.defaultUserId, dietText: String? = nil) async throws -> AnalyzeMealResponse {
         let url = baseURL.appendingPathComponent("analyze-meal")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.timeoutInterval = 90
         if let key = apiKey { request.setValue(key, forHTTPHeaderField: "X-API-Key") }
 
         let body = AnalyzeMealRequest(image_base64: imageBase64, user_id: userId, diet_text: dietText)
@@ -209,6 +238,68 @@ final class BackendClient {
         struct RulesResponse: Decodable { let rules: [DietRuleParsed] }
         let decoded = try JSONDecoder().decode(RulesResponse.self, from: data)
         return decoded.rules
+    }
+
+    /// POST /clear-data or DELETE /meals — clears meal history for user
+    func clearMeals(userId: String = HappyDietConfig.defaultUserId) async throws -> Int {
+        let url = baseURL.appendingPathComponent("clear-data")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let key = apiKey { request.setValue(key, forHTTPHeaderField: "X-API-Key") }
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["user_id": userId])
+
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(data: data, response: response, url: url)
+
+        struct ClearResponse: Decodable { let cleared: Int? }
+        let decoded = try JSONDecoder().decode(ClearResponse.self, from: data)
+        return decoded.cleared ?? 0
+    }
+
+    /// GET /tasks?user_id=
+    func fetchTasks(userId: String = HappyDietConfig.defaultUserId) async throws -> [CoachTask] {
+        var components = URLComponents(url: baseURL.appendingPathComponent("tasks"), resolvingAgainstBaseURL: true)!
+        components.queryItems = [URLQueryItem(name: "user_id", value: userId)]
+        guard let url = components.url else { throw BackendError.invalidURL }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        if let key = apiKey { request.setValue(key, forHTTPHeaderField: "X-API-Key") }
+
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(data: data, response: response, url: url)
+
+        struct TasksResponse: Decodable { let tasks: [CoachTask] }
+        let decoded = try JSONDecoder().decode(TasksResponse.self, from: data)
+        return decoded.tasks
+    }
+
+    /// POST /tasks
+    func addTask(task: String, due: String, userId: String = HappyDietConfig.defaultUserId) async throws {
+        let url = baseURL.appendingPathComponent("tasks")
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        if let key = apiKey { request.setValue(key, forHTTPHeaderField: "X-API-Key") }
+        request.httpBody = try JSONSerialization.data(withJSONObject: ["task": task, "due": due, "user_id": userId])
+
+        let (_, response) = try await session.data(for: request)
+        try validateResponse(data: Data(), response: response, url: url)
+    }
+
+    /// PATCH /tasks/:id
+    func toggleTaskDone(taskId: String, userId: String = HappyDietConfig.defaultUserId) async throws {
+        var components = URLComponents(url: baseURL.appendingPathComponent("tasks").appendingPathComponent(taskId), resolvingAgainstBaseURL: true)!
+        components.queryItems = [URLQueryItem(name: "user_id", value: userId)]
+        guard let url = components.url else { throw BackendError.invalidURL }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "PATCH"
+        if let key = apiKey { request.setValue(key, forHTTPHeaderField: "X-API-Key") }
+
+        let (_, response) = try await session.data(for: request)
+        try validateResponse(data: Data(), response: response, url: url)
     }
 
     /// GET /meals?user_id=

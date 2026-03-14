@@ -144,7 +144,7 @@ describe('E2E API', () => {
         dietRulesRepo: mockDietRulesRepo as any,
       });
 
-      const res = await request(app).get('/meals?user_id=demo');
+      const res = await request(app).get('/meals?user_id=user123');
 
       expect(res.status).toBe(500);
       expect(res.body.error).toContain('Failed to fetch');

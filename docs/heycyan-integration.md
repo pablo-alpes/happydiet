@@ -120,3 +120,13 @@ To align with Google's **Innovation & Multimodal UX** (See, Hear, Speak):
 | **Video stream** (future) | Glasses frames → `realtimeInput` → Live API sees POV | ✅✅ Full See, Hear, Speak |
 
 **Quick win:** Wire HeyCyan capture to Live Coach tab. User wears glasses, taps capture, image goes to Live API; agent analyzes and speaks. No video streaming required.
+
+---
+
+## Troubleshooting: BLE hangs
+
+| Issue | Fix |
+|-------|-----|
+| Stuck at "Scanning for glasses" after selecting device | A 35s timeout will recover. The SDK can hang during CRC check. **Workaround:** Use **WiFi transfer** — put glasses in transfer mode, enter SSID (e.g. W630_xxxx) from the glasses display, tap "Fetch latest photo". |
+| No devices in list | Ensure Bluetooth is on; glasses are powered and in pairing mode; try moving closer. |
+| Connection timeout | Put glasses closer; use WiFi transfer as fallback. |

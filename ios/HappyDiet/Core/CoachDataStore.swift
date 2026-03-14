@@ -25,13 +25,21 @@ struct CoachTask: Identifiable, Codable {
 
     init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        uid = (try? c.decode(String.self, forKey: .uid)) ?? UUID().uuidString
+        uid = (try? c.decode(String.self, forKey: .id)) ?? (try? c.decode(String.self, forKey: .uid)) ?? UUID().uuidString
         task = try c.decode(String.self, forKey: .task)
-        due = try c.decode(String.self, forKey: .due)
+        due = (try? c.decode(String.self, forKey: .due)) ?? ""
         done = (try? c.decode(Bool.self, forKey: .done)) ?? false
     }
 
-    enum CodingKeys: String, CodingKey { case uid, task, due, done }
+    func encode(to encoder: Encoder) throws {
+        var c = encoder.container(keyedBy: CodingKeys.self)
+        try c.encode(uid, forKey: .uid)
+        try c.encode(task, forKey: .task)
+        try c.encode(due, forKey: .due)
+        try c.encode(done, forKey: .done)
+    }
+
+    enum CodingKeys: String, CodingKey { case id, uid, task, due, done }
 }
 
 // MARK: - Diet Profile
@@ -68,6 +76,7 @@ let PREDEFINED_TASKS: [PredefinedTask] = [
 
 let COACH_PROMPTS: [String: [String]] = [
     "diet": [
+        "Suggest meal ideas and show me what they look like",
         "Let's do a coaching session on my compliance",
         "What I find difficult: [see my feedback]",
         "Help me improve where I slip",
@@ -75,6 +84,7 @@ let COACH_PROMPTS: [String: [String]] = [
         "What's my overall status and what do you advise?",
     ],
     "analyze": [
+        "Suggest meal ideas and show me what they look like",
         "What made this meal non-compliant?",
         "How's my weight today? How do I feel?",
         "Suggest a similar compliant meal",
@@ -82,6 +92,7 @@ let COACH_PROMPTS: [String: [String]] = [
         "What's my overall status and what do you advise?",
     ],
     "dashboard": [
+        "Suggest meal ideas and show me what they look like",
         "Let's do a coaching session on my compliance",
         "Am I on track with my weight?",
         "What does my compliance trend mean?",
@@ -97,6 +108,7 @@ final class CoachDataStore: ObservableObject {
     static let shared = CoachDataStore()
 
     @Published var tasks: [CoachTask] = []
+    private let backendClient = BackendClient()
     @Published var dietProfileIds: Set<String> = []
     @Published var weightEntries: [WeightEntry] = []
     @Published var checkins: [CheckinEntry] = []
@@ -104,7 +116,6 @@ final class CoachDataStore: ObservableObject {
     @Published var feedbackEntries: [FeedbackEntry] = []
     @Published var journalEntries: [CoachJournalEntry] = []
 
-    private let tasksKey = "happydiet_tasks"
     private let profileKey = "happydiet_profile"
     private let weightKey = "happydiet_weight"
     private let checkinsKey = "happydiet_checkins"
@@ -117,7 +128,7 @@ final class CoachDataStore: ObservableObject {
     }
 
     private func loadAll() {
-        tasks = load([CoachTask].self, key: tasksKey) ?? []
+        tasks = []
         if let arr = UserDefaults.standard.array(forKey: profileKey) as? [String] {
             dietProfileIds = Set(arr)
         }
@@ -140,18 +151,41 @@ final class CoachDataStore: ObservableObject {
         }
     }
 
-    // Tasks
+    // Tasks (shared via backend Firestore)
+    func refreshTasks() async {
+        do {
+            let list = try await backendClient.fetchTasks()
+            tasks = list
+        } catch {
+            // Keep existing tasks on network error
+        }
+    }
+
     func addTask(_ task: String, due: String) {
-        let t = CoachTask(task: task, due: due, done: false)
+        guard !task.trimmingCharacters(in: .whitespaces).isEmpty else { return }
         guard !tasks.contains(where: { $0.task == task && $0.due == due && !$0.done }) else { return }
-        tasks.insert(t, at: 0)
-        save(tasks, key: tasksKey)
+        Task {
+            do {
+                try await backendClient.addTask(task: task.trimmingCharacters(in: .whitespaces), due: due)
+                await refreshTasks()
+            } catch {
+                // Optimistically add for offline UX; will sync on next refresh
+                let t = CoachTask(task: task, due: due, done: false)
+                tasks.insert(t, at: 0)
+            }
+        }
     }
 
     func toggleTaskDone(_ task: CoachTask) {
-        if let i = tasks.firstIndex(where: { $0.uid == task.uid }) {
-            tasks[i].done.toggle()
-            save(tasks, key: tasksKey)
+        Task {
+            do {
+                try await backendClient.toggleTaskDone(taskId: task.uid)
+                await refreshTasks()
+            } catch {
+                if let i = tasks.firstIndex(where: { $0.uid == task.uid }) {
+                    tasks[i].done.toggle()
+                }
+            }
         }
     }
 
@@ -223,6 +257,20 @@ final class CoachDataStore: ObservableObject {
         let e = FeedbackEntry(date: formatter.string(from: Date()), text: text)
         feedbackEntries.insert(e, at: 0)
         save(feedbackEntries, key: feedbackKey)
+    }
+
+    /// Clear all local data (weight, checkins, targets, feedback, journal). Tasks are in Firestore — not cleared here.
+    func clearLocalData() {
+        weightEntries = []
+        checkins = []
+        targets = TargetData()
+        feedbackEntries = []
+        journalEntries = []
+        save(weightEntries, key: weightKey)
+        save(checkins, key: checkinsKey)
+        save(targets, key: targetsKey)
+        save(feedbackEntries, key: feedbackKey)
+        save(journalEntries, key: journalKey)
     }
 }
 

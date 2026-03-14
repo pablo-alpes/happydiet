@@ -44,8 +44,17 @@
       result.className = isError ? 'error' : '';
     }
 
+    function baseUrl() {
+      const input = $('url').value?.trim();
+      if (input) return input.replace(/\/$/, '');
+      const origin = window.location.origin;
+      if (origin && origin !== 'null' && !origin.startsWith('file:')) return origin.replace(/\/$/, '');
+      // Dynamic same-origin fallback without hardcoded host/IP.
+      return '';
+    }
+
     async function req(method, path, body) {
-      const url = ($('url').value || 'http://localhost:8080').replace(/\/$/, '');
+      const url = baseUrl();
       const headers = { 'Content-Type': 'application/json' };
       const apiKey = $('apiKey').value;
       if (apiKey) headers['X-API-Key'] = apiKey;
@@ -91,7 +100,7 @@
 
     $('meals').onclick = async () => {
       try {
-        const url = ($('url').value || 'http://localhost:8080').replace(/\/$/, '');
+        const url = baseUrl();
         const apiKey = $('apiKey').value;
         const headers = {};
         if (apiKey) headers['X-API-Key'] = apiKey;

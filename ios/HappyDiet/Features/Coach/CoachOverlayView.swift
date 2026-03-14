@@ -233,6 +233,8 @@ struct CoachPanelView: View {
                 audioPlayer?.stop()
                 coachTextBuffer = ""
                 streamingCoachText = ""
+                waitingForCoachResponse = false
+                client?.sendInterrupt()
             } label: {
                 Image(systemName: "stop.fill")
             }
@@ -420,6 +422,12 @@ struct CoachPanelView: View {
             lastSentWasMeal = false
             updateStatus("Error", "Mic off", "Coach idle")
             chatMessages.append(("coach", "Error: \(msg)"))
+        case .mealImage(_, let caption):
+            chatMessages.append(("coach", caption ?? "Generated meal image"))
+        case .task(let task, let due):
+            dataStore.addTask(task, due: due)
+        case .userTranscription:
+            break
         }
     }
 

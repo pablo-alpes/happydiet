@@ -11,22 +11,52 @@ const MOCK_RULES = [
   { type: 'note', text: 'Drink 2L water daily. Prefer grilled over fried.' },
 ];
 
-const MOCK_MEALS = [
-  { id: 'm1', userId: 'demo', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), mealMoment: 'breakfast', ingredients: ['oatmeal', 'banana', 'almonds'], estimatedKcal: 380, complianceScore: 92, compliantItems: ['oatmeal', 'banana', 'almonds'], nonCompliantItems: [], suggestions: ['Keep it up!'] },
-  { id: 'm2', userId: 'demo', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), mealMoment: 'lunch', ingredients: ['grilled chicken', 'salad', 'quinoa'], estimatedKcal: 520, complianceScore: 95, compliantItems: ['grilled chicken', 'salad', 'quinoa'], nonCompliantItems: [], suggestions: [] },
-  { id: 'm3', userId: 'demo', timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(), mealMoment: 'dinner', ingredients: ['salmon', 'broccoli', 'rice'], estimatedKcal: 580, complianceScore: 88, compliantItems: ['salmon', 'broccoli', 'rice'], nonCompliantItems: [], suggestions: [] },
-  { id: 'm4', userId: 'demo', timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), mealMoment: 'breakfast', ingredients: ['eggs', 'avocado', 'whole grain toast'], estimatedKcal: 420, complianceScore: 90, compliantItems: ['eggs', 'avocado', 'whole grain toast'], nonCompliantItems: [], suggestions: [] },
-  { id: 'm5', userId: 'demo', timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), mealMoment: 'lunch', ingredients: ['turkey wrap', 'hummus', 'carrots'], estimatedKcal: 450, complianceScore: 85, compliantItems: ['turkey wrap', 'hummus', 'carrots'], nonCompliantItems: [], suggestions: [] },
-  { id: 'm6', userId: 'demo', timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(), mealMoment: 'dinner', ingredients: ['pizza', 'soda'], estimatedKcal: 720, complianceScore: 35, compliantItems: [], nonCompliantItems: ['pizza', 'soda'], suggestions: ['Try a cauliflower crust pizza and sparkling water'] },
-  { id: 'm7', userId: 'demo', timestamp: new Date(Date.now() - 0).toISOString(), mealMoment: 'breakfast', ingredients: ['greek yogurt', 'berries', 'honey'], estimatedKcal: 280, complianceScore: 78, compliantItems: ['greek yogurt', 'berries'], nonCompliantItems: ['honey'], suggestions: ['Swap honey for stevia'] },
-  { id: 'm8', userId: 'demo', timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(), mealMoment: 'lunch', ingredients: ['grilled fish', 'spinach', 'sweet potato'], estimatedKcal: 480, complianceScore: 98, compliantItems: ['grilled fish', 'spinach', 'sweet potato'], nonCompliantItems: [], suggestions: [] },
-  { id: 'm9', userId: 'demo', timestamp: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000).toISOString(), mealMoment: 'dinner', ingredients: ['chicken stir-fry', 'vegetables', 'brown rice'], estimatedKcal: 550, complianceScore: 92, compliantItems: ['chicken stir-fry', 'vegetables', 'brown rice'], nonCompliantItems: [], suggestions: [] },
-  { id: 'm10', userId: 'demo', timestamp: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000).toISOString(), mealMoment: 'breakfast', ingredients: ['smoothie', 'spinach', 'banana', 'protein powder'], estimatedKcal: 320, complianceScore: 95, compliantItems: ['smoothie', 'spinach', 'banana', 'protein powder'], nonCompliantItems: [], suggestions: [] },
-].sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+/** Build demo meals with one meal per day for the last 14 days. Uses local midnight to avoid timezone mismatches. */
+function buildDemoMeals(): Array<Record<string, unknown>> {
+  const now = new Date();
+  const meals: Array<Record<string, unknown>> = [];
+  const dayMeals: Array<{ ingredients: string[]; score: number }> = [
+    { ingredients: ['greek yogurt', 'berries', 'honey'], score: 78 },
+    { ingredients: ['eggs', 'avocado', 'whole grain toast'], score: 90 },
+    { ingredients: ['oatmeal', 'banana', 'almonds'], score: 92 },
+    { ingredients: ['smoothie', 'spinach', 'banana'], score: 95 },
+    { ingredients: ['grilled fish', 'asparagus', 'sweet potato'], score: 96 },
+    { ingredients: ['oatmeal', 'blueberries', 'walnuts'], score: 94 },
+    { ingredients: ['chicken salad', 'quinoa', 'olive oil'], score: 88 },
+    { ingredients: ['grilled fish', 'spinach', 'sweet potato'], score: 98 },
+    { ingredients: ['turkey wrap', 'hummus', 'carrots'], score: 85 },
+    { ingredients: ['pizza', 'soda'], score: 35 },
+    { ingredients: ['smoothie', 'spinach', 'banana', 'protein powder'], score: 95 },
+    { ingredients: ['chicken stir-fry', 'vegetables', 'brown rice'], score: 92 },
+    { ingredients: ['grilled chicken', 'salad', 'quinoa'], score: 95 },
+    { ingredients: ['salmon', 'broccoli', 'rice'], score: 88 },
+  ];
+  for (let i = 0; i < 14; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i, 10, 0, 0);
+    const m = dayMeals[i % dayMeals.length];
+    meals.push({
+      id: `m${i + 1}`,
+      userId: 'demo',
+      timestamp: d.toISOString(),
+      mealMoment: i % 3 === 0 ? 'breakfast' : i % 3 === 1 ? 'lunch' : 'dinner',
+      ingredients: m.ingredients,
+      estimatedKcal: 350 + (i * 20) % 400,
+      complianceScore: m.score,
+      compliantItems: m.score >= 50 ? m.ingredients : [],
+      nonCompliantItems: m.score < 50 ? m.ingredients : [],
+      suggestions: [],
+    });
+  }
+  return meals.sort((a, b) => new Date((b.timestamp as string)).getTime() - new Date((a.timestamp as string)).getTime());
+}
+
+export function getDemoMeals(): Array<Record<string, unknown>> {
+  return buildDemoMeals();
+}
 
 export function createDemoMealsHandler() {
   return (_req: Request, res: Response) => {
-    res.json({ meals: MOCK_MEALS });
+    res.json({ meals: getDemoMeals() });
   };
 }
 

@@ -52,7 +52,7 @@ targets:
         # Device (iphoneos): enable HeyCyan BLE — QCSDK is a static framework, linked but NOT embedded
         "SWIFT_ACTIVE_COMPILATION_CONDITIONS[sdk=iphoneos*]": "$(inherited) HEYCYAN_SDK_LINKED"
         "GCC_PREPROCESSOR_DEFINITIONS[sdk=iphoneos*]": "$(inherited) HEYCYAN_SDK_LINKED=1"
-        "OTHER_LDFLAGS[sdk=iphoneos*]": ["-framework", "QCSDK"]
+        "OTHER_LDFLAGS[sdk=iphoneos*]": ["-ObjC", "-framework", "QCSDK"]
         # Simulator: exclude QCSDK ObjC files (they import device-only framework headers)
         "EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]": "QCCentralManager.m QCScanViewController.m QCScanView.m"
       configs:
@@ -78,3 +78,28 @@ targets:
           echo "Backend URL set to $URL (platform: $PLATFORM_NAME)"
         name: "Auto-detect backend URL"
         basedOnDependencyAnalysis: false
+
+  HappyDietTests:
+    type: bundle.unit-test
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: HappyDietTests
+    dependencies:
+      - target: HappyDiet
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.happydiet.app.tests
+        GENERATE_INFOPLIST_FILE: YES
+        SWIFT_VERSION: "5.0"
+
+schemes:
+  HappyDiet:
+    build:
+      targets:
+        HappyDiet: all
+        HappyDietTests: [test]
+    test:
+      gatherCoverageData: true
+      targets:
+        - HappyDietTests

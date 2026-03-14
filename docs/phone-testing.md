@@ -112,6 +112,7 @@ For testing without your Mac running:
 | Issue | Fix |
 |-------|-----|
 | "Could not connect" on phone | Same Wi‑Fi as Mac; correct IP in URL. Use **More → Settings → Test Connection** to diagnose. |
+| Live Coach "connection lost" / "socket not connected" | **More → Settings** → set Backend URL to `http://YOUR_MAC_IP:8080` (include `http://`). Tap **Save** → **Test Connection**. If OK, reopen Coach and Connect. Ensure backend is running (`npm run dev`). |
 | Camera not working (web) | Use HTTPS or localhost; grant camera permission |
 | 503 from backend | Set `GOOGLE_CLOUD_PROJECT` in `backend/.env` |
 | iOS "Untrusted Developer" | Settings → General → VPN & Device Management → Trust |

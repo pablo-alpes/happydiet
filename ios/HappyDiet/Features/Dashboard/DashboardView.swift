@@ -11,8 +11,12 @@ import SwiftUI
 struct DashboardView: View {
     @EnvironmentObject var appState: AppState
     @EnvironmentObject var dataStore: CoachDataStore
+    @State private var meals: [Meal] = []
+    @State private var isLoadingMeals = false
+    @State private var showImpactInfo = false
+    @State private var backendUnreachable = false
 
-    private let mockTrend: [Double] = [72, 78, 85, 82, 88, 65, 90, 92, 88, 75, 82, 86, 91, 84]
+    private let client = BackendClient()
     private let mealSuggestions: [String: [String]] = [
         "breakfast": ["Oatmeal with berries and almonds", "Greek yogurt with banana", "Eggs with avocado and whole grain toast"],
         "lunch": ["Grilled chicken salad with quinoa", "Turkey wrap with hummus", "Grilled fish with spinach and sweet potato"],
@@ -24,9 +28,40 @@ struct DashboardView: View {
         "dinner": "https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=320&h=240&fit=crop",
     ]
 
+    private var complianceTrend: [Double] {
+        let cal = Calendar.current
+        var dailyScores: [Date: [Double]] = [:]
+        for meal in meals {
+            guard let ts = meal.timestamp,
+                  let date = ISO8601DateFormatter().date(from: ts) ?? ISO8601DateFormatter().date(from: ts + "Z") else { continue }
+            let dayStart = cal.startOfDay(for: date)
+            dailyScores[dayStart, default: []].append(meal.complianceScore)
+        }
+        let today = cal.startOfDay(for: Date())
+        return (0..<14).reversed().map { offset in
+            guard let day = cal.date(byAdding: .day, value: -offset, to: today) else { return 0 }
+            let dayStart = cal.startOfDay(for: day)
+            let scores = dailyScores[dayStart] ?? []
+            return scores.isEmpty ? 0 : scores.reduce(0, +) / Double(scores.count)
+        }
+    }
+
     private var complianceAverage: Int {
-        guard !mockTrend.isEmpty else { return 0 }
-        return Int(mockTrend.reduce(0, +) / Double(mockTrend.count))
+        let trend = complianceTrend.filter { $0 > 0 }
+        guard !trend.isEmpty else { return 0 }
+        return Int(trend.reduce(0, +) / Double(trend.count))
+    }
+
+    private var weightPoints: [(day: Int, kg: Double)] {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        let today = formatter.string(from: Date())
+        return dataStore.weightEntries.prefix(14).enumerated().compactMap { idx, e -> (Int, Double)? in
+            guard let d = formatter.date(from: e.date) else { return nil }
+            let todayDate = formatter.date(from: today) ?? Date()
+            let daysAgo = Calendar.current.dateComponents([.day], from: d, to: todayDate).day ?? idx
+            return (min(max(0, daysAgo), 13), e.kg)
+        }.sorted { $0.day < $1.day }
     }
 
     private var nextMealKey: String {
@@ -40,10 +75,22 @@ struct DashboardView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
+                    if backendUnreachable {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(Theme.orange)
+                            Text("Backend unreachable. Using demo data. Set URL in More > Settings (e.g. http://YOUR_MAC_IP:8080).")
+                                .font(.caption)
+                                .foregroundStyle(.primary)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Theme.orange.opacity(0.2))
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                    }
                     complianceTrendCard
                     suggestedMealCard
                     coachTasksCard
-                    weightSnapshotCard
                 }
                 .padding()
                 .padding(.bottom, 100)
@@ -51,49 +98,97 @@ struct DashboardView: View {
             .background(Theme.bg)
             .navigationTitle("Dashboard")
             .navigationBarTitleDisplayMode(.large)
+            .refreshable {
+                await loadMeals()
+                await dataStore.refreshTasks()
+            }
+            .task {
+                await loadMeals()
+                await dataStore.refreshTasks()
+            }
+            .onChange(of: appState.backendDiscoveredVersion) {
+                Task { await loadMeals(); await dataStore.refreshTasks() }
+            }
         }
+    }
+
+    private func loadMeals() async {
+        await MainActor.run { isLoadingMeals = true; backendUnreachable = false }
+        do {
+            let list = try await client.fetchMeals()
+            await MainActor.run { meals = list; isLoadingMeals = false; backendUnreachable = false }
+        } catch {
+            await MainActor.run {
+                isLoadingMeals = false
+                backendUnreachable = true
+                if meals.isEmpty { meals = Self.demoMealsFallback }
+            }
+        }
+    }
+
+    private static let demoMealsFallback: [Meal] = (0..<7).compactMap { i in
+        let cal = Calendar.current
+        guard let date = cal.date(byAdding: .day, value: -i, to: Date()) else { return nil }
+        let moment = i % 3 == 0 ? "breakfast" : (i % 3 == 1 ? "lunch" : "dinner")
+        return Meal(
+            id: "demo-\(i)",
+            userId: "demo",
+            timestamp: ISO8601DateFormatter().string(from: date),
+            mealMoment: moment,
+            ingredients: ["oatmeal", "banana", "almonds"],
+            estimatedKcal: 380,
+            complianceScore: Double(72 + (i % 20)),
+            compliantItems: ["oatmeal", "banana"],
+            nonCompliantItems: [],
+            suggestions: [],
+            dietVersion: nil
+        )
     }
 
     // MARK: - Compliance Trend (top)
 
     private var complianceTrendCard: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        let trend = complianceTrend
+        let hasData = !trend.isEmpty || !weightPoints.isEmpty
+
+        return VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .firstTextBaseline) {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Compliance Trend")
-                        .font(.headline)
-                    Text("14-day average")
+                    HStack(spacing: 6) {
+                        Text("Compliance & Weight")
+                            .font(.headline)
+                        Button {
+                            showImpactInfo = true
+                        } label: {
+                            Image(systemName: "info.circle")
+                                .font(.subheadline)
+                                .foregroundStyle(Theme.textMuted)
+                        }
+                        .popover(isPresented: $showImpactInfo) {
+                            VStack(alignment: .leading, spacing: 12) {
+                                Text("Impact")
+                                    .font(.headline)
+                                Text("Good compliance (80%+) supports your goals. Poor compliance adds up — the coach helps you understand what to adjust.")
+                                    .font(.subheadline)
+                                    .foregroundStyle(Theme.textMuted)
+                            }
+                            .padding()
+                            .frame(width: 260)
+                        }
+                    }
+                    Text(hasData ? "14-day trend" : "Analyze meals to see trend")
                         .font(.caption)
                         .foregroundStyle(Theme.textMuted)
                 }
                 Spacer()
-                Text("\(complianceAverage)%")
-                    .font(.system(size: 36, weight: .bold, design: .rounded))
-                    .foregroundStyle(complianceAverage >= 80 ? Theme.green : complianceAverage >= 50 ? Theme.orange : Theme.red)
-            }
-            HStack(alignment: .bottom, spacing: 4) {
-                ForEach(Array(mockTrend.enumerated()), id: \.offset) { idx, v in
-                    VStack(spacing: 2) {
-                        RoundedRectangle(cornerRadius: 3)
-                            .fill(barColor(v))
-                            .frame(height: max(6, (v / 100) * 70))
-                    }
+                if complianceAverage > 0 {
+                    Text("\(complianceAverage)%")
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .foregroundStyle(complianceAverage >= 80 ? Theme.green : complianceAverage >= 50 ? Theme.orange : Theme.red)
                 }
             }
-            .frame(height: 70)
-            HStack {
-                Text("D1")
-                    .font(.caption2)
-                    .foregroundStyle(Theme.gray)
-                Spacer()
-                Text("D7")
-                    .font(.caption2)
-                    .foregroundStyle(Theme.gray)
-                Spacer()
-                Text("D14")
-                    .font(.caption2)
-                    .foregroundStyle(Theme.gray)
-            }
+            ComplianceWeightChart(complianceTrend: trend, weightPoints: weightPoints)
+                .frame(height: 120)
         }
         .padding()
         .cardStyle()
@@ -203,45 +298,70 @@ struct DashboardView: View {
         .cardStyle()
     }
 
-    // MARK: - Weight Snapshot (single number)
+}
 
-    private var weightSnapshotCard: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text("Weight")
-                .font(.headline)
-            if let latest = dataStore.weightEntries.first {
-                HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text("\(Int(latest.kg))")
-                        .font(.system(size: 40, weight: .bold, design: .rounded))
-                        .foregroundStyle(Theme.accent)
-                    Text("kg")
-                        .font(.title3)
-                        .foregroundStyle(Theme.textMuted)
-                    Spacer()
-                    VStack(alignment: .trailing) {
-                        Text(latest.date)
-                            .font(.caption)
-                            .foregroundStyle(Theme.gray)
-                        if let target = dataStore.targets.targetWeight {
-                            Text("Target: \(Int(target)) kg")
-                                .font(.caption)
-                                .foregroundStyle(Theme.accent)
+// MARK: - Compliance & Weight Chart (lines)
+
+struct ComplianceWeightChart: View {
+    let complianceTrend: [Double]
+    let weightPoints: [(day: Int, kg: Double)]
+
+    var body: some View {
+        GeometryReader { geo in
+            let w = geo.size.width
+            let h = geo.size.height
+            let pad: CGFloat = 4
+            let maxCompliance = 100.0
+            let weightKgs = weightPoints.map(\.kg)
+            let minW = (weightKgs.min() ?? 50) - 5
+            let maxW = (weightKgs.max() ?? 100) + 5
+            let weightRange = max(maxW - minW, 1)
+
+            ZStack(alignment: .bottomLeading) {
+                // Compliance line
+                if !complianceTrend.isEmpty {
+                    Path { path in
+                        let step = (w - pad * 2) / max(1, CGFloat(complianceTrend.count - 1))
+                        for (i, v) in complianceTrend.enumerated() {
+                            let x = pad + CGFloat(i) * step
+                            let y = h - pad - (v / maxCompliance) * (h - pad * 2)
+                            if i == 0 { path.move(to: CGPoint(x: x, y: y)) }
+                            else { path.addLine(to: CGPoint(x: x, y: y)) }
+                        }
+                    }
+                    .stroke(Theme.accent, lineWidth: 2)
+                }
+                // Weight line
+                if !weightPoints.isEmpty {
+                    Path { path in
+                        let step = (w - pad * 2) / 13
+                        for (i, pt) in weightPoints.enumerated() {
+                            let x = pad + CGFloat(pt.day) * step
+                            let norm = (pt.kg - minW) / weightRange
+                            let y = h - pad - CGFloat(norm) * (h - pad * 2)
+                            if i == 0 { path.move(to: CGPoint(x: x, y: y)) }
+                            else { path.addLine(to: CGPoint(x: x, y: y)) }
+                        }
+                    }
+                    .stroke(Theme.orange, lineWidth: 2)
+                }
+            }
+            .overlay(alignment: .topTrailing) {
+                HStack(spacing: 12) {
+                    if !complianceTrend.isEmpty {
+                        HStack(spacing: 4) {
+                            Circle().fill(Theme.accent).frame(width: 12, height: 12)
+                            Text("Compliance").font(.caption2).foregroundStyle(Theme.textMuted)
+                        }
+                    }
+                    if !weightPoints.isEmpty {
+                        HStack(spacing: 4) {
+                            Circle().fill(Theme.orange).frame(width: 12, height: 12)
+                            Text("Weight").font(.caption2).foregroundStyle(Theme.textMuted)
                         }
                     }
                 }
-            } else {
-                Text("No weight logged yet")
-                    .font(.subheadline)
-                    .foregroundStyle(Theme.gray)
             }
-            Button("Log weight or set goals") {
-                appState.selectedTab = 6
-            }
-            .font(.caption)
-            .buttonStyle(.bordered)
-            .tint(Theme.accent)
         }
-        .padding()
-        .cardStyle()
     }
 }

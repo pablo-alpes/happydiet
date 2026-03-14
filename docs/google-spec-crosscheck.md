@@ -22,7 +22,7 @@ This document maps Google's requirements to our implementation and identifies ga
 | Google Requirement | Our Implementation | Status |
 |--------------------|-------------------|--------|
 | **Must use Gemini Live API or ADK** | Backend WebSocket proxy at `/live`; iOS Live Coach tab connects | ✅ |
-| **Build an agent users can talk to naturally** | Live Coach: text + image; voice via realtimeInput (audio) | ✅ |
+| **Build an agent users can talk to naturally** | Live Coach: text + image; voice via realtimeInput (audio). Backend proxy translates `audio` → `media_chunks` for Vertex. | ✅ |
 | **Can be interrupted (barge-in)** | Live API supports barge-in; proxy forwards all messages | ✅ |
 | **Real-time Interaction (Audio/Vision)** | Text + image input; audio output (24kHz PCM) | ✅ |
 

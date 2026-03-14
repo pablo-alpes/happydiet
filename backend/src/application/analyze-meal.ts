@@ -29,6 +29,9 @@ export interface AnalyzeMealOutput {
   message?: string;
   ingredients?: string[];
   estimatedKcal?: number;
+  calorieWarning?: string;
+  dailyKcalTotal?: number;
+  kcalTarget?: number;
 }
 
 export async function analyzeMeal(
@@ -75,6 +78,10 @@ export async function analyzeMeal(
     detalle: processorOut.detalle,
     ingredients: readerOut.ingredients,
     estimatedKcal: readerOut.estimatedKcal,
+    calorieWarning: processorOut.calorieWarning,
+    mealKcal: processorOut.mealKcal,
+    dailyKcalTotal: processorOut.dailyKcalTotal,
+    kcalTarget: processorOut.kcalTarget,
   });
 
   return {
@@ -87,5 +94,8 @@ export async function analyzeMeal(
     message: reporterOut.message,
     ingredients: readerOut.ingredients,
     estimatedKcal: readerOut.estimatedKcal,
+    calorieWarning: reporterOut.calorieWarning,
+    dailyKcalTotal: reporterOut.dailyKcalTotal,
+    kcalTarget: reporterOut.kcalTarget,
   };
 }

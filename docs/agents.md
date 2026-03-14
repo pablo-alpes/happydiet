@@ -129,7 +129,7 @@ analyzeMeal(input, deps)
 | Entry Point | File | Invocation |
 |-------------|------|------------|
 | **HTTP** | `backend/src/infrastructure/http-handlers.ts` | `POST /analyze-meal` → `analyzeMeal()` |
-| **Live API** | `backend/src/infrastructure/live-api-proxy.ts` | Tool `analyze_meal` → `analyzeMeal()` |
+| **Live API** | `backend/src/infrastructure/live-api-proxy.ts` | Tool `analyze_meal` → `analyzeMeal()`; translates client formats (audio → media_chunks, camelCase → snake_case) for Vertex |
 
 Both HTTP and Live API tool calls invoke the same `analyzeMeal()` use case, which runs the three agents in sequence.
 

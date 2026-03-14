@@ -90,7 +90,7 @@ struct MealRow: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack {
                 VStack(alignment: .leading, spacing: 2) {
-                    if let moment = meal.mealMoment {
+                    if let moment = meal.inferredMealMoment ?? meal.mealMoment {
                         Text(moment.capitalized)
                             .font(.subheadline.bold())
                     }

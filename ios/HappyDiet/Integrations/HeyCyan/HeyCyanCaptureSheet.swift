@@ -30,7 +30,7 @@ struct HeyCyanCaptureSheet: View {
                         Label("Capture via Bluetooth", systemImage: "antenna.radiowaves.left.and.right")
                             .font(.headline)
                             .foregroundStyle(Theme.accent)
-                        Text("Scan, connect, take photo and transfer — all automatic.")
+                        Text("Scan, connect, take photo and transfer — all automatic. If it hangs at \"Scanning for glasses\", a 35s timeout will recover. Use WiFi transfer below as fallback.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
                         Button {

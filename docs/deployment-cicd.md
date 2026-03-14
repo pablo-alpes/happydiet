@@ -9,7 +9,7 @@
 ```
 ┌─────────────────┐     push/PR      ┌──────────────────┐     deploy      ┌─────────────────┐
 │  GitHub         │ ───────────────► │  Cloud Build     │ ──────────────► │  Cloud Run      │
-│  (source)       │                  │  (test + build)  │                 │  (backend)       │
+│  (source)       │   or Actions     │  (test + build)  │                 │  (backend)       │
 └─────────────────┘                  └──────────────────┘                 └─────────────────┘
                                                                                    │
                                                                                    ▼
@@ -17,6 +17,42 @@
 │  Vertex AI      │ ◄──────────────── │  Cloud Run       │
 │  Firestore      │                  │  (same project)   │
 └─────────────────┘                  └──────────────────┘
+```
+
+---
+
+## 0. Full Programmatic Bootstrap (Recommended)
+
+One command to set up GCP, deploy, and prepare CI/CD:
+
+```bash
+# Prerequisites: gcloud CLI, gcloud auth login, gcloud auth application-default login
+chmod +x scripts/*.sh
+./scripts/bootstrap-cloud.sh YOUR_PROJECT_ID
+```
+
+This script:
+
+1. Enables APIs (Vertex AI, Firestore, Cloud Run, etc.)
+2. Creates Firestore database
+3. Creates `happydiet-cicd` service account
+4. Generates SA key for GitHub Actions
+5. Deploys backend to Cloud Run
+6. Outputs instructions for GitHub secrets
+
+**GitHub Actions setup:** Add these secrets to your repo (Settings → Secrets → Actions):
+
+| Secret | Value |
+|--------|-------|
+| `GCP_PROJECT_ID` | Your GCP project ID |
+| `GCP_SA_KEY` | Contents of `scripts/.cicd-sa-key.json` (from bootstrap output) |
+
+After adding secrets, push to `main` or `master` to trigger deploy.
+
+**Optional — Cloud Build trigger:** If your repo is connected to Cloud Build, create trigger:
+
+```bash
+GITHUB_REPO_OWNER=your-org GITHUB_REPO_NAME=happydiet ./scripts/bootstrap-cloud.sh YOUR_PROJECT_ID
 ```
 
 ---
@@ -107,10 +143,14 @@ gcloud run deploy happydiet-backend \
 
 ```bash
 # From project root (happydiet/)
-gcloud builds submit --config cloudbuild.yaml backend
+gcloud builds submit --config cloudbuild.yaml .
 ```
 
-**Note:** This runs tests and deploys. The `cloudbuild.yaml` must pass `GOOGLE_CLOUD_PROJECT` to Cloud Run. See §7.
+**Note:** This runs tests and deploys. The `cloudbuild.yaml` uses `PROJECT_ID` automatically. See §7.
+
+### Option D: GitHub Actions (CI/CD)
+
+Push to `main` or `master` triggers deploy automatically. Requires secrets `GCP_PROJECT_ID` and `GCP_SA_KEY`. See §0.
 
 ---
 
@@ -166,30 +206,7 @@ Edit `ios/HappyDiet/HappyDietConfig.plist`:
 
 The config is at **repo root**: `cloudbuild.yaml`
 
-It runs tests in `backend/` and deploys from `backend/`. To pass env vars:
-
-```yaml
-# cloudbuild.yaml (add substitutions)
-substitutions:
-  _PROJECT_ID: '${PROJECT_ID}'  # Cloud Build provides this
-
-steps:
-  # ... existing steps ...
-  - name: 'gcr.io/cloud-builders/gcloud'
-    waitFor: ['test']
-    args:
-      - 'run'
-      - 'deploy'
-      - 'happydiet-backend'
-      - '--source'
-      - '.'
-      - '--region'
-      - 'us-central1'
-      - '--allow-unauthenticated'
-      - '--set-env-vars'
-      - 'GOOGLE_CLOUD_PROJECT=${_PROJECT_ID}'
-    dir: 'backend'
-```
+It runs tests in `backend/` and deploys from `backend/`. Cloud Build provides `PROJECT_ID` automatically. Substitutions `_REGION` and `_SERVICE_NAME` are configurable.
 
 ### 7.2 Connect GitHub to Cloud Build
 
@@ -233,7 +250,7 @@ Runs: `npm ci` → `npm run test:ci` → `npm run build`. See [testing.md](./tes
 | 5 | Deploy: `gcloud run deploy happydiet-backend --source backend --region us-central1 --allow-unauthenticated --set-env-vars GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID` |
 | 6 | Verify: `curl https://YOUR-URL/health` |
 | 7 | Update iOS `BACKEND_URL` to Cloud Run URL |
-| 8 | (Optional) Connect GitHub + create trigger |
+| 8 | (Optional) Connect GitHub + create trigger, or use GitHub Actions with `GCP_PROJECT_ID` + `GCP_SA_KEY` |
 
 ---
 
@@ -248,7 +265,22 @@ Runs: `npm ci` → `npm run test:ci` → `npm run build`. See [testing.md](./tes
 
 ---
 
-## 11. Summary
+## 11. Terraform (Optional IaC)
+
+For infrastructure-as-code, use Terraform:
+
+```bash
+cd infra/terraform
+cp terraform.tfvars.example terraform.tfvars
+# Edit terraform.tfvars with project_id
+terraform init && terraform apply
+```
+
+See [infra/terraform/README.md](../infra/terraform/README.md).
+
+---
+
+## 12. Summary
 
 | Question | Answer |
 |----------|--------|
@@ -256,3 +288,5 @@ Runs: `npm ci` → `npm run test:ci` → `npm run build`. See [testing.md](./tes
 | **Required env vars?** | `GOOGLE_CLOUD_PROJECT` (required); `GOOGLE_CLOUD_LOCATION` (optional, default us-central1) |
 | **Where is cloudbuild.yaml?** | Repo root; steps run in `backend/` |
 | **How to verify?** | `curl https://YOUR-URL/health` |
+| **Full bootstrap?** | `./scripts/bootstrap-cloud.sh PROJECT_ID` |
+| **GitHub Actions?** | Add `GCP_PROJECT_ID`, `GCP_SA_KEY` secrets; push to main |

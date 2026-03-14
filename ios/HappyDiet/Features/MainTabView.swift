@@ -43,9 +43,9 @@ struct MainTabView: View {
                 }
                 .tag(4)
 
-            MealsView()
+            TrackView()
                 .tabItem {
-                    Label("Meals", systemImage: "fork.knife")
+                    Label("Track", systemImage: "chart.line.uptrend.xyaxis")
                 }
                 .tag(5)
 

@@ -27,7 +27,7 @@ final class HeyCyanSDKBridge: NSObject {
         captureTimeoutTimer?.invalidate()
         captureTimeoutTimer = Timer.scheduledTimer(withTimeInterval: seconds, repeats: false) { [weak self] _ in
             guard let self, self.captureCompletion != nil else { return }
-            self.cleanupAndFail(message: "BLE capture timed out. Glasses may not have responded. Try WiFi transfer instead.")
+            self.cleanupAndFail(message: "BLE capture timed out. Use WiFi transfer (enter SSID from glasses) or Camera/Photo as fallback.")
         }
     }
 
@@ -85,7 +85,7 @@ final class HeyCyanSDKBridge: NSObject {
             break
         }
 
-        startCaptureTimeout(seconds: 25)
+        startCaptureTimeout(seconds: 45)
 
         if qc.deviceState == .connected {
             runCaptureFlow(completion: completion)
@@ -115,6 +115,9 @@ final class HeyCyanSDKBridge: NSObject {
                 self?.runCaptureFlow(completion: completion)
             }
         })
+        scanVC.onConnectionTimeout = { [weak self] in
+            self?.cleanupAndFail(message: "Connection timed out. Try: 1) Put glasses closer. 2) Use WiFi transfer (enter SSID from glasses). 3) Use Camera/Photo.")
+        }
         scanViewController = scanVC
         let nav = UINavigationController(rootViewController: scanVC)
         nav.modalPresentationStyle = .pageSheet
@@ -127,7 +130,7 @@ final class HeyCyanSDKBridge: NSObject {
 
     private func runCaptureFlow(completion: @escaping (Result<UIImage, HeyCyanError>) -> Void) {
         QCSDKCmdCreator.setDeviceMode(.photo, success: { [weak self] in
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) {
                 self?.switchToTransferAndDownload(completion: completion)
             }
         }, fail: { [weak self] mode in

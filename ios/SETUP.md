@@ -32,7 +32,7 @@ Edit `HappyDiet/HappyDietConfig.plist`:
 |--------|-------------|
 | Simulator | `http://localhost:8080` (default) |
 | Physical iPhone | `http://YOUR_MAC_IP:8080` |
-| Production | `https://YOUR-CLOUD-RUN-URL.run.app` |
+| Production (Cloud) | `https://YOUR-CLOUD-RUN-URL.run.app` |
 
 Mac IP: System Settings → Network → Wi‑Fi → Details, or `ipconfig getifaddr en0`
 
@@ -44,6 +44,20 @@ Mac IP: System Settings → Network → Wi‑Fi → Details, or `ipconfig getifa
 4. If "OK — Backend reachable (200)" appears, you're good. Go to Coach tab and connect.
 
 The in-app override persists across restarts and takes priority over the plist. Clear the field to revert.
+
+### Backend auto-discovery (physical device only)
+
+On a physical device, the app can auto-discover the backend on the local network. **No hardcoded subnets** — fully configurable per rollout:
+
+| Plist key | Purpose |
+|-----------|---------|
+| `BACKEND_DISCOVERY_ENABLED` | `false` = skip discovery (use for cloud builds) |
+| `BACKEND_DISCOVERY_SUBNETS` | Array of subnet prefixes, e.g. `["192.168.1.", "10.0.0."]` — if absent, uses device's own subnet only |
+| `BACKEND_DISCOVERY_PORT` | Port to probe (default 8080) |
+| `BACKEND_DISCOVERY_PATH` | Health path (default `/health`) |
+
+**Local dev:** No config needed — device subnet is used dynamically.  
+**Cloud deployment:** Set `BACKEND_DISCOVERY_ENABLED` = `false` and `BACKEND_URL` to your Cloud Run URL.
 
 ## 4. Run backend (separate terminal)
 
@@ -60,6 +74,23 @@ npm run dev
 ### Physical device: Apple ID signing
 
 Xcode will ask for your Apple ID to sign the app. Add it in **Xcode → Settings → Accounts**, then enable **Automatically manage signing** in the target's **Signing & Capabilities**. A free Apple ID works; the app may expire after ~7 days.
+
+## Background Modes & Capabilities
+
+The iOS target includes several background modes in `Info.plist` (`UIBackgroundModes`) to support HeyCyan and future features:
+
+| Mode | Purpose |
+|------|---------|
+| `bluetooth-central` | BLE scanning/connection to HeyCyan glasses |
+| `bluetooth-peripheral` | BLE peripheral role for HeyCyan |
+| `audio` | Live Coach voice playback in background |
+| `fetch` | Background data refresh |
+| `processing` | Background task processing |
+| `location` | Location-based features (if needed) |
+| `nearby-interaction` | U1/Nearby Interaction (HeyCyan) |
+| `external-accessory` | MFi accessories |
+
+**Privacy descriptions** (Info.plist): Bluetooth, Camera, Microphone, Photo Library, Local Network — required for HeyCyan and Live Coach.
 
 ## HeyCyan SDK (Lenses BLE)
 

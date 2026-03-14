@@ -6,6 +6,7 @@
 *.key
 credentials.json
 service-account*.json
+scripts/.cicd-sa-key.json
 
 # Dependencies
 node_modules/
@@ -54,3 +55,8 @@ coverage/
 
 # GCP / Cloud
 .gcloud/
+
+# Terraform
+infra/terraform/.terraform/
+infra/terraform/*.tfstate*
+infra/terraform/terraform.tfvars

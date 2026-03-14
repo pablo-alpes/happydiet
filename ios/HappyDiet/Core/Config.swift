@@ -24,6 +24,10 @@ enum HappyDietConfig {
            url.scheme != nil, url.host != nil {
             return url
         }
+        if let discovered = BackendDiscovery.discoveredURL,
+           let url = URL(string: discovered), url.scheme != nil, url.host != nil {
+            return url
+        }
         guard let path = Bundle.main.path(forResource: "HappyDietConfig", ofType: "plist"),
               let dict = NSDictionary(contentsOfFile: path) as? [String: Any],
               let urlString = dict["BACKEND_URL"] as? String, !urlString.isEmpty,

@@ -22,6 +22,7 @@ struct HappyDietApp: App {
                     MainTabView()
                         .environmentObject(appState)
                         .environmentObject(coachData)
+                        .onAppear { startBackendDiscovery() }
                 }
             }
             .environmentObject(appState)
@@ -31,5 +32,15 @@ struct HappyDietApp: App {
 
     private func enterApp() {
         seenHero = true
+        startBackendDiscovery()
+    }
+
+    private func startBackendDiscovery() {
+        BackendDiscovery.discover { [weak appState] url in
+            guard url != nil, let appState else { return }
+            Task { @MainActor in
+                appState.backendDiscoveredVersion += 1
+            }
+        }
     }
 }

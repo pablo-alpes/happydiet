@@ -1,273 +1,237 @@
-# LinkedIn Article Draft — HappyDiet
+# Friction Kills Compliance: How I Built an AI Diet Coach with Gemini Live API
 
-**Purpose:** LinkedIn article for the Gemini Live Agent Challenge submission (bonus content). Targets Google judges, the developer community, investors, and healthtech stakeholders.
-
-**Author:** Pablo Miranda  
-**LinkedIn:** linkedin.com/in/pablomirandamba/  
-**Suggested publish date:** Before March 16, 2026 (challenge deadline)
+**Author:** Pablo Miranda
+**LinkedIn:** [linkedin.com/in/pablomirandamba/](https://linkedin.com/in/pablomirandamba/)
+**Built for:** [Gemini Live Agent Challenge](https://geminiliveagentchallenge.devpost.com) — Deadline: March 16, 2026
 
 ---
 
-## Title Options (pick one)
+Last year, a nutritionist at a clinic in Madrid told me something that stuck: *"I prescribe a diet plan, the patient nods, walks out the door, and I have zero visibility into what happens for the next four weeks — until they come back and the scale tells us the truth."*
 
-1. **How I Built an AI Diet Coach Using Google's Gemini Live API — And Why Nutrition Compliance Needs It**
-2. **Friction Kills Compliance: How I'm Rebuilding Diet Tracking with Gemini Vision and Voice**
-3. **See, Hear, Speak: Building HappyDiet — An AI Coach That Understands Your Plate**
+That gap — between prescription and adherence — is the problem I built HappyDiet to solve.
 
----
+**80% of diet plans fail by week 8.** Not because the plans are bad. Because tracking is friction, and friction happens at the worst possible moment: at the table, with food in front of you. Every diet app on the market asks you to search a database, weigh portions, log macros. By the time you've done all that, the meal is cold and the habit is dead.
 
-## Article
+And here's the thing nobody talks about: **those apps measure the wrong thing.** They count calories. But that's not what doctors prescribe. Doctors prescribe *rules* — forbidden foods, allowed foods, portion limits, specific notes. "No gluten." "Max 2 coffees per day." "Stay under 1,800 kcal." No tool on the market measures whether you actually followed those rules.
 
----
-
-### Nutrition Is the Only Major Health Driver Without Measurable Feedback
-
-Think about it. We have wearables for heart rate, blood pressure, sleep, and step count — all measured objectively, in real time. But nutrition? The single factor most controllable by patients and most impactful for prevention? We still rely on self-reported food diaries and calorie-counting apps that most people abandon within weeks.
-
-The numbers are stark:
-
-- **80% of diet plans fail by week 8.**
-- Manual food tracking creates friction at the exact moment it matters most — at the table, with food in front of you.
-- Clinics and insurers lack objective adherence data. Nutritionists prescribe plans, patients nod, and then real life happens.
-
-The digital health market exceeds **$20 billion**, and the top players focus heavily on calories as the key metric. But real diet compliance is not about counting calories — it is about following rules: what is forbidden, what is allowed, what has a daily limit. That is what nutritionists actually prescribe, and that is what no tool measures well today.
-
-**Friction kills compliance.** I built HappyDiet to fix that.
+I built HappyDiet to fix that. **Take a photo of your meal, and an AI coach tells you — instantly, out loud — whether you're on track with your diet.** No typing. No searching. No calorie math. Just point, shoot, and listen.
 
 ---
 
-### What Is HappyDiet
+## The Intelligent Loop: See, Think, Speak
 
-**HappyDiet automates nutrition tracking — from your meal to insight and compliance.**
+Under the surface, every meal goes through a 3-stage agent pipeline I call **See, Think, Speak**:
 
-The concept is simple: **take a photo of your meal, and an AI coach tells you — instantly, out loud — whether you are on track with your diet.** No typing. No searching food databases. No calorie math. Just point, shoot, and listen.
+**Stage 1 — See (Reader Agent)**
+The meal photo is sent to **Vertex AI (Gemini 2.5 Flash Vision)**. The model identifies every ingredient on the plate, estimates total calories, and returns structured JSON. A parrillada becomes: `["grilled chicken", "chorizo", "grilled peppers", "chimichurri", "bread"]` with an estimated 2,400 kcal.
 
-But behind that simplicity is what I call **The Intelligent Loop**:
+**Stage 2 — Think (Processor Agent)**
+The extracted ingredients are matched against your personal diet rules stored in **Firestore**. The Rule Engine uses three layers of matching:
+- **Precise matching** — exact keyword hits ("chorizo" matches "chorizo")
+- **Fuzzy matching** — word-overlap similarity >= 0.6 ("grilled peppers" ≈ "peppers")
+- **LLM semantic matching** — Gemini reasoning ("bread" violates "no gluten" — not a keyword match, that's AI understanding that bread contains gluten)
 
-1. **AI reads the diet plan** issued by the nutritionist (text, image, handwritten notes) and parses it into structured, executable rules
-2. **The Rule Engine** defines compliance logic — forbidden items, allowed items, portion limits, notes
-3. **Vision AI matches meals** — the patient snaps a photo, and Gemini identifies every ingredient on the plate
-4. **The Rule Engine confirms compliance** — each ingredient is checked against the personal diet rules using fuzzy and semantic matching
-5. **The Dashboard shows adherence** — for the patient in real time, and ready for the doctor's follow-up
+The Processor calculates a compliance score, applies calorie penalties (meal-level and daily totals), flags non-compliant items, and persists the meal to Firestore.
 
-This transforms meal tracking from **passive logging to active behavioral guidance**.
+**Stage 3 — Speak (Reporter Agent)**
+The compliance result is transformed into a human-friendly message: score, what was good, what was off-plan, calorie warnings, and actionable suggestions. This message is delivered as text and spoken aloud via the **Gemini Live API** — a real-time voice conversation the user can interrupt, question, and learn from.
+
+```
+📸 Meal photo
+  → Reader (Gemini Vision: what's on the plate?)
+  → Processor (Rule Engine: is this allowed? How many kcal today?)
+  → Reporter (Coach: here's what I think, here's what to do next)
+  → Voice output (Gemini Live API — real-time, interruptible)
+```
+
+This is not another calorie counter. This is **the first tool that measures real dietary compliance** — the thing nutritionists actually prescribe — and coaches you while you can still make a different choice.
 
 ---
 
-### The Rule Engine — Our Superpower
+## Why Voice-First Changes Everything
+
+The flagship feature is the **Live Coach**, powered by the Gemini Live API.
+
+Users open a voice conversation with the AI. They can speak naturally: *"Hey coach, I'm about to eat this pasta — is it okay?"* They can share a meal photo mid-conversation. The coach analyzes it in real time, calls the backend as a tool, and speaks the compliance verdict. If the user interrupts, the coach stops and listens. That's barge-in — and it's what makes this feel like talking to a person, not using an app.
+
+This matters because **the people who need diet help the most are the ones traditional apps fail:**
+- The elderly, who struggle with tiny search bars and food databases
+- Low-literacy populations, who can't navigate complex UIs
+- Busy parents, who don't have 5 minutes to log every meal
+- Anyone who just wants a simple answer: *"Am I on track?"*
+
+Voice-first, photo-based interaction removes every one of those barriers. You point your camera and listen. That's it.
+
+---
+
+## The Rule Engine: Our Moat
 
 Most diet apps stop at "you ate 1,800 calories." That tells you nothing about whether the specific foods you ate are allowed by your specific plan.
 
-HappyDiet's Rule Engine **transforms dietary logic into executable and persistent rules** that the system can enforce meal after meal. It understands four rule types:
+HappyDiet's Rule Engine transforms dietary logic into **executable, persistent rules** that the system enforces meal after meal:
 
 | Type | Example | Purpose |
 |------|---------|---------|
-| **Forbidden** | No sugar, no soda, no white bread | Items the patient must avoid |
+| **Forbidden** | No gluten, no soda, no fried foods | Items the patient must avoid |
 | **Allowed** | Vegetables, lean protein, whole grains | Explicitly permitted foods |
 | **Limit** | Max 2 coffees per day | Portion or frequency constraints |
-| **Note** | Stay under 1,800 kcal, eat before 8pm | General instructions |
+| **Note** | Stay under 1,800 kcal, eat before 8 PM | General instructions and calorie targets |
 
-The matching goes beyond simple keywords. When a patient photographs a sandwich and the rule says "no gluten," the system understands that **bread contains gluten** — that is not keyword matching, that is AI reasoning. We combine precise matching, fuzzy word-overlap matching (similarity >= 0.6), and **LLM semantic matching** powered by Gemini.
+The semantic matching is what sets it apart. When a patient photographs a sandwich and the rule says "no gluten," the system understands that **bread contains gluten**. That's not keyword matching — that's Gemini reasoning about food composition. We combine precise, fuzzy, and LLM semantic matching to catch what simpler systems miss.
 
-The Rule Engine remains **adaptive and explainable**. Combined with AI, it enables coaching on deviations, weekly meal plans, and even supermarket purchase lists — all grounded in the actual rules the nutritionist prescribed.
-
----
-
-### Why Google Cloud and Gemini
-
-When Google announced the **Gemini Live Agent Challenge** — asking developers to go beyond static chatbots and create immersive, multimodal experiences — I knew it was the right moment to rebuild HappyDiet's architecture on a production-grade stack.
-
-I had already validated the concept with a PoC running on a multimodal LLM with the business logic built into a prompt (rule engine, dataset, reporting). But to scale, the system needed a proper architecture — microservices, persistent storage, real-time voice interaction. Google Cloud gave me all of that.
-
-| Layer | Technology | Why |
-|-------|-----------|-----|
-| **Vision** | Vertex AI (Gemini 2.5 Flash) | Understands food photos — ingredients, estimated calories, context |
-| **Conversation** | Gemini Live API | Real-time voice interaction with barge-in — users can interrupt and ask follow-ups naturally |
-| **Hosting** | Cloud Run | Serverless, scales to zero, deploys in seconds |
-| **Storage** | Firestore | Two collections — `meals` for tracking, `diet_rules` for personalized plans |
-| **Voice** | Cloud Text-to-Speech | Natural-sounding compliance feedback |
-| **SDK** | @google-cloud/vertexai (GenAI SDK) | Official Node.js client, clean integration |
-
-Every component runs on Google Cloud. The entire backend is a single Cloud Run service — no external dependencies, no third-party AI providers. **AI runs across the entire value chain**: LLM + AI Vision → Rule Engine → Dashboard → Insights + AI.
+**Calorie-aware scoring** adds another dimension. A meal can have compliant ingredients but still be a calorie bomb. The system tracks meal-level calories against progressive thresholds and daily totals against the user's kcal target. A 4,000 kcal parrillada gets flagged hard, even if every ingredient is technically allowed. This was calibrated through real user testing and iterative threshold tuning.
 
 ---
 
-### The Architecture: Three Agents, One Pipeline
+## The Competitive Landscape: What Exists and What's Missing
 
-HappyDiet uses a **3-stage agent pipeline** to process every meal:
+The AI-for-food space is growing fast. Here's what's out there:
 
-**Stage 1 — Reader Agent** (See)
-Takes the meal image, sends it to Vertex AI Vision, and extracts structured data: ingredients, estimated calories, and visual context.
+| Product | Focus | What it lacks |
+|---------|-------|---------------|
+| **[Calorie Lens](https://ai.google.dev/competition/projects/calorie-lens)** (Google AI winner) | Calorie estimation + allergens | No personalized rule compliance |
+| **[NutriLens AI](https://www.nutrilensai.net/)** | Image-based nutrition analysis | No rule matching or voice coaching |
+| **[FoodLens AI](https://foodlens-ai.com/)** | Allergen/label scanning | Label-focused, not meal compliance |
+| **[Azumio Food Lens](https://www.azumio.com/solutions/food-lens/overview)** | API for food recognition (5,000+ dishes) | No end-user compliance loop |
+| **[DietGlance](https://arxiv.org/abs/2502.01317)** (academic, 2025) | Wearable AI dietary monitoring | Research only; no production app, no rule engine |
 
-**Stage 2 — Processor Agent** (Think)
-Loads the user's diet rules from Firestore and matches each detected ingredient against them — precise, fuzzy, and semantic. Produces a compliance score and a breakdown of compliant vs. non-compliant items. Persists the meal to Firestore.
+**What they all share:** they tell you *what* you ate (calories, nutrients, allergens). **What none of them do:** tell you *whether what you ate aligns with the dietary rules your doctor prescribed* — and coach you about it in real time.
 
-**Stage 3 — Reporter Agent** (Speak)
-Composes a human-friendly message with the verdict, suggestions, and encouragement. Delivered as JSON to the client and spoken aloud via the Live API or Cloud TTS.
-
-```
-User snaps a photo
-    → Reader (Vision: what's on the plate?)
-    → Processor (Rules: is this allowed?)
-    → Reporter (Coach: here's what I think)
-    → Voice output (Live API or TTS)
-```
-
-The **Gemini Live API** acts as the conversational agent — users talk to it, it can be interrupted (barge-in), and it calls the backend as a tool when it needs to analyze a meal. I call this the **See, Hear, Speak** paradigm.
+A [2024 systematic review (PMC)](https://pmc.ncbi.nlm.nih.gov/articles/PMC11621677/) confirms the gap: AI tools for food recognition are advancing, but **real-time compliance feedback tied to individual dietary prescriptions** remains an open problem. HappyDiet is built precisely for that gap.
 
 ---
 
-### Real-Time Feedback, Not Passive Logging
+## The Stack: Built Entirely on Google Cloud
 
-This is the shift that matters. Traditional diet apps ask you to log what you ate after the fact. HappyDiet gives you feedback **in the moment**, while you can still make a different choice.
+| Layer | Service | Role |
+|-------|---------|------|
+| **Vision** | Vertex AI (Gemini 2.5 Flash) | Food photo → ingredients, kcal, context |
+| **Conversation** | Gemini Live API | Real-time voice with barge-in, tool calls |
+| **Semantic matching** | Vertex AI (Gemini) | "bread" violates "no gluten" — AI reasoning |
+| **Diet parsing** | Vertex AI (Gemini) | Handwritten/text diet plans → structured rules |
+| **Hosting** | Cloud Run | Serverless backend, scales to zero |
+| **Storage** | Firestore | `meals` collection + `diet_rules` collection |
+| **Voice** | Cloud Text-to-Speech | Natural compliance feedback audio |
+| **SDK** | @google-cloud/vertexai (GenAI SDK) | Official Node.js client |
+| **CI/CD** | Cloud Build | Tests before deploy, automated |
 
-**Live Coach** — The flagship feature. Users open a voice conversation with the AI coach. They can speak naturally ("I'm about to eat this pasta"), share a meal photo, and the coach responds in real time. If the user interrupts, the coach stops and listens. Powered by Gemini Live API with WebSocket streaming.
-
-**Trend-Awareness and Gentle Reminders** — HappyDiet identifies deviations and trends over time. "Your dinners have been off-plan 4 of the last 7 days." "You've been really consistent at breakfast — keep it up." The coach provides gentle reminders and insights on patterns — behavioral guidance, not shame.
-
-**Personalized Meal Plans** — Given its knowledge of the diet rules, the AI can suggest what to eat next: a compliant lunch, a weekly meal plan, or even a grocery list. All grounded in the actual rules prescribed by the nutritionist.
-
----
-
-### Early Validation
-
-This is not a theoretical exercise. Before building the current version, I validated the concept with a local nutrition clinic. Their reaction was telling: they called it **"ground-breaking"** and asked to be on the waitlist for the SaaS service.
-
-The gap they described is the same one every nutritionist faces: they prescribe a plan, the patient goes home, and the nutritionist has no idea what happens next until the follow-up appointment weeks later. HappyDiet fills that gap with real, objective compliance data — generated automatically from meal photos, not self-reported.
+**AI runs across the entire value chain** — from reading the diet plan, to understanding the meal photo, to reasoning about rule compliance, to speaking the verdict. No external AI providers. No third-party services. Everything runs on Google Cloud.
 
 ---
 
-### Two Journeys: B2C and B2B
+## The Engineering Journey: From Prompt to Production
 
-HappyDiet serves both sides of the table:
+I want to be transparent about the process. Building AI products is messy, and I think the honest story matters.
 
-**B2C — Effortless daily tracking.** Patients use the app to photograph meals and get instant compliance feedback. Voice-first coaching removes the literacy and tech-savviness barriers that traditional diet apps impose. Not everyone is comfortable typing food names into search bars. But everyone can point a camera and listen.
+**Phase 1 — One giant prompt.** The first HappyDiet was a single Gemini prompt containing all the logic: diet rules, matching, scoring, response. It worked for demos. It was also fragile, untestable, and impossible to maintain.
 
-**B2B — Clinics and insurers gain measurable data.** Nutritionists prescribe a diet, patients use HappyDiet, and the clinic receives real adherence data — not estimates. Insurers get the objective prevention metrics they have been missing. The dashboard is ready for the doctor's follow-up on day one.
+**Phase 2 — Architecture-first rebuild.** I redesigned the entire system before writing code. Two Firestore collections, a 3-agent pipeline, clean separation between AI inference and deterministic logic. The Rule Engine is pure code — no LLM in the loop for matching, except as a final semantic fallback. Fast, predictable, testable.
 
-This dual model opens a clear path:
+**Phase 3 — Test-driven development.** The backend has **108 tests across 11 test suites** — unit, integration, E2E, and user-acceptance. **100% statement coverage** on all domain and application code. Tests run before every deploy. This discipline saved me repeatedly, especially when calibrating calorie penalties: change a threshold, run tests, verify no regressions.
 
-| Phase | Focus |
-|-------|-------|
-| **Phase 1** | B2B SaaS / API for clinics and insurers |
-| **Phase 2** | Consumer freemium app |
-| **Phase 3** | Analytics insights and integrations |
-| **Phase 4** | AI wearable devices (smart glasses and beyond) |
+**Phase 4 — Live API integration.** The hardest part. I built a WebSocket proxy that translates between the client's camelCase and Vertex's snake_case, intercepts tool calls, executes the analysis pipeline, and returns structured results for the model to speak. Getting barge-in, audio streaming, and tool call interception to work together required careful state management.
 
----
+**Phase 5 — Calorie calibration.** Real users tested the app and reported that a 4,000 kcal barbecue scored 71% compliant. That exposed a gap: the Rule Engine checked ingredients correctly but ignored caloric excess. I added progressive calorie penalties (meal-level and daily totals), daily kcal tracking in Firestore, and calorie warnings in the coach's response. The scoring now reflects both *what* you eat and *how much*.
 
-### The Social Impact
-
-**Making healthy eating accessible to everyone** is not a tagline — it is the design principle.
-
-Voice-first coaching removes barriers. Personalized support without judgment removes shame. When you eat something off-plan, HappyDiet tells you what happened and what you might do next — not that you failed. Because lasting change starts with understanding, not shame.
-
-The framework is scalable beyond nutrition. The same architecture — AI vision, rule engine, compliance scoring, behavioral coaching — can extend into broader **lifestyle and chronic condition management**. Diabetes management, post-surgery recovery diets, allergy tracking. The Rule Engine does not care whether the rule is "no sugar" or "no high-sodium foods" — it enforces whatever the clinician prescribes.
+**What I learned:** The biggest challenge was not the AI — it was the **glue**. API format translation, WebSocket reconnections, audio state, scoring calibration, deterministic edge cases. The AI reasoning is the headline; the engineering makes it actually work.
 
 ---
 
-### What I Learned Building This
+## Innovation: What Makes This Different
 
-**1. Validate the need before the stack.** The clinic validation came first. The technology choice came after. Google Cloud and Gemini were selected because they matched the requirements — multimodal vision, real-time voice, scalable hosting — not the other way around.
+The **Gemini Live Agent Challenge** asks for experiences that go "beyond the text box" — multimodal, real-time, context-aware. Here's how HappyDiet delivers on each dimension:
 
-**2. A clear mental model beats more time.** I designed the 3-agent pipeline, the two Firestore collections, and the tool contract on paper before writing code. When the architecture is clear, implementation feels like filling in the blanks.
+| Dimension | How HappyDiet delivers |
+|-----------|----------------------|
+| **Multimodal input** | Camera (meal photos) + voice + text — all in one conversation |
+| **Multimodal output** | Spoken compliance verdict + visual dashboard + text breakdown |
+| **Real-time** | Live API WebSocket — no request/response delay, continuous conversation |
+| **Context-aware** | Rules are personal (per-user Firestore), daily calorie tracking persists, trends build over time |
+| **Barge-in** | Users interrupt the coach mid-sentence; it stops and listens |
+| **Tool use** | The Live API agent calls `analyze_meal` as a tool — the backend does the real work |
+| **Beyond text box** | Voice-first design: the primary interaction is speaking and listening, not typing |
 
-**3. Gemini is genuinely multimodal.** Passing a food photo to Gemini and getting back structured JSON with ingredients and calories — that just works. The semantic understanding is strong enough to catch "bread contains gluten" when matching against a gluten-free rule. That is not keyword matching; that is reasoning.
-
-**4. The Live API changes everything.** Traditional REST APIs feel transactional. The Live API feels conversational. Users can talk, interrupt, ask follow-ups, share images mid-conversation. It is what diet coaching should feel like — a conversation, not a form.
-
-**5. The Rule Engine is the moat.** Anyone can call a vision API. The differentiation is in **what you do with the ingredients** — matching them against persistent, personalized, explainable rules that evolve with the patient's diet. That is the superpower.
+**The paradigm shift:** Traditional diet apps are forms you fill out. HappyDiet is a conversation you have. That's the difference between passive logging and active behavioral guidance.
 
 ---
 
-### What's Next
+## Impact: Why This Matters Beyond Technology
+
+Diet-related diseases are the leading preventable cause of death worldwide ([WHO, 2025](https://www.who.int/europe/news/item/25-06-2025-1.8-million-avoidable-deaths-annually-in-europe)). The burden falls hardest on those with the least access to professional guidance.
+
+**Accessibility.** Voice-first, photo-based interaction makes dietary coaching accessible to the elderly, low-literacy populations, people with disabilities, and anyone who struggles with traditional app UIs. No typing. No databases. No math.
+
+**Clinical visibility.** Nutritionists prescribe diets and lose visibility for weeks. HappyDiet generates objective adherence data — automatically, from meal photos. The dashboard is ready for the doctor's follow-up on day one.
+
+**Coaching without shame.** Diet culture is saturated with guilt. HappyDiet tells you what happened and what to do next — not that you failed. Lasting behavioral change starts with understanding, not punishment.
+
+**The framework scales.** The architecture — AI vision, rule engine, compliance scoring, voice coaching — applies to any domain where a professional prescribes rules and a patient needs real-time adherence support. Diabetes management. Post-surgery recovery. Allergy tracking. The Rule Engine doesn't care whether the rule is "no sugar" or "no high-sodium foods."
+
+---
+
+## Early Validation
+
+Before building the current version, I validated the concept with a local nutrition clinic. Their reaction: they called it **"ground-breaking"** and asked to be on the waitlist for the SaaS service.
+
+The gap they described is the same one every nutritionist faces: prescribe a plan, patient goes home, zero data until the follow-up. HappyDiet fills that gap with real, objective compliance data — generated automatically from meal photos.
+
+---
+
+## What's Next
 
 - **2026:** Pilot with digital health clinics in Madrid and Paris
-- **2027:** API integrations and scaling for insurers and AI wearables
-- **Smart glasses:** HeyCyan integration for hands-free, first-person meal capture — true See, Hear, Speak
-- **Doctor-facing reports:** Aggregate compliance data into weekly reports that nutritionists can use in follow-ups
-- **Proactive coaching:** Nudges, score alerts, trend-aware suggestions powered by Gemini
+- **2027:** API integrations for insurers and clinical platforms
+- **Smart glasses:** HeyCyan integration — hands-free, first-person meal capture. True See, Hear, Speak.
+- **Doctor-facing reports:** Weekly aggregate compliance data for clinical follow-ups
+- **Proactive coaching:** Score alerts, trend nudges, pattern detection
 
-HappyDiet is looking for pilot partners (clinics, nutritionists, insurers) and preparing for a pre-seed round. If you are working in digital health, nutrition, or AI-driven prevention — I would love to connect.
-
----
-
-### Try It
-
-HappyDiet is built for the **Gemini Live Agent Challenge** and runs entirely on Google Cloud.
-
-- **Web:** Open the Cloud Run URL in any browser — no install required
-- **iOS:** Native app with camera, photo library, and Live Coach
-- **Code:** Public repository with full README, architecture diagrams, and 61 tests
+HappyDiet is looking for pilot partners (clinics, nutritionists, insurers) and preparing for a pre-seed round. If you work in digital health, nutrition, or AI-driven prevention — I'd love to connect.
 
 ---
 
-*Pablo Miranda — Founder & CEO, HappyDiet. MSc (c) Computer Science, MBA, BSc Software Engineering & Political Science. 12+ years in (re)insurance, business intelligence, cybersecurity, and data protection (GDPR, HIPAA, DORA, AI Act) across Europe, US, and Latam. Now building AI systems that automate nutritional adherence and compliance reporting.*
+## Try It
 
-*linkedin.com/in/pablomirandamba/*
+HappyDiet runs entirely on Google Cloud. Built for the Gemini Live Agent Challenge.
+
+- **Web:** Open the Cloud Run URL — no install needed. Live Coach, Analyze, Diet Rules, Dashboard.
+- **iOS:** Native app with camera, photo library, Live Coach, and HeyCyan glasses support.
+- **Code:** Public repository with full README, architecture diagrams, and 108 tests (100% coverage).
 
 ---
 
-## Suggested LinkedIn Post (Short Version for Feed)
+*Pablo Miranda — Founder & CEO, HappyDiet. MSc (c) Computer Science, MBA, BSc Software Engineering & Political Science. 12+ years in (re)insurance, business intelligence, cybersecurity, and data protection (GDPR, HIPAA, DORA, AI Act) across Europe, US, and Latam. Now building AI that automates nutritional adherence and compliance reporting.*
 
-> **Nutrition is the only major health driver without measurable feedback.** We have wearables for heart rate, sleep, and steps. But diet? Still relies on self-reported logs that 80% of people abandon by week 8.
+*[linkedin.com/in/pablomirandamba/](https://linkedin.com/in/pablomirandamba/)*
+
+---
+
+## LinkedIn Post (Short Version for Feed)
+
+> **80% of diets fail by week 8. Not because the plans are bad — because tracking creates friction at the worst moment: at the table, with food in front of you.**
 >
-> I built **HappyDiet** — an AI diet coach that works like this: take a photo of your meal, and the AI tells you out loud whether you are on track with your diet. No typing. No calorie math. Just point, shoot, and listen.
+> I built **HappyDiet** — an AI diet coach powered by **Gemini Live API**. Take a photo of your meal, and it tells you *out loud* whether you're on track with *your* diet. No typing. No calorie math. Point, shoot, listen.
 >
-> Under the hood: a 3-agent pipeline on Google Cloud. Vertex AI for vision. Gemini Live API for real-time voice. A Rule Engine that transforms dietary logic into executable compliance checks — our superpower.
+> Under the hood: Gemini Vision identifies every ingredient. A Rule Engine matches them against your personal diet rules (forbidden, allowed, limits). The Gemini Live API delivers the verdict as a real-time voice conversation — with barge-in, so you can interrupt and ask follow-ups naturally.
 >
-> A nutrition clinic called it "ground-breaking." Clinics and insurers finally get objective adherence data. Patients get a coach that guides without judging.
+> The gap: every diet app counts calories. None of them check whether what you ate aligns with the specific rules your doctor prescribed. That's what nutritionists actually care about. That's what HappyDiet does.
 >
-> Built for the #GeminiLiveAgentChallenge. Running entirely on #GoogleCloud. Piloting in Madrid & Paris in 2026.
+> **108 tests. 100% coverage. 3-agent pipeline. Entirely on Google Cloud.**
 >
-> Full article below. Would love your thoughts — especially from anyone in digital health, nutrition, or AI-driven prevention.
+> Full article below 👇
 >
-> #AI #Gemini #VertexAI #CloudRun #HealthTech #LiveAPI #GenAI #DigitalHealth #NutritionTech #SocialImpact
+> #GeminiLiveAgentChallenge #GoogleCloud #VertexAI #GeminiAPI #LiveAPI #CloudRun #Firestore #GenAI #HealthTech #DigitalHealth #AI #VoiceFirst #Accessibility
 
 ---
 
-## Suggested Visuals
+## Images to Include
 
-1. **Hero image** — The HappyDiet hero image (healthy meal, clean styling) — at `backend/public/happydiet-hero.jpg`
-2. **Architecture diagram** — The 3-agent pipeline system diagram from `docs/architecture-diagram.md`
-3. **The Intelligent Loop** — Infographic: Diet Plan → Rule Engine → Vision AI → Compliance → Dashboard (matches pitch deck slide 5)
-4. **App screenshots** — Web showcase (Live Coach with a conversation), compliance card, dashboard with meal history
-5. **Rule Engine visual** — The four rule types: Forbidden (red), Allowed (green), Limit (orange), Note (gray) — matches the website's rule cards
-6. **Founder photo** — Professional headshot for the author bio
+When publishing, add these visuals at the relevant section breaks:
 
----
-
-## Hashtags
-
-`#GeminiLiveAgentChallenge` `#GoogleCloud` `#VertexAI` `#GeminiAPI` `#LiveAPI` `#CloudRun` `#Firestore` `#GenAI` `#HealthTech` `#DigitalHealth` `#NutritionTech` `#AI` `#DietCoach` `#Multimodal` `#VoiceFirst` `#Accessibility` `#SocialImpact` `#PreventionHealth` `#B2BSaaS`
-
----
-
-## Cross-Reference: Pitch Deck Slides → Article Sections
-
-| Pitch Deck Slide | Article Section |
-|------------------|-----------------|
-| 1. The Problem | "Nutrition Is the Only Major Health Driver..." |
-| 2. The Opportunity | Market stats in opening section |
-| 3. Solution Overview | "What Is HappyDiet" |
-| 4. Proof of Concept | "Early Validation" |
-| 5. The Intelligent Loop | "What Is HappyDiet" — the 5-step loop |
-| 6. Real-time Feedback | "Real-Time Feedback, Not Passive Logging" |
-| 7. Trend-awareness | "Trend-Awareness and Gentle Reminders" |
-| 8. Personalized meal plan | "Personalized Meal Plans" |
-| 9. The Rule Engine | "The Rule Engine — Our Superpower" |
-| 10. Technical Architecture | "Why Google Cloud and Gemini" + "The Architecture" |
-| 11. B2C & B2B Journeys | "Two Journeys: B2C and B2B" |
-| 12. Business Model | Phase table in "Two Journeys" |
-| 13. Go-To-Market | "What's Next" |
-| 14. Founder & Next Steps | Author bio + "What's Next" |
-
----
-
-## Notes for Author
-
-- **Investor angle:** The article is structured as a thought-leadership piece but contains all investor pitch elements (market, problem, solution, validation, business model, GTM, team). It can be shared with investors as "here's the public narrative" alongside the deck.
-- **Google compliance:** Every required Google service is named (Gemini, Vertex AI, Cloud Run, Firestore, GenAI SDK). The judging language is used throughout ("See, Hear, Speak", "beyond text box", "multimodal", "Live & context-aware").
-- **Challenge bonus:** The Gemini Live Agent Challenge awards bonus points for content (blog, podcast). Publish before March 16.
-- **Tone:** Professional, personal ("I built", "I validated"), and narrative-driven. The pitch deck's punchy one-liners are woven into the article's longer-form storytelling.
-- **No sensitive data:** The article does not include email addresses, API keys, or internal URLs. The author bio uses the public LinkedIn URL only.
+1. **Cover image** — Use `happydiet-hero.jpg` or a screenshot of the web showcase hero
+2. **After "The Intelligent Loop"** — Screenshot of the architecture diagram from the web showcase page
+3. **After "The Rule Engine"** — Screenshot of the Diet Rules tab showing the emoji food cards (Forbidden red, Allowed green, Limit orange)
+4. **After "The Competitive Landscape"** — The comparison table renders well in LinkedIn articles as-is
+5. **After "The Stack"** — Screenshot of the web showcase Architecture section (layered diagram)
+6. **After "The Engineering Journey"** — Screenshot of the test output (108 passed, 100% coverage)
+7. **After "Impact"** — Screenshot of the Live Coach conversation (voice interaction with meal analysis)
+8. **Author bio** — Your professional headshot

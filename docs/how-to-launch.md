@@ -70,7 +70,7 @@ In Xcode:
 
 ### 3.1 Configure backend URL
 
-**Option A — In-app Settings (recommended):** Open the app → **More** → **Settings** → set Backend URL to `http://YOUR_MAC_IP:8080` (e.g. `http://192.168.1.5:8080`) → Save. Reconnect the Coach tab to use the new URL.
+**Option A — In-app Settings (recommended):** Open the app → **More** → **Settings** → set Backend URL to `http://YOUR_MAC_IP:8080` (e.g. `http://192.168.0.21:8080`). You can enter `192.168.0.21:8080` — it will add `http://` automatically. Tap **Save** → **Test Connection**. Reconnect the Coach tab to use the new URL.
 
 **Option B — Edit plist:** Edit `ios/HappyDiet/HappyDietConfig.plist` and set `BACKEND_URL` to `http://YOUR_MAC_IP:8080`.
 

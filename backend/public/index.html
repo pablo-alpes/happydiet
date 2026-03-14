@@ -67,21 +67,25 @@
     .rule-section:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
     .rule-section h3 { font-size: 1rem; margin: 0 0 0.75rem 0; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; letter-spacing: 0.01em; }
     .rule-section .why { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.6rem; line-height: 1.45; font-style: italic; }
-    .rule-items { display: flex; flex-wrap: wrap; gap: 0.5rem; }
-    .rule-items span { padding: 0.4rem 0.8rem; border-radius: 10px; font-size: 0.9rem; font-weight: 500; }
-    .rule-section.not-allowed { background: linear-gradient(135deg, rgba(214,40,40,0.08) 0%, rgba(185,28,28,0.04) 100%); border-left-color: #d62828; }
+    .rule-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 0.6rem; }
+    .rule-item-card { display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.9rem; border-radius: 12px; font-size: 0.88rem; font-weight: 500; transition: transform 0.15s ease, box-shadow 0.15s ease; }
+    .rule-item-card:hover { transform: translateY(-1px); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .rule-item-card .food-emoji { font-size: 1.3rem; flex-shrink: 0; line-height: 1; }
+    .rule-item-card .food-name { line-height: 1.3; }
+    .rule-section.not-allowed { background: linear-gradient(135deg, rgba(214,40,40,0.06) 0%, rgba(185,28,28,0.02) 100%); border-left-color: #d62828; }
     .rule-section.not-allowed h3 { color: #b91c1c; }
-    .rule-section.not-allowed .rule-items span { background: rgba(214,40,40,0.18); color: #b91c1c; }
-    .rule-section.allowed { background: linear-gradient(135deg, rgba(45,106,79,0.08) 0%, rgba(34,139,34,0.04) 100%); border-left-color: var(--accent); }
+    .rule-section.not-allowed .rule-item-card { background: rgba(214,40,40,0.1); color: #b91c1c; border: 1px solid rgba(214,40,40,0.15); }
+    .rule-section.allowed { background: linear-gradient(135deg, rgba(45,106,79,0.06) 0%, rgba(34,139,34,0.02) 100%); border-left-color: var(--accent); }
     .rule-section.allowed h3 { color: var(--green); }
-    .rule-section.allowed .rule-items span { background: rgba(45,106,79,0.18); color: var(--green); }
-    .rule-section.limit { background: linear-gradient(135deg, rgba(247,127,0,0.08) 0%, rgba(194,65,12,0.04) 100%); border-left-color: var(--orange); }
+    .rule-section.allowed .rule-item-card { background: rgba(45,106,79,0.1); color: var(--green); border: 1px solid rgba(45,106,79,0.15); }
+    .rule-section.limit { background: linear-gradient(135deg, rgba(247,127,0,0.06) 0%, rgba(194,65,12,0.02) 100%); border-left-color: var(--orange); }
     .rule-section.limit h3 { color: #c2410c; }
-    .rule-section.limit .rule-items span { background: rgba(247,127,0,0.18); color: #c2410c; }
+    .rule-section.limit .rule-item-card { background: rgba(247,127,0,0.1); color: #c2410c; border: 1px solid rgba(247,127,0,0.15); }
     .rule-section.limit .limit-max { font-size: 0.9rem; font-weight: 600; margin-top: 0.4rem; color: #c2410c; }
-    .rule-section.note { background: linear-gradient(135deg, rgba(108,117,125,0.08) 0%, rgba(73,80,87,0.04) 100%); border-left-color: var(--gray); }
+    .rule-section.note { background: linear-gradient(135deg, rgba(108,117,125,0.06) 0%, rgba(73,80,87,0.02) 100%); border-left-color: var(--gray); }
     .rule-section.note h3 { color: var(--gray); }
     .rule-section.note .note-text { font-size: 0.95rem; color: var(--text-muted); margin: 0; line-height: 1.55; }
+    .rule-section .rule-count { font-size: 0.78rem; font-weight: 400; opacity: 0.7; margin-left: 0.25rem; }
     .meal-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid #eee; }
     .meal-row:last-child { border-bottom: none; }
     .meal-score { font-weight: 700; padding: 0.3rem 0.6rem; border-radius: 8px; flex-shrink: 0; }
@@ -89,9 +93,9 @@
     .score-mid { background: rgba(247,127,0,0.15); color: var(--orange); }
     .score-low { background: rgba(214,40,40,0.15); color: var(--red); }
     .trend-chart { display: flex; align-items: flex-end; gap: 0.35rem; height: 110px; margin-top: 0.75rem; }
-    .trend-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0; }
-    .trend-score { font-size: 0.65rem; font-weight: 600; color: var(--accent); margin-bottom: 2px; min-height: 1em; }
-    .trend-bar { width: 100%; background: linear-gradient(180deg, var(--accent-light) 0%, var(--accent) 100%); border-radius: 6px 6px 0 0; min-height: 6px; }
+    .trend-bar-wrap { flex: 1; align-self: stretch; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; min-width: 0; }
+    .trend-score { font-size: 0.75rem; font-weight: 700; color: var(--accent); margin-bottom: 4px; min-height: 1.2em; display: block; flex-shrink: 0; }
+    .trend-bar { width: 100%; background: linear-gradient(180deg, var(--accent-light) 0%, var(--accent) 100%); border-radius: 6px 6px 0 0; min-height: 4px; flex-shrink: 0; }
     .trend-labels { display: flex; justify-content: space-between; margin-top: 0.4rem; font-size: 0.65rem; color: var(--gray); }
     .camera-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; display: none; align-items: center; justify-content: center; flex-direction: column; }
     .camera-modal.active { display: flex; }
@@ -125,6 +129,9 @@
     .compliance-hero .message { font-size: 0.95rem; color: var(--text-muted); margin-top: 0.25rem; }
     .loading-bar { height: 6px; background: var(--accent-muted); border-radius: 3px; overflow: hidden; margin-top: 0.75rem; }
     .loading-bar-inner { height: 100%; width: 35%; background: linear-gradient(90deg, var(--accent) 0%, var(--accent-light) 100%); border-radius: 3px; animation: loading-slide 1.2s ease-in-out infinite; }
+    .image-gen-progress { height: 8px; background: var(--accent-muted); border-radius: 6px; overflow: hidden; }
+    .image-gen-progress-bar { height: 100%; width: 30%; background: linear-gradient(90deg, var(--accent) 0%, var(--accent-light) 100%); border-radius: 6px; animation: image-gen-progress 2s ease-in-out infinite; }
+    @keyframes image-gen-progress { 0% { transform: translateX(-100%); } 50% { transform: translateX(350%); } 100% { transform: translateX(-100%); } }
     @keyframes loading-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
     .insight-card { background: linear-gradient(135deg, var(--accent-muted) 0%, rgba(64,145,108,0.08) 100%); border-left: 4px solid var(--accent); padding: 0.9rem 1rem; border-radius: 0 10px 10px 0; margin-bottom: 0.75rem; font-size: 0.9rem; }
     .insight-card strong { color: var(--accent); }
@@ -198,29 +205,150 @@
     .next-meal-with-img .tip-text { flex: 1; min-width: 200px; }
     .next-meal-with-img .meal-proposal-img { width: 160px; height: 120px; object-fit: cover; border-radius: 12px; box-shadow: var(--shadow); flex-shrink: 0; }
     .meal-proposal-caption { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.35rem; font-style: italic; }
-    .hero-page { position: fixed; inset: 0; z-index: 300; background: linear-gradient(160deg, #0d2818 0%, var(--accent) 35%, var(--accent-light) 70%, #1b4332 100%); color: white; display: flex; overflow-y: auto; }
-    .hero-page.hidden { display: none; }
-    .hero-page-inner { display: flex; flex-direction: row; min-height: 100vh; width: 100%; max-width: 1200px; margin: 0 auto; }
-    @media (max-width: 900px) { .hero-page-inner { flex-direction: column; } }
-    .hero-content { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 2.5rem 2rem; text-align: left; }
-    @media (max-width: 900px) { .hero-content { text-align: center; padding: 2rem 1.5rem; } }
-    .hero-page h1 { font-family: 'Space Grotesk', sans-serif; font-size: 2.75rem; margin: 0 0 0.75rem 0; font-weight: 700; letter-spacing: -0.02em; }
-    @media (max-width: 600px) { .hero-page h1 { font-size: 2rem; } }
-    .hero-page .tagline { font-size: 1.15rem; opacity: 0.95; max-width: 420px; margin: 0 0 1.5rem 0; line-height: 1.6; }
-    @media (max-width: 900px) { .hero-page .tagline { margin-left: auto; margin-right: auto; text-align: center; } }
-    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
-    @media (max-width: 900px) { .hero-badges { justify-content: center; } }
-    .hero-badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.75rem; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; font-size: 0.8rem; font-weight: 500; backdrop-filter: blur(8px); }
-    .hero-badge .check { color: #95d5b2; font-weight: 700; }
-    .hero-impact { background: rgba(255,255,255,0.08); border-radius: 14px; padding: 1.25rem; margin-bottom: 1.5rem; border-left: 4px solid rgba(255,255,255,0.5); }
-    .hero-impact h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 0.5rem 0; opacity: 0.9; font-weight: 600; }
-    .hero-impact p { margin: 0; font-size: 0.95rem; line-height: 1.55; opacity: 0.95; }
-    .hero-page .btn-hero { align-self: flex-start; padding: 0.9rem 2rem; font-size: 1.1rem; border-radius: 14px; background: white; color: var(--accent); font-weight: 700; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.2); transition: transform 0.2s; }
-    @media (max-width: 900px) { .hero-page .btn-hero { align-self: center; } }
-    .hero-page .btn-hero:hover { transform: scale(1.05); }
-    .hero-image-wrap { flex: 0 0 45%; min-height: 400px; display: flex; align-items: center; justify-content: center; padding: 2rem; }
-    @media (max-width: 900px) { .hero-image-wrap { min-height: 280px; padding: 1.5rem; order: -1; } }
-    .hero-image-wrap img { width: 100%; max-width: 480px; height: auto; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.35); object-fit: cover; }
+    /* ── Showcase / Presentation Page ── */
+    .showcase { position: fixed; inset: 0; z-index: 300; overflow-y: auto; scroll-behavior: smooth; background: #faf9f6; }
+    .showcase.hidden { display: none; }
+    .sc-section { max-width: 960px; margin: 0 auto; padding: 3rem 2rem; }
+    @media (max-width: 600px) { .sc-section { padding: 2rem 1.25rem; } }
+    .sc-section + .sc-section { padding-top: 0; }
+
+    /* Hero banner */
+    .sc-hero { background: linear-gradient(160deg, #0d2818 0%, var(--accent) 35%, var(--accent-light) 70%, #1b4332 100%); color: white; padding: 0; }
+    .sc-hero .sc-section { display: flex; gap: 2.5rem; align-items: center; min-height: 92vh; }
+    @media (max-width: 800px) { .sc-hero .sc-section { flex-direction: column; text-align: center; min-height: auto; padding-top: 2.5rem; padding-bottom: 2.5rem; } }
+    .sc-hero-text { flex: 1; }
+    .sc-hero h1 { font-family: 'Space Grotesk', sans-serif; font-size: 2.8rem; margin: 0 0 0.5rem; font-weight: 700; letter-spacing: -0.02em; }
+    @media (max-width: 600px) { .sc-hero h1 { font-size: 2.1rem; } }
+    .sc-hero .subtitle { font-size: 1.2rem; opacity: 0.92; margin: 0 0 1.25rem; line-height: 1.55; }
+    .sc-hero .oneliner { font-size: 0.95rem; opacity: 0.82; margin: 0 0 1.5rem; line-height: 1.6; max-width: 440px; }
+    @media (max-width: 800px) { .sc-hero .oneliner { margin-left: auto; margin-right: auto; } }
+    .sc-hero-img { flex: 0 0 40%; }
+    .sc-hero-img img { width: 100%; max-width: 420px; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.35); }
+    @media (max-width: 800px) { .sc-hero-img { order: -1; } .sc-hero-img img { max-width: 280px; } }
+    .sc-stat-row { display: flex; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    @media (max-width: 800px) { .sc-stat-row { justify-content: center; } }
+    .sc-stat { background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 12px; padding: 0.7rem 1rem; backdrop-filter: blur(8px); min-width: 110px; }
+    .sc-stat .num { font-family: 'Space Grotesk', sans-serif; font-size: 1.5rem; font-weight: 700; }
+    .sc-stat .lbl { font-size: 0.65rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.06em; margin-top: 0.1rem; }
+    .sc-paradigm { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+    @media (max-width: 800px) { .sc-paradigm { justify-content: center; } }
+    .sc-pstep { display: flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.85rem; background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; font-size: 0.9rem; font-weight: 600; }
+    .sc-pstep .ico { font-size: 1.15rem; }
+    .sc-parrow { opacity: 0.45; font-size: 1rem; }
+    .sc-btn-enter { display: inline-block; padding: 0.85rem 2rem; font-size: 1.05rem; border-radius: 14px; background: white; color: var(--accent); font-weight: 700; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.2); transition: transform 0.15s; text-decoration: none; }
+    .sc-btn-enter:hover { transform: scale(1.04); }
+    .sc-scroll-hint { text-align: center; margin-top: 1rem; font-size: 0.8rem; opacity: 0.6; }
+
+    /* Section headings */
+    .sc-heading { font-family: 'Space Grotesk', sans-serif; font-size: 1.7rem; font-weight: 700; color: var(--text); margin: 0 0 0.5rem; }
+    .sc-subhead { font-size: 1rem; color: var(--text-muted); margin: 0 0 1.5rem; line-height: 1.55; }
+    .sc-divider { height: 3px; width: 50px; background: var(--accent); border-radius: 2px; margin-bottom: 1.5rem; }
+
+    /* Cards grid */
+    .sc-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 1rem; }
+    .sc-card { background: white; border-radius: 14px; padding: 1.25rem; box-shadow: var(--shadow); border: 1px solid #eee; }
+    .sc-card .card-icon { font-size: 1.8rem; margin-bottom: 0.5rem; }
+    .sc-card h4 { font-size: 0.95rem; margin: 0 0 0.35rem; font-weight: 600; }
+    .sc-card p { font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.5; }
+
+    /* Architecture diagram — visual, enclosed layers */
+    .sc-arch-wrap { background: #f5f6f8; border-radius: 18px; padding: 1.5rem; border: 1px solid #dde1e6; }
+    .sc-arch-layer { border-radius: 14px; padding: 1rem 1.1rem 1rem; margin-bottom: 0; position: relative; }
+    .sc-arch-layer .layer-title { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.65rem; }
+    .sc-arch-layer .layer-tag { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.08em; font-weight: 700; color: white; padding: 0.2rem 0.55rem; border-radius: 5px; flex-shrink: 0; }
+    .sc-arch-layer .layer-name { font-size: 0.85rem; font-weight: 700; }
+    .sc-arch-layer.layer-clients { background: #eef0fb; border: 2px solid #b8c0ec; }
+    .sc-arch-layer.layer-clients .layer-tag { background: #5a6fd6; }
+    .sc-arch-layer.layer-clients .layer-name { color: #3b4daa; }
+    .sc-arch-layer.layer-backend { background: rgba(45,106,79,0.06); border: 2px solid rgba(45,106,79,0.35); }
+    .sc-arch-layer.layer-backend .layer-tag { background: var(--accent); }
+    .sc-arch-layer.layer-backend .layer-name { color: var(--accent); }
+    .sc-arch-layer.layer-gcp { background: #fff8f0; border: 2px solid #ffc87a; }
+    .sc-arch-layer.layer-gcp .layer-tag { background: #d97706; }
+    .sc-arch-layer.layer-gcp .layer-name { color: #92400e; }
+    .sc-arch-row { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+    .sc-arch-box { padding: 0.55rem 0.8rem; border-radius: 10px; font-size: 0.76rem; font-weight: 500; min-width: 110px; text-align: center; flex: 1; }
+    .sc-arch-box .box-icon { font-size: 1.15rem; display: block; margin-bottom: 0.15rem; }
+    .sc-arch-box .box-label { font-weight: 700; font-size: 0.76rem; }
+    .sc-arch-box .box-desc { font-size: 0.66rem; opacity: 0.7; margin-top: 0.1rem; line-height: 1.35; }
+    .sc-arch-box.client { background: white; border: 1px solid #c5cbee; color: #3b4daa; }
+    .sc-arch-box.backend { background: white; border: 1px solid rgba(45,106,79,0.3); color: var(--accent); }
+    .sc-arch-box.gcp { background: white; border: 1px solid #ffd8a8; color: #92400e; }
+
+    /* Interface bars between layers */
+    .sc-interface { display: flex; align-items: center; justify-content: center; gap: 0.75rem; padding: 0.6rem 0; margin: 0.5rem 0; }
+    .sc-if-arrow { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; }
+    .sc-if-arrow .arr { font-size: 1.3rem; color: var(--gray); line-height: 1; }
+    .sc-if-protocol { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.3rem 0.7rem; border-radius: 8px; font-size: 0.7rem; font-weight: 600; }
+    .sc-if-protocol.ws { background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+    .sc-if-protocol.rest { background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+    .sc-if-protocol.sdk { background: #fff3e0; color: #e65100; border: 1px solid #ffcc80; }
+    .sc-if-protocol .proto-label { font-weight: 400; opacity: 0.8; }
+
+    /* Agent pipeline */
+    .sc-pipeline-row { display: flex; align-items: stretch; gap: 0; justify-content: center; flex-wrap: wrap; margin: 0.5rem 0; }
+    .sc-pipe-stage { flex: 1; min-width: 140px; max-width: 200px; padding: 0.7rem 0.6rem; border-radius: 12px; text-align: center; position: relative; }
+    .sc-pipe-stage.reader { background: linear-gradient(135deg, #1b5e20, #388e3c); color: white; }
+    .sc-pipe-stage.processor { background: linear-gradient(135deg, #0d47a1, #1976d2); color: white; }
+    .sc-pipe-stage.reporter { background: linear-gradient(135deg, #e65100, #fb8c00); color: white; }
+    .sc-pipe-stage .pipe-num { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.06em; opacity: 0.8; }
+    .sc-pipe-stage .pipe-name { font-size: 0.85rem; font-weight: 700; margin: 0.15rem 0; }
+    .sc-pipe-stage .pipe-ai { font-size: 0.65rem; opacity: 0.9; font-style: italic; margin-top: 0.15rem; }
+    .sc-pipe-stage .pipe-detail { font-size: 0.62rem; opacity: 0.75; margin-top: 0.2rem; line-height: 1.35; }
+    .sc-pipe-arrow { display: flex; align-items: center; font-size: 1.2rem; color: var(--gray); padding: 0 0.15rem; }
+
+    /* Sub-components row */
+    .sc-sub-row { display: flex; gap: 0.4rem; flex-wrap: wrap; margin-top: 0.6rem; justify-content: center; }
+
+    /* Pipeline flow */
+    .sc-pipeline { display: flex; align-items: center; gap: 0; justify-content: center; flex-wrap: wrap; margin: 1.5rem 0; }
+    .sc-pipe-step { background: white; border: 2px solid var(--accent); border-radius: 14px; padding: 0.8rem 1.1rem; text-align: center; min-width: 130px; }
+    .sc-pipe-step .pipe-icon { font-size: 1.5rem; }
+    .sc-pipe-step h5 { font-size: 0.8rem; margin: 0.3rem 0 0.15rem; font-weight: 700; color: var(--accent); }
+    .sc-pipe-step p { font-size: 0.7rem; color: var(--text-muted); margin: 0; }
+    .sc-pipe-arrow { font-size: 1.3rem; color: var(--accent); padding: 0 0.3rem; }
+
+    /* Compliance — layered */
+    .sc-compliance-layers { display: flex; flex-direction: column; gap: 1rem; }
+    .sc-comp-layer { background: white; border-radius: 14px; padding: 1rem 1.25rem; box-shadow: var(--shadow); border-left: 4px solid var(--gray-light); }
+    .sc-comp-layer.layer-mandatory { border-left-color: var(--accent); }
+    .sc-comp-layer.layer-live { border-left-color: #5a6fd6; }
+    .sc-comp-layer.layer-quality { border-left-color: var(--orange); }
+    .sc-comp-layer-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; }
+    .sc-comp-layer-head .layer-tag { font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; color: white; padding: 0.15rem 0.5rem; border-radius: 5px; }
+    .sc-comp-layer.layer-mandatory .layer-tag { background: var(--accent); }
+    .sc-comp-layer.layer-live .layer-tag { background: #5a6fd6; }
+    .sc-comp-layer.layer-quality .layer-tag { background: var(--orange); }
+    .sc-comp-layer-head h4 { font-size: 0.9rem; margin: 0; }
+    .sc-comp-items { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .sc-comp-chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.75rem; border-radius: 8px; font-size: 0.78rem; font-weight: 500; background: #f3f4f6; }
+    .sc-comp-chip .ck { color: var(--green); font-weight: 700; }
+    .sc-comp-chip .chip-svc { font-weight: 700; }
+    .sc-comp-chip .chip-use { color: var(--text-muted); font-weight: 400; }
+
+    /* Impact block */
+    .sc-impact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1rem; }
+    .sc-impact-card { background: white; border-radius: 14px; padding: 1.25rem; box-shadow: var(--shadow); border-left: 4px solid var(--accent); }
+    .sc-impact-card h4 { font-size: 0.95rem; margin: 0 0 0.35rem; }
+    .sc-impact-card p { font-size: 0.85rem; color: var(--text-muted); margin: 0; line-height: 1.5; }
+
+    /* Founder */
+    .sc-founder { display: flex; gap: 1.5rem; align-items: flex-start; background: white; border-radius: 14px; padding: 1.5rem; box-shadow: var(--shadow); }
+    @media (max-width: 600px) { .sc-founder { flex-direction: column; text-align: center; } }
+    .sc-founder-info h4 { margin: 0 0 0.25rem; font-size: 1rem; }
+    .sc-founder-info p { font-size: 0.85rem; color: var(--text-muted); line-height: 1.55; margin: 0 0 0.5rem; }
+    .sc-founder-info a { color: var(--accent); font-size: 0.85rem; }
+
+    /* CTA bar */
+    .sc-cta-bar { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%); color: white; text-align: center; padding: 2.5rem 2rem; }
+    .sc-cta-bar h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.6rem; margin: 0 0 0.5rem; }
+    .sc-cta-bar p { font-size: 1rem; opacity: 0.9; margin: 0 0 1.25rem; }
+    .sc-btn-demo { display: inline-block; padding: 0.85rem 2.5rem; font-size: 1.1rem; border-radius: 14px; background: white; color: var(--accent); font-weight: 700; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.15); transition: transform 0.15s; }
+    .sc-btn-demo:hover { transform: scale(1.04); }
+
+    /* GCP badge row */
+    .sc-gcp-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-top: 1rem; }
+    .sc-gcp-badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.7rem; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-size: 0.75rem; font-weight: 600; }
     .app-wrap { display: none; }
     .app-wrap.visible { display: block; }
     body.coach-open .app-wrap { margin-right: 400px; transition: margin-right 0.2s ease; }
@@ -235,41 +363,298 @@
   </style>
 </head>
 <body>
-  <!-- Hero: first screen before entering app -->
-  <div class="hero-page" id="heroPage">
-    <div class="hero-page-inner">
-      <div class="hero-content">
-        <h1>HappyDiet</h1>
-        <p class="tagline">Your AI diet coach — type or speak freely. Track meals, weight, and goals. The coach is always here.</p>
-        <div class="hero-badges" aria-label="Google Cloud compliance">
-          <span class="hero-badge"><span class="check">✓</span> Gemini Live API</span>
-          <span class="hero-badge"><span class="check">✓</span> Vertex AI</span>
-          <span class="hero-badge"><span class="check">✓</span> Cloud Run</span>
-          <span class="hero-badge"><span class="check">✓</span> Firestore</span>
-          <span class="hero-badge"><span class="check">✓</span> GenAI SDK</span>
+  <!-- ═══════ SHOWCASE / PRESENTATION PAGE ═══════ -->
+  <div class="showcase" id="heroPage">
+
+    <!-- 1. HERO -->
+    <section class="sc-hero">
+      <div class="sc-section">
+        <div class="sc-hero-text">
+          <h1>HappyDiet</h1>
+          <p class="subtitle">The AI diet coach that sees your plate and speaks your plan.</p>
+          <p class="oneliner">Snap a meal photo. The AI tells you — instantly, out loud — if you're on track with your diet. No typing. No calorie math. Just point, shoot, and listen.</p>
+          <div class="sc-stat-row">
+            <div class="sc-stat"><div class="num">80%</div><div class="lbl">of diets fail by week 8</div></div>
+            <div class="sc-stat"><div class="num">0</div><div class="lbl">tools measure real compliance</div></div>
+            <div class="sc-stat"><div class="num">$20B+</div><div class="lbl">diet app market — all calorie counters</div></div>
+          </div>
+          <div class="sc-paradigm">
+            <span class="sc-pstep"><span class="ico">👁</span> See</span>
+            <span class="sc-parrow">→</span>
+            <span class="sc-pstep"><span class="ico">🧠</span> Think</span>
+            <span class="sc-parrow">→</span>
+            <span class="sc-pstep"><span class="ico">🗣</span> Speak</span>
+          </div>
+          <button class="sc-btn-enter" id="heroEnterBtn">Try the Live Demo</button>
+          <div class="sc-scroll-hint">↓ Scroll to explore the architecture</div>
         </div>
-        <div class="hero-impact">
-          <h3>Social impact</h3>
-          <p>Making healthy eating accessible to everyone. Voice-first coaching for people who struggle with traditional diet apps. Personalized support without judgment — because lasting change starts with understanding, not shame.</p>
+        <div class="sc-hero-img">
+          <img src="happydiet-hero.jpg" alt="Healthy meal — HappyDiet" loading="eager">
         </div>
-        <button class="btn-hero" id="heroEnterBtn">Get started</button>
       </div>
-      <div class="hero-image-wrap">
-        <img src="happydiet-hero.jpg" alt="Fresh, healthy meal — HappyDiet helps you stay on track with your diet" loading="eager">
+    </section>
+
+    <!-- 2. THE PROBLEM -->
+    <section class="sc-section">
+      <div class="sc-divider"></div>
+      <h2 class="sc-heading">The Problem</h2>
+      <p class="sc-subhead">Nutrition is the only major health driver without objective, real-time measurement. We have wearables for heart rate, sleep, and steps — but diet tracking still relies on self-reported logs that most people abandon within weeks.</p>
+      <div class="sc-cards">
+        <div class="sc-card"><div class="card-icon">🏥</div><h4>Clinical Blind Spot</h4><p>Nutritionists prescribe plans, patients go home, and clinics have zero visibility until the next appointment — weeks later.</p></div>
+        <div class="sc-card"><div class="card-icon">📝</div><h4>Friction Kills Compliance</h4><p>Manual food logging creates friction at the exact moment it matters: at the table, with food in front of you.</p></div>
+        <div class="sc-card"><div class="card-icon">🔢</div><h4>Calories ≠ Compliance</h4><p>Existing tools count calories. But real compliance means following rules: forbidden items, allowed foods, daily limits — what doctors actually prescribe.</p></div>
+        <div class="sc-card"><div class="card-icon">💔</div><h4>Shame-Based Design</h4><p>Diet culture punishes failure. Most apps tell you what you did wrong, not how to do better. HappyDiet coaches without judgment.</p></div>
       </div>
-    </div>
+    </section>
+
+    <!-- 3. THE SOLUTION — INTELLIGENT LOOP + 3 AGENTS -->
+    <section class="sc-section">
+      <div class="sc-divider"></div>
+      <h2 class="sc-heading">The Solution: The Intelligent Loop</h2>
+      <p class="sc-subhead">HappyDiet automates nutrition tracking — from your meal to insight and compliance — using a 3-stage AI agent pipeline.</p>
+      <div class="sc-pipeline">
+        <div class="sc-pipe-step"><div class="pipe-icon">📸</div><h5>Stage 1: Reader</h5><p>Image → Gemini Vision → ingredients, kcal</p></div>
+        <div class="sc-pipe-arrow">→</div>
+        <div class="sc-pipe-step"><div class="pipe-icon">⚖️</div><h5>Stage 2: Processor</h5><p>Rule matching → compliance score → Firestore</p></div>
+        <div class="sc-pipe-arrow">→</div>
+        <div class="sc-pipe-step"><div class="pipe-icon">🗣️</div><h5>Stage 3: Reporter</h5><p>Verdict + suggestions → voice or text</p></div>
+      </div>
+      <div class="sc-cards">
+        <div class="sc-card"><div class="card-icon">🔍</div><h4>Precise + Fuzzy + Semantic</h4><p>Three-layer matching: exact keywords, word overlap (≥ 0.6 similarity), and LLM semantic reasoning. "Bread" triggers "no gluten" — that's AI reasoning, not keyword matching.</p></div>
+        <div class="sc-card"><div class="card-icon">📊</div><h4>Rule Engine — Our Superpower</h4><p>4 rule types: Forbidden, Allowed, Limit, Note. Transforms dietary logic into executable, persistent rules that enforce compliance meal after meal.</p></div>
+        <div class="sc-card"><div class="card-icon">🔥</div><h4>Calorie-Aware Scoring</h4><p>Tracks daily kcal totals, applies progressive penalties for excess, and warns when you're approaching your target. A 4,000 kcal barbecue gets flagged — even if ingredients are compliant.</p></div>
+        <div class="sc-card"><div class="card-icon">🎙️</div><h4>Live Voice Coaching</h4><p>Gemini Live API powers real-time voice conversations. The coach speaks naturally, supports barge-in, and responds to images mid-conversation.</p></div>
+      </div>
+    </section>
+
+    <!-- 4. ARCHITECTURE DIAGRAM — VISUAL, ENCLOSED LAYERS -->
+    <section class="sc-section">
+      <div class="sc-divider"></div>
+      <h2 class="sc-heading">Architecture</h2>
+      <p class="sc-subhead">Entire stack runs on Google Cloud. The Gemini Live API is the conversational agent; the backend is the tool it calls. Every layer is enclosed — nothing floats.</p>
+
+      <div class="sc-arch-wrap">
+
+        <!-- ── CLIENTS ── -->
+        <div class="sc-arch-layer layer-clients">
+          <div class="layer-title"><span class="layer-tag">Layer 1</span><span class="layer-name">Clients — Web &amp; iOS</span></div>
+          <div class="sc-arch-row">
+            <div class="sc-arch-box client"><span class="box-icon">🌐</span><span class="box-label">Web Showcase</span><div class="box-desc">Live API (WebSocket)<br>Voice input · Image upload</div></div>
+            <div class="sc-arch-box client"><span class="box-icon">📱</span><span class="box-label">iOS App</span><div class="box-desc">Live Coach (WebSocket)<br>Camera · Photo Library · HeyCyan</div></div>
+            <div class="sc-arch-box client"><span class="box-icon">🧪</span><span class="box-label">Web App / Dev</span><div class="box-desc">REST API (HTTPS)<br>Camera · Upload · Dashboard</div></div>
+          </div>
+        </div>
+
+        <!-- Interface: Client ↔ Backend -->
+        <div class="sc-interface">
+          <div class="sc-if-arrow"><span class="arr">↕</span></div>
+          <div class="sc-if-protocol ws">🔌 <strong>ws://host/live</strong> <span class="proto-label">— WebSocket, bidirectional audio + image streaming</span></div>
+          <div class="sc-if-protocol rest">🌐 <strong>POST /analyze-meal</strong> <span class="proto-label">— HTTPS REST, image + userId → JSON</span></div>
+        </div>
+
+        <!-- ── BACKEND (CLOUD RUN) ── -->
+        <div class="sc-arch-layer layer-backend">
+          <div class="layer-title"><span class="layer-tag">Layer 2</span><span class="layer-name">HappyDiet Backend — Cloud Run</span></div>
+
+          <!-- 3-Agent Pipeline -->
+          <div class="sc-pipeline-row">
+            <div class="sc-pipe-stage reader">
+              <div class="pipe-num">Stage 1</div>
+              <div class="pipe-name">📸 Reader</div>
+              <div class="pipe-ai">Gemini 2.5 Flash Vision</div>
+              <div class="pipe-detail">Image → structured JSON<br>Extracts ingredients, estimated kcal,<br>portion sizes, cooking method</div>
+            </div>
+            <div class="sc-pipe-arrow">→</div>
+            <div class="sc-pipe-stage processor">
+              <div class="pipe-num">Stage 2</div>
+              <div class="pipe-name">⚖️ Processor</div>
+              <div class="pipe-ai">Rule Engine + Gemini Semantic</div>
+              <div class="pipe-detail">3-layer matching: exact, fuzzy (≥0.6),<br>LLM semantic ("bread" → "no gluten")<br>Compliance score · Daily kcal tracking</div>
+            </div>
+            <div class="sc-pipe-arrow">→</div>
+            <div class="sc-pipe-stage reporter">
+              <div class="pipe-num">Stage 3</div>
+              <div class="pipe-name">🗣️ Reporter</div>
+              <div class="pipe-ai">Message builder + TTS</div>
+              <div class="pipe-detail">Verdict, suggestions, calorie warnings<br>JSON → client · Text → Live API voice<br>or Cloud TTS audio</div>
+            </div>
+          </div>
+
+          <!-- Sub-components -->
+          <div class="sc-sub-row">
+            <div class="sc-arch-box backend"><span class="box-icon">🔄</span><span class="box-label">WebSocket Proxy</span><div class="box-desc">Client ↔ Vertex Live API<br>camelCase → snake_case translation<br>Audio format bridging</div></div>
+            <div class="sc-arch-box backend"><span class="box-icon">🛠️</span><span class="box-label">Tool: analyze_meal</span><div class="box-desc">Called by Live Agent<br>Triggers Reader → Processor → Reporter<br>Returns structured compliance</div></div>
+            <div class="sc-arch-box backend"><span class="box-icon">📋</span><span class="box-label">Tool: give_task</span><div class="box-desc">Called by Live Agent<br>Coach assigns tasks to user<br>(walk, log weight, share meal)</div></div>
+            <div class="sc-arch-box backend"><span class="box-icon">📄</span><span class="box-label">POST /parse-diet</span><div class="box-desc">Gemini parses diet plans<br>(text, image, handwritten)<br>→ structured rules in Firestore</div></div>
+          </div>
+        </div>
+
+        <!-- Interface: Backend ↔ GCP Services -->
+        <div class="sc-interface">
+          <div class="sc-if-arrow"><span class="arr">↕</span></div>
+          <div class="sc-if-protocol sdk">🤖 <strong>GenAI SDK</strong> <span class="proto-label">— @google-cloud/vertexai (official Node.js)</span></div>
+          <div class="sc-if-protocol sdk">🗄️ <strong>Firestore SDK</strong> <span class="proto-label">— @google-cloud/firestore</span></div>
+          <div class="sc-if-protocol sdk">🔊 <strong>TTS REST</strong> <span class="proto-label">— texttospeech.googleapis.com</span></div>
+        </div>
+
+        <!-- ── GOOGLE CLOUD SERVICES ── -->
+        <div class="sc-arch-layer layer-gcp">
+          <div class="layer-title"><span class="layer-tag">Layer 3</span><span class="layer-name">Google Cloud Platform</span></div>
+          <div class="sc-arch-row">
+            <div class="sc-arch-box gcp">
+              <span class="box-icon">🤖</span><span class="box-label">Vertex AI — Gemini 2.5 Flash</span>
+              <div class="box-desc">
+                <strong>Vision:</strong> meal photo → ingredients, kcal<br>
+                <strong>Live API:</strong> real-time voice agent (ws)<br>
+                <strong>Semantic:</strong> ingredient ↔ rule matching<br>
+                <strong>Parse-diet:</strong> plan → structured rules
+              </div>
+            </div>
+            <div class="sc-arch-box gcp">
+              <span class="box-icon">🗄️</span><span class="box-label">Firestore</span>
+              <div class="box-desc">
+                <strong>meals:</strong> userId, ingredients, score, kcal, timestamp<br>
+                <strong>diet_rules:</strong> forbidden, allowed, limit, note per user
+              </div>
+            </div>
+            <div class="sc-arch-box gcp">
+              <span class="box-icon">🔊</span><span class="box-label">Cloud TTS</span>
+              <div class="box-desc">
+                <strong>/speak:</strong> text → MP3 audio<br>
+                Natural voice compliance feedback
+              </div>
+            </div>
+            <div class="sc-arch-box gcp">
+              <span class="box-icon">🚀</span><span class="box-label">Cloud Run</span>
+              <div class="box-desc">
+                Serverless container hosting<br>
+                Scales to zero · Auto-deploy via Cloud Build
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /sc-arch-wrap -->
+    </section>
+
+    <!-- 5. GOOGLE CLOUD COMPLIANCE — LAYERED -->
+    <section class="sc-section">
+      <div class="sc-divider"></div>
+      <h2 class="sc-heading">Google Cloud Compliance</h2>
+      <p class="sc-subhead">Built for the Gemini Live Agent Challenge. Every mandatory requirement is met. Here's how each Google service maps to our architecture.</p>
+
+      <div class="sc-compliance-layers">
+
+        <!-- Mandatory requirements -->
+        <div class="sc-comp-layer layer-mandatory">
+          <div class="sc-comp-layer-head">
+            <span class="layer-tag">Mandatory</span>
+            <h4>Core Challenge Requirements</h4>
+          </div>
+          <div class="sc-comp-items">
+            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">Gemini Model</span><span class="chip-use">→ Reader (Vision), Processor (semantic match), parse-diet</span></div>
+            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">GenAI SDK</span><span class="chip-use">→ @google-cloud/vertexai across all 3 agents</span></div>
+            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">Hosted on GCP</span><span class="chip-use">→ Cloud Run (backend), Firestore (data)</span></div>
+          </div>
+        </div>
+
+        <!-- Live Agent category -->
+        <div class="sc-comp-layer layer-live">
+          <div class="sc-comp-layer-head">
+            <span class="layer-tag">Live Agent</span>
+            <h4>Real-Time Voice & Vision</h4>
+          </div>
+          <div class="sc-comp-items">
+            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">Gemini Live API</span><span class="chip-use">→ WebSocket proxy /live — the conversational agent</span></div>
+            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">Barge-in</span><span class="chip-use">→ Users interrupt coach naturally mid-response</span></div>
+            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">Tool Calls</span><span class="chip-use">→ analyze_meal (compliance), give_task (coaching)</span></div>
+            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">Audio I/O</span><span class="chip-use">→ 16kHz PCM in, 24kHz PCM out, real-time streaming</span></div>
+          </div>
+        </div>
+
+        <!-- Additional GCP services -->
+        <div class="sc-comp-layer layer-quality">
+          <div class="sc-comp-layer-head">
+            <span class="layer-tag">GCP Services</span>
+            <h4>Infrastructure & Data</h4>
+          </div>
+          <div class="sc-comp-items">
+            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">Cloud Run</span><span class="chip-use">→ Backend hosting (serverless, scales to zero)</span></div>
+            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">Firestore</span><span class="chip-use">→ meals collection (Processor) + diet_rules (Rule Engine)</span></div>
+            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">Cloud TTS</span><span class="chip-use">→ Reporter → /speak endpoint → natural voice</span></div>
+            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">Cloud Build</span><span class="chip-use">→ CI/CD pipeline, tests before deploy</span></div>
+            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">100+ Tests</span><span class="chip-use">→ Unit, integration, E2E, UAT (vitest)</span></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Judging criteria -->
+      <div style="margin-top:1.5rem;">
+        <div class="sc-cards" style="grid-template-columns: repeat(3, 1fr);">
+          <div class="sc-card" style="border-top:3px solid var(--accent);"><h4>Demo & Presentation (30%)</h4><p>Live demo, architecture diagram, Cloud Run deployment proof. No mockups — real software.</p></div>
+          <div class="sc-card" style="border-top:3px solid var(--accent);"><h4>Technical Implementation (30%)</h4><p>3-agent pipeline, GenAI SDK, GCP hosting, tool contract, error handling, 100+ tests.</p></div>
+          <div class="sc-card" style="border-top:3px solid var(--orange);"><h4>Innovation & Multimodal UX (40%)</h4><p>Beyond the text box: Vision + Voice. See, Hear, Speak paradigm. Live & context-aware coaching. Smart glasses roadmap.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6. SOCIAL IMPACT -->
+    <section class="sc-section">
+      <div class="sc-divider"></div>
+      <h2 class="sc-heading">Social Impact</h2>
+      <p class="sc-subhead">Making healthy eating accessible to everyone — not a tagline, but a design principle.</p>
+      <div class="sc-impact-grid">
+        <div class="sc-impact-card"><h4>🌍 Accessibility</h4><p>Voice-first, photo-based coaching removes barriers for the elderly, low-literacy populations, and people with disabilities. No typing, no searching, no calorie math.</p></div>
+        <div class="sc-impact-card"><h4>🏥 Clinical Visibility</h4><p>Nutritionists get objective adherence data between appointments — automatically, not self-reported. The dashboard is ready for the doctor's follow-up on day one.</p></div>
+        <div class="sc-impact-card"><h4>💚 Coaching Without Shame</h4><p>When you eat off-plan, the AI explains what happened and suggests what to do next. No guilt, no punishment. Lasting change starts with understanding.</p></div>
+        <div class="sc-impact-card"><h4>🔬 Beyond Nutrition</h4><p>The architecture scales: diabetes management, post-surgery diets, allergy tracking, medication compliance. The Rule Engine enforces whatever the clinician prescribes.</p></div>
+      </div>
+    </section>
+
+    <!-- 7. FOUNDER + CTA -->
+    <section class="sc-section">
+      <div class="sc-divider"></div>
+      <h2 class="sc-heading">About the Builder</h2>
+      <div class="sc-founder">
+        <div class="sc-founder-info">
+          <h4>Pablo Miranda — Founder & CEO</h4>
+          <p>MSc (c) Computer Science, MBA, BSc Software Engineering & Political Science. 12+ years in (re)insurance, business intelligence, cybersecurity, and data protection (GDPR, HIPAA, DORA, AI Act) across Europe, US, and Latin America. Now building AI systems that automate nutritional adherence and compliance reporting.</p>
+          <p><strong>Early validation:</strong> A nutrition clinic called HappyDiet "ground-breaking" and asked to join the waitlist for the SaaS service.</p>
+          <a href="https://linkedin.com/in/pablomirandamba/" target="_blank" rel="noopener">linkedin.com/in/pablomirandamba/</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CTA BAR -->
+    <section class="sc-cta-bar">
+      <h2>Ready to see it in action?</h2>
+      <p>The Live Coach is running — talk to it, share a meal photo, get real-time compliance feedback.</p>
+      <button class="sc-btn-demo" id="heroEnterBtn2">Launch Live Demo</button>
+      <div class="sc-gcp-badges">
+        <span class="sc-gcp-badge">✓ Gemini Live API</span>
+        <span class="sc-gcp-badge">✓ Vertex AI</span>
+        <span class="sc-gcp-badge">✓ Cloud Run</span>
+        <span class="sc-gcp-badge">✓ Firestore</span>
+        <span class="sc-gcp-badge">✓ GenAI SDK</span>
+        <span class="sc-gcp-badge">✓ Cloud TTS</span>
+      </div>
+    </section>
+
   </div>
+  <!-- ═══════ END SHOWCASE ═══════ -->
 
   <div class="app-wrap" id="appWrap">
   <header class="app-header">
     <div>
       <h1>HappyDiet</h1>
-      <div class="tagline">AI diet coach — Type or speak freely. Coach replies in text + voice.</div>
+      <div class="tagline">AI diet coach — See your plate, hear your plan. Powered by Gemini.</div>
     </div>
   </header>
 
   <nav class="nav-tabs">
     <button class="nav-tab active" data-tab="dashboard">📊 Dashboard</button>
+    <button class="nav-tab" data-tab="insights">💡 Insights & Meal Suggestions</button>
     <button class="nav-tab" data-tab="diet">📋 Diet Rules</button>
     <button class="nav-tab" data-tab="analyze">📷 Analyze Meal</button>
   </nav>
@@ -325,6 +710,21 @@
           <button class="btn btn-primary" id="feedbackAddBtn">Add</button>
         </div>
         <div id="feedbackList" style="margin-top:1rem;font-size:0.9rem"></div>
+      </div>
+    </div>
+
+    <!-- INSIGHTS & MEAL SUGGESTIONS -->
+    <div id="panel-insights" class="panel">
+      <div class="card">
+        <h2>Insights & meal suggestions</h2>
+        <p class="config">Tips to steer your diet and meal ideas based on your plan. Ask the coach to generate meal images in the chat.</p>
+        <div id="insightsListTab"></div>
+        <div id="mealSuggestionsListTab" style="margin-top:1rem"></div>
+        <div class="generate-image-row" style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee">
+          <h4 style="margin:0 0 0.5rem 0;font-size:0.95rem">Ask coach for meal images</h4>
+          <p class="config" style="margin-bottom:0.5rem">Open the coach and have it suggest meals with generated images — shown in the coach chat.</p>
+          <button class="btn btn-primary" id="askCoachMealImagesBtn">💬 Ask coach for meal suggestions with images</button>
+        </div>
       </div>
     </div>
 
@@ -405,6 +805,7 @@
             <button class="btn btn-secondary" id="genLunchBtn">🥗 Lunch</button>
             <button class="btn btn-secondary" id="genDinnerBtn">🍽 Dinner</button>
           </div>
+          <div id="imageGenProgressWrap" style="display:none;margin-top:1rem"></div>
           <div id="generatedImageWrap" style="display:none;margin-top:1rem">
             <img id="generatedImage" class="generated-meal-img" alt="Generated meal">
             <div id="generatedExplanation" class="generated-explanation" style="display:none;margin-top:0.75rem;padding:0.75rem;background:var(--accent-muted);border-radius:10px;font-size:0.9rem;line-height:1.5"></div>
@@ -505,9 +906,15 @@
       if (val) return val.replace(/\/$/, '');
       const o = window.location.origin;
       if (o && o !== 'null' && !o.startsWith('file:')) return o.replace(/\/$/, '');
-      return 'http://localhost:8080';
+      // Dynamic same-origin fallback without hardcoded host/IP.
+      return '';
     };
-    const wsUrl = () => { const u = url(); return (u.startsWith('https') ? 'wss' : 'ws') + '://' + (new URL(u)).host + '/live'; };
+    const wsUrl = () => {
+      const u = url();
+      if (u) return (u.startsWith('https') ? 'wss' : 'ws') + '://' + (new URL(u)).host + '/live';
+      const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+      return wsScheme + '://' + window.location.host + '/live';
+    };
 
     const MOCK_MEALS = [
       { mealMoment: 'breakfast', ingredients: ['oatmeal', 'banana', 'almonds'], estimatedKcal: 380, complianceScore: 92 },
@@ -586,6 +993,7 @@
 
     const COACH_PROMPTS = {
       diet: [
+        'Suggest meal ideas and show me what they look like',
         'Let\'s do a coaching session on my compliance',
         'What I find difficult: [see my feedback]',
         'Help me improve where I slip',
@@ -593,6 +1001,7 @@
         'What\'s my overall status and what do you advise?',
       ],
       analyze: [
+        'Suggest meal ideas and show me what they look like',
         'What made this meal non-compliant?',
         'How\'s my weight today? How do I feel?',
         'Suggest a similar compliant meal',
@@ -600,10 +1009,18 @@
         'What\'s my overall status and what do you advise?',
       ],
       dashboard: [
+        'Suggest meal ideas and show me what they look like',
         'Let\'s do a coaching session on my compliance',
         'Am I on track with my weight?',
         'What does my compliance trend mean?',
         'Give me tasks to work on',
+        'What\'s my overall status and what do you advise?',
+      ],
+      insights: [
+        'Suggest meal ideas and show me what they look like',
+        'Generate images of compliant meals for breakfast, lunch, and dinner',
+        'What meals fit my diet plan? Show me examples with images',
+        'Give me meal suggestions with visual examples',
         'What\'s my overall status and what do you advise?',
       ],
     };
@@ -611,7 +1028,7 @@
     function openCoachPopup() {
       $('coachPanel').classList.remove('collapsed');
       document.body.classList.add('coach-open');
-      renderCoachTasksMini();
+      fetchTasks().then(() => { renderTasks(); renderCoachTasksMini(); });
       renderCoachPredefinedTasks();
       renderCoachProfile();
     }
@@ -688,11 +1105,12 @@
         $(`panel-${t.dataset.tab}`).classList.add('active');
         renderCoachPrompts(t.dataset.tab);
         if (t.dataset.tab === 'dashboard') { renderDashboard(); renderWeightList(); renderTasks(); renderTargetDisplay(); }
+        if (t.dataset.tab === 'insights') { loadRules(); renderInsightsForTab(); }
         if (t.dataset.tab === 'diet') { loadRules(); renderFeedbackList(); }
       };
     });
 
-    function buildCoachContext() {
+    function buildCoachContext(meals, trendData) {
       const r = lastRules || [];
       const forbidden = r.filter(x => x?.type === 'forbidden').flatMap(x => x.items || []);
       const allowed = r.filter(x => x?.type === 'allowed').flatMap(x => x.items || []);
@@ -705,8 +1123,8 @@
       if (notes.length) rules += 'Notes: ' + notes.join('; ');
       const weightEntries = getWeightEntries().slice(0, 7);
       const weight = weightEntries.length ? weightEntries.map(e => `${e.date}: ${e.kg} kg${e.note ? ' (' + e.note + ')' : ''}`).join('\n') : '';
-      const meals = MOCK_MEALS.slice(0, 6).map(m => `${m.mealMoment}: ${(m.ingredients||[]).join(', ')} — ${m.complianceScore}%`).join('\n');
-      const trend = MOCK_TREND.join(', ') + ' (compliance % last 14 days)';
+      const mealsStr = (meals && meals.length) ? meals.slice(0, 10).map(m => `${normalizeMealMoment(m)}: ${(m.ingredients||[]).join(', ')} — ${m.complianceScore ?? 0}%`).join('\n') : '';
+      const trend = (trendData && trendData.length) ? trendData.map(t => t.score).join(', ') + ' (compliance % last 14 days)' : '';
       const feedbackEntries = getFeedbackEntries().slice(0, 10);
       const feedback = feedbackEntries.length ? feedbackEntries.map(e => `${e.date}: ${e.text}`).join('\n') : undefined;
       const checkins = getCheckins().slice(0, 7).map(e => `${e.date}: ${[e.weight && e.weight + 'kg', e.energy, e.mood, e.hunger].filter(Boolean).join(', ')}`).join('\n') || undefined;
@@ -715,7 +1133,7 @@
       const targets = [tg.goal && `Goal: ${tg.goal}`, tg.targetWeight && `Target weight: ${tg.targetWeight} kg`, tg.targetDate && `By: ${tg.targetDate}`].filter(Boolean).join('. ') || undefined;
       const profileIds = getDietProfile();
       const profile = profileIds.length ? DIET_PROFILES.filter(p => profileIds.includes(p.id)).map(p => p.label).join('; ') : undefined;
-      return { rules: rules.trim() || undefined, weight: weight || undefined, meals: meals || undefined, trend: trend || undefined, feedback, checkins, tasks, targets, profile };
+      return { rules: rules.trim() || undefined, weight: weight || undefined, meals: mealsStr || undefined, trend: trend || undefined, feedback, checkins, tasks, targets, profile };
     }
 
     // --- CHAT (Live API WebSocket) ---
@@ -724,10 +1142,31 @@
         chatWs = new WebSocket(wsUrl());
         updateStatusBar('connecting');
         $('chatConnectBtn').disabled = true;
-        chatWs.onopen = () => {
+        chatWs.onopen = async () => {
           updateStatusBar('connecting');
           appendChat('coach', 'Connecting to your AI diet coach…');
-          const ctx = buildCoachContext();
+          let meals = [];
+          const fetchWithTimeout = (u, ms = 10000) => {
+            const c = new AbortController();
+            const t = setTimeout(() => c.abort(), ms);
+            return fetch(u, { signal: c.signal }).finally(() => clearTimeout(t));
+          };
+          try {
+            const res = await fetchWithTimeout(url() + '/meals?user_id=demo');
+            const data = await res.json();
+            if (res.ok && Array.isArray(data.meals)) meals = data.meals;
+          } catch (_) {}
+          if (meals.length === 0) {
+            try {
+              const res = await fetchWithTimeout(url() + '/demo/meals');
+              const data = await res.json();
+              if (res.ok && Array.isArray(data.meals)) meals = data.meals;
+            } catch (_) {}
+          }
+          meals = meals.map(m => ({ ...m, mealMoment: normalizeMealMoment(m) }));
+          await fetchTasks();
+          const trendData = getTrendDataWithDates(meals);
+          const ctx = buildCoachContext(meals, trendData);
           chatWs.send(JSON.stringify({ type: 'context', payload: ctx }));
         };
         chatWs.onclose = () => {
@@ -745,6 +1184,7 @@
             const d = JSON.parse(e.data);
             if (d.type === 'error') {
               removeChatThinking();
+              removeChatImageGenerating();
               updateStatusBar('error'); $('statusConn').textContent = 'Error';
               appendChat('coach', 'Sorry, the coach connection failed: ' + (d.message || 'unknown error') + '. Check that GOOGLE_CLOUD_PROJECT is set and gcloud auth is configured.');
               return;
@@ -753,6 +1193,21 @@
               addTask(d.task || '', d.due || '');
               renderCoachTasksMini();
               openCoachPopup();
+              return;
+            }
+            if (d.type === 'image_generating') {
+              appendChatImageGenerating(d.message || 'Generating meal image…');
+              return;
+            }
+            if (d.type === 'meal_image') {
+              removeChatThinking();
+              removeChatImageGenerating();
+              const caption = d.suggestion || d.mealType || 'Generated meal';
+              if (d.imageUrl) {
+                appendChatImageFromUrl(url() + d.imageUrl, caption);
+              } else if (d.imageBase64) {
+                appendChatImage(d.imageBase64, caption);
+              }
               return;
             }
             if (d.setup_complete || d.setupComplete) {
@@ -783,9 +1238,10 @@
             const sc = d?.serverContent ?? d?.server_content;
             const interrupted = sc?.interrupted === true;
             if (interrupted) {
-              clearAudioQueue();
+              setAudioInterrupted();
               if (window._coachTextBuffer) window._coachTextBuffer = '';
               removeChatThinking();
+              removeChatImageGenerating();
               updateStatusBar(undefined, undefined, 'idle');
               return;
             }
@@ -797,6 +1253,7 @@
               window._coachTextBuffer += text.trim() + ' ';
             }
             if (turnComplete || genComplete) {
+              audioInterrupted = false;
               removeChatThinking();
               if (window._coachTextBuffer) {
                 appendChat('coach', window._coachTextBuffer.trim());
@@ -827,6 +1284,65 @@
       const div = document.createElement('div');
       div.className = 'chat-msg ' + role;
       div.textContent = text;
+      $('chatMessages').appendChild(div);
+      $('chatMessages').scrollTop = $('chatMessages').scrollHeight;
+    }
+
+    function appendChatImageGenerating(message) {
+      removeChatThinking();
+      removeChatImageGenerating();
+      const div = document.createElement('div');
+      div.id = 'chatImageGenerating';
+      div.className = 'chat-msg coach chat-thinking';
+      div.innerHTML = '<span>' + (message || 'Generating meal image…') + '</span><div class="image-gen-progress" style="margin-top:0.75rem"><div class="image-gen-progress-bar"></div></div>';
+      $('chatMessages').appendChild(div);
+      $('chatMessages').scrollTop = $('chatMessages').scrollHeight;
+    }
+    function removeChatImageGenerating() {
+      const el = document.getElementById('chatImageGenerating');
+      if (el) el.remove();
+    }
+    function appendChatImageFromUrl(imageUrl, caption) {
+      const div = document.createElement('div');
+      div.className = 'chat-msg coach';
+      const img = document.createElement('img');
+      img.src = imageUrl;
+      img.alt = caption;
+      img.style.maxWidth = '220px';
+      img.style.maxHeight = '180px';
+      img.style.borderRadius = '12px';
+      img.style.marginTop = '4px';
+      div.appendChild(img);
+      if (caption) {
+        const cap = document.createElement('div');
+        cap.textContent = caption;
+        cap.style.fontSize = '0.85rem';
+        cap.style.color = 'var(--text-muted)';
+        cap.style.marginTop = '4px';
+        div.appendChild(cap);
+      }
+      $('chatMessages').appendChild(div);
+      $('chatMessages').scrollTop = $('chatMessages').scrollHeight;
+    }
+    function appendChatImage(base64, caption) {
+      const div = document.createElement('div');
+      div.className = 'chat-msg coach';
+      const img = document.createElement('img');
+      img.src = 'data:image/png;base64,' + base64;
+      img.alt = caption;
+      img.style.maxWidth = '220px';
+      img.style.maxHeight = '180px';
+      img.style.borderRadius = '12px';
+      img.style.marginTop = '4px';
+      div.appendChild(img);
+      if (caption) {
+        const cap = document.createElement('div');
+        cap.textContent = caption;
+        cap.style.fontSize = '0.85rem';
+        cap.style.color = 'var(--text-muted)';
+        cap.style.marginTop = '4px';
+        div.appendChild(cap);
+      }
       $('chatMessages').appendChild(div);
       $('chatMessages').scrollTop = $('chatMessages').scrollHeight;
     }
@@ -876,7 +1392,7 @@
     }
     function sendInterrupt() {
       if (!chatWs || chatWs.readyState !== WebSocket.OPEN) return;
-      clearAudioQueue();
+      setAudioInterrupted();
       if (window._coachTextBuffer) window._coachTextBuffer = '';
       removeChatThinking();
       hideStopButton();
@@ -892,6 +1408,7 @@
     let audioNextStart = 0;
     const audioQueue = [];
     let audioPlaying = false;
+    let audioInterrupted = false;
     function getAudioContext() {
       if (!audioCtx || audioCtx.state === 'closed') {
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -899,6 +1416,7 @@
       return audioCtx;
     }
     function playPCMBase64(b64) {
+      if (audioInterrupted) return;
       audioQueue.push(b64);
       if (audioPlaying) return;
       processAudioQueue();
@@ -906,6 +1424,22 @@
     function clearAudioQueue() {
       audioQueue.length = 0;
       audioNextStart = 0;
+      audioPlaying = false;
+      audioInterrupted = false;
+      if (audioCtx && audioCtx.state !== 'closed') {
+        audioCtx.close().catch(() => {});
+        audioCtx = null;
+      }
+      hideStopButton();
+      updateStatusBar(undefined, undefined, 'idle');
+    }
+    function setAudioInterrupted() {
+      audioInterrupted = true;
+      audioQueue.length = 0;
+      if (audioCtx && audioCtx.state !== 'closed') {
+        audioCtx.close().catch(() => {});
+        audioCtx = null;
+      }
       audioPlaying = false;
       hideStopButton();
       updateStatusBar(undefined, undefined, 'idle');
@@ -1146,11 +1680,72 @@
     }
 
     const RULE_WHY = {
-      forbidden: 'These foods work against your goals. The coach can explain why each is restricted when you ask.',
-      allowed: 'These fit your plan. Prioritize them when building meals — the coach can suggest combos.',
+      forbidden: 'These foods work against your goals. The coach can explain why each is restricted — just ask.',
+      allowed: 'These fit your plan perfectly. Build your meals around them.',
       limit: 'Enjoy in moderation. Staying under the limit keeps you on track.',
       note: 'Extra guidance from your plan. Use these to steer daily choices.',
     };
+
+    const FOOD_EMOJI_MAP = {
+      gluten: '🌾', trigo: '🌾', wheat: '🌾', bread: '🍞', pan: '🍞',
+      avena: '🥣', oats: '🥣', oatmeal: '🥣',
+      lacteos: '🥛', lácteos: '🥛', dairy: '🥛', milk: '🥛', leche: '🥛', 'lácteos vaca': '🐄',
+      frutos: '🥜', 'frutos secos': '🥜', nuts: '🥜', almonds: '🥜', nueces: '🥜',
+      maicena: '🌽', cornstarch: '🌽', corn: '🌽', maíz: '🌽',
+      levadura: '🧫', yeast: '🧫',
+      patata: '🥔', potato: '🥔', papa: '🥔', patatas: '🥔',
+      pasta: '🍝', noodles: '🍝', spaghetti: '🍝',
+      arroz: '🍚', rice: '🍚',
+      fritos: '🍟', fried: '🍟', 'fried food': '🍟',
+      cereales: '🥣', cereal: '🥣', cereals: '🥣',
+      queso: '🧀', quesos: '🧀', cheese: '🧀',
+      salsa: '🫙', salsas: '🫙', sauce: '🫙', sauces: '🫙',
+      cerveza: '🍺', beer: '🍺',
+      dulces: '🍬', candy: '🍬', sweets: '🍬', sugar: '🍬', azúcar: '🍬',
+      soda: '🥤', refresco: '🥤',
+      cake: '🎂', pastry: '🧁', pastel: '🧁', pastries: '🧁',
+      chocolate: '🍫',
+      pizza: '🍕',
+      hamburger: '🍔', burger: '🍔',
+      ice: '🍦', helado: '🍦',
+      chicken: '🍗', pollo: '🍗',
+      fish: '🐟', pescado: '🐟',
+      meat: '🥩', carne: '🥩', steak: '🥩',
+      egg: '🥚', eggs: '🥚', huevo: '🥚', huevos: '🥚',
+      vegetables: '🥬', verduras: '🥬', salad: '🥗', ensalada: '🥗',
+      fruit: '🍎', fruits: '🍎', frutas: '🍎',
+      water: '💧', agua: '💧',
+      coffee: '☕', café: '☕', cafe: '☕',
+      tea: '🍵', té: '🍵',
+      olive: '🫒', aceite: '🫒', oil: '🫒',
+      tomato: '🍅', tomate: '🍅',
+      carrot: '🥕', zanahoria: '🥕',
+      broccoli: '🥦', brócoli: '🥦',
+      avocado: '🥑', aguacate: '🥑',
+      lemon: '🍋', limón: '🍋',
+      pepper: '🌶', pimiento: '🌶',
+      mushroom: '🍄', champiñón: '🍄', seta: '🍄',
+      garlic: '🧄', ajo: '🧄',
+      onion: '🧅', cebolla: '🧅',
+      shrimp: '🦐', camarón: '🦐', gambas: '🦐',
+      wine: '🍷', vino: '🍷',
+      alcohol: '🍷',
+      legumes: '🫘', legumbres: '🫘', beans: '🫘', lentils: '🫘', lentejas: '🫘',
+      yogurt: '🥛', yogur: '🥛',
+      honey: '🍯', miel: '🍯',
+      butter: '🧈', mantequilla: '🧈',
+      grains: '🌾', 'whole grains': '🌾',
+      protein: '💪', 'lean protein': '💪',
+    };
+
+    function getFoodEmoji(name) {
+      const lower = name.toLowerCase().trim();
+      if (FOOD_EMOJI_MAP[lower]) return FOOD_EMOJI_MAP[lower];
+      for (const [key, emoji] of Object.entries(FOOD_EMOJI_MAP)) {
+        if (lower.includes(key) || key.includes(lower)) return emoji;
+      }
+      return '🍽️';
+    }
 
     function normalizeRules(rules) {
       if (!rules) return [];
@@ -1171,6 +1766,11 @@
       return '';
     }
 
+    function renderFoodCard(name) {
+      const emoji = getFoodEmoji(name);
+      return `<div class="rule-item-card"><span class="food-emoji">${emoji}</span><span class="food-name">${escapeHtml(name)}</span></div>`;
+    }
+
     function renderRulesList(rules) {
       const r = normalizeRules(rules || lastRules);
       const forbidden = r.filter(x => x?.type === 'forbidden').flatMap(x => (x.items || []).map(toItemString).filter(Boolean));
@@ -1178,15 +1778,15 @@
       const limits = r.filter(x => x?.type === 'limit');
       const notes = r.filter(x => x?.type === 'note').map(x => (x.text || '').trim()).filter(Boolean);
       let html = '';
-      if (forbidden.length) html += `<div class="rule-section not-allowed"><h3>🚫 Avoid</h3><div class="rule-items">${forbidden.map(i => `<span>${escapeHtml(i)}</span>`).join('')}</div><p class="why">${RULE_WHY.forbidden}</p></div>`;
-      if (allowed.length) html += `<div class="rule-section allowed"><h3>✓ Prefer</h3><div class="rule-items">${allowed.map(i => `<span>${escapeHtml(i)}</span>`).join('')}</div><p class="why">${RULE_WHY.allowed}</p></div>`;
+      if (forbidden.length) html += `<div class="rule-section not-allowed"><h3>🚫 Avoid <span class="rule-count">(${forbidden.length} items)</span></h3><div class="rule-items">${forbidden.map(renderFoodCard).join('')}</div><p class="why">${RULE_WHY.forbidden}</p></div>`;
+      if (allowed.length) html += `<div class="rule-section allowed"><h3>✅ Prefer <span class="rule-count">(${allowed.length} items)</span></h3><div class="rule-items">${allowed.map(renderFoodCard).join('')}</div><p class="why">${RULE_WHY.allowed}</p></div>`;
       if (limits.length) html += limits.map(l => {
         const items = (l.items || []).map(toItemString).filter(Boolean);
         const max = l.maxPerDay ?? 1;
         const unit = l.unit || 'servings';
-        return `<div class="rule-section limit"><h3>⚖ Limit</h3><div class="rule-items">${items.map(i => `<span>${escapeHtml(i)}</span>`).join('')}</div><p class="limit-max">max ${max} ${unit}/day</p><p class="why">${RULE_WHY.limit}</p></div>`;
+        return `<div class="rule-section limit"><h3>⚖️ Limit <span class="rule-count">(${items.length} items)</span></h3><div class="rule-items">${items.map(renderFoodCard).join('')}</div><p class="limit-max">Max ${max} ${unit} per day</p><p class="why">${RULE_WHY.limit}</p></div>`;
       }).join('');
-      if (notes.length) html += `<div class="rule-section note"><h3>📝 Notes & reasons</h3><p class="note-text">${escapeHtml(notes.join(' • '))}</p><p class="why">${RULE_WHY.note}</p></div>`;
+      if (notes.length) html += `<div class="rule-section note"><h3>📝 Notes & guidance</h3><p class="note-text">${escapeHtml(notes.join(' • '))}</p><p class="why">${RULE_WHY.note}</p></div>`;
       $('rulesList').innerHTML = html || '<p style="color:var(--gray);grid-column:1/-1;padding:1.5rem">No rules yet. Upload or type your diet plan above.</p>';
       renderInsightsAndSuggestions(r);
     }
@@ -1229,17 +1829,27 @@
     function renderInsightsAndSuggestions(rules) {
       $('insightsCard').style.display = 'block';
       renderNextMealTip();
+      renderInsightsContent($('insightsList'), $('mealSuggestionsList'));
+    }
+
+    function renderInsightsForTab() {
+      renderInsightsContent($('insightsListTab'), $('mealSuggestionsListTab'));
+    }
+
+    function renderInsightsContent(insightsEl, suggestionsEl) {
+      if (!insightsEl) return;
       const insights = [
         '<strong>Steer your diet:</strong> Focus on dinners — they tend to slip. Prep compliant options on Sunday.',
         '<strong>Tip:</strong> Swap soda for sparkling water. Keep allowed snacks visible.',
         '<strong>Trend:</strong> Breakfasts are your strongest. Replicate that structure for lunch.',
       ];
-      $('insightsList').innerHTML = insights.map(i => `<div class="insight-card">${i}</div>`).join('');
+      insightsEl.innerHTML = insights.map(i => `<div class="insight-card">${i}</div>`).join('');
+      if (!suggestionsEl) return;
       let sugHtml = '<h4 style="margin:0 0 0.5rem 0;font-size:0.95rem">Meal ideas (based on your plan)</h4>';
       for (const [meal, ideas] of Object.entries(MEAL_SUGGESTIONS)) {
         sugHtml += ideas.slice(0, 2).map(idea => `<div class="meal-suggestion"><span class="meal-type">${meal}:</span>${idea}</div>`).join('');
       }
-      $('mealSuggestionsList').innerHTML = sugHtml;
+      suggestionsEl.innerHTML = sugHtml;
     }
 
     async function loadRules() {
@@ -1367,33 +1977,46 @@
       $('checkinHunger').value = '';
     }
 
-    function getTasks() {
+    let _tasksCache = [];
+    const TASKS_USER = 'demo';
+
+    async function fetchTasks() {
       try {
-        const raw = localStorage.getItem('happydiet_tasks');
-        if (raw) return JSON.parse(raw);
-      } catch (_) {}
-      return [];
+        const res = await fetch(url() + '/tasks?user_id=' + encodeURIComponent(TASKS_USER));
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.tasks)) _tasksCache = data.tasks;
+      } catch (_) { _tasksCache = []; }
     }
 
-    function saveTasks(entries) {
-      localStorage.setItem('happydiet_tasks', JSON.stringify(entries));
+    function getTasks() {
+      return _tasksCache;
     }
 
-    function addTask(task, due) {
-      const entries = getTasks();
+    async function addTask(task, due) {
       const t = (task || '').trim();
       const d = (due || '').trim();
-      const exists = entries.some(e => !e.done && (e.task || '').trim() === t && (e.due || '').trim() === d);
+      if (!t) return;
+      const exists = _tasksCache.some(e => !e.done && (e.task || '').trim() === t && (e.due || '').trim() === d);
       if (exists) return;
-      entries.unshift({ id: Date.now(), task: t, due: d, done: false });
-      saveTasks(entries);
+      try {
+        const res = await fetch(url() + '/tasks', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ task: t, due: d, user_id: TASKS_USER }),
+        });
+        if (res.ok) await fetchTasks();
+      } catch (_) {}
       renderTasks();
       if (typeof renderCoachTasksMini === 'function') renderCoachTasksMini();
     }
 
-    function toggleTaskDone(id) {
-      const entries = getTasks().map(t => t.id === id ? { ...t, done: !t.done } : t);
-      saveTasks(entries);
+    async function toggleTaskDone(id) {
+      try {
+        const res = await fetch(url() + '/tasks/' + encodeURIComponent(id) + '?user_id=' + encodeURIComponent(TASKS_USER), {
+          method: 'PATCH',
+        });
+        if (res.ok) await fetchTasks();
+      } catch (_) {}
       renderTasks();
       if (typeof renderCoachTasksMini === 'function') renderCoachTasksMini();
     }
@@ -1455,7 +2078,10 @@
       const ingredients = allowed.length ? allowed.slice(0, 4).join(', ') : 'vegetables, lean protein, whole grains';
       const prompt = `A healthy ${mealType} meal with ${ingredients}, on a white plate, photorealistic, appetizing, professional food photography`;
       const btn = $('gen' + mealType.charAt(0).toUpperCase() + mealType.slice(1) + 'Btn');
+      const progressWrap = $('imageGenProgressWrap');
       if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+      if (progressWrap) { progressWrap.style.display = 'block'; progressWrap.innerHTML = '<p style="margin:0 0 0.5rem 0;font-size:0.9rem;color:var(--accent)">Generating meal image…</p><div class="image-gen-progress"><div class="image-gen-progress-bar"></div></div>'; }
+      $('generatedImageWrap').style.display = 'none';
       $('generatedExplanation').style.display = 'none';
       $('generatedExplanation').textContent = '';
       try {
@@ -1491,10 +2117,23 @@
         $('rulesPreview').textContent = 'Error: ' + e.message;
       }
       if (btn) { btn.disabled = false; btn.textContent = mealType === 'breakfast' ? '🍳 Breakfast' : mealType === 'lunch' ? '🥗 Lunch' : '🍽 Dinner'; }
+      if (progressWrap) progressWrap.style.display = 'none';
     }
     $('genBreakfastBtn').onclick = () => generateMealImage('breakfast');
     $('genLunchBtn').onclick = () => generateMealImage('lunch');
     $('genDinnerBtn').onclick = () => generateMealImage('dinner');
+
+    const MEAL_IMAGES_PROMPT = 'Suggest meal ideas and show me what they look like. Generate images of the meals you recommend.';
+    $('askCoachMealImagesBtn').onclick = () => {
+      openCoachPopup();
+      $('chatInput').value = MEAL_IMAGES_PROMPT;
+      $('chatInput').focus();
+      if (chatWs && chatWs.readyState === WebSocket.OPEN) {
+        sendChat();
+      } else {
+        appendChat('coach', 'Connect the coach first (tap Connect in the status bar), then click the button again to send.');
+      }
+    };
 
     // --- ANALYZE: Meal + rich result ---
     $('uploadBtn').onclick = () => $('file').click();
@@ -1628,6 +2267,26 @@
       sendChatImage(currentBase64);
     }
 
+    function toDateKey(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return y + '-' + m + '-' + day;
+    }
+
+    function parseMealTimestamp(m) {
+      const ts = m.timestamp || m.createdAt || m.created_at;
+      if (!ts) return null;
+      if (ts instanceof Date) return ts;
+      if (typeof ts === 'number') return new Date(ts);
+      if (typeof ts === 'string') return new Date(ts);
+      if (ts && typeof ts === 'object') {
+        const sec = ts.seconds ?? ts._seconds;
+        if (typeof sec === 'number') return new Date(sec * 1000);
+      }
+      return null;
+    }
+
     function getTrendDataWithDates(meals) {
       const days = 14;
       const now = new Date();
@@ -1635,79 +2294,106 @@
       const dailyScores = {};
       if (meals && meals.length) {
         meals.forEach(m => {
-          const ts = m.timestamp || m.createdAt;
-          const d = ts ? new Date(ts) : null;
-          const key = d ? d.toISOString().slice(0, 10) : null;
+          const d = parseMealTimestamp(m);
+          const key = d ? toDateKey(d) : null;
           if (key) {
             if (!dailyScores[key]) dailyScores[key] = [];
             dailyScores[key].push(m.complianceScore ?? 0);
           }
         });
       }
-      const mockScores = MOCK_TREND;
-      for (let i = days - 1; i >= 0; i--) {
-        const d = new Date(now);
-        d.setDate(d.getDate() - i);
-        const key = d.toISOString().slice(0, 10);
-        const shortDate = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
-        let score;
-        if (dailyScores[key] && dailyScores[key].length) {
-          score = Math.round(dailyScores[key].reduce((a, b) => a + b, 0) / dailyScores[key].length);
-        } else {
-          score = mockScores[days - 1 - i] ?? mockScores[0];
+      const distinctDays = Object.keys(dailyScores).length;
+      if (distinctDays >= 5) {
+        for (let i = days - 1; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i, 12, 0, 0);
+          const key = toDateKey(d);
+          const shortDate = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+          let score = 0;
+          if (dailyScores[key] && dailyScores[key].length) {
+            score = Math.round(dailyScores[key].reduce((a, b) => a + b, 0) / dailyScores[key].length);
+          }
+          trend.push({ date: key, shortDate, score });
         }
-        trend.push({ date: key, shortDate, score });
+      } else if (meals.length > 0) {
+        const withDates = meals.map(m => ({ d: parseMealTimestamp(m), score: m.complianceScore ?? 0 })).filter(x => x.d);
+        withDates.sort((a, b) => a.d.getTime() - b.d.getTime());
+        for (let i = 0; i < days; i++) {
+          const startIdx = Math.floor((i / days) * withDates.length);
+          const endIdx = Math.floor(((i + 1) / days) * withDates.length);
+          const chunk = withDates.slice(startIdx, endIdx);
+          const score = chunk.length ? Math.round(chunk.reduce((a, x) => a + x.score, 0) / chunk.length) : 0;
+          const d = chunk[0]?.d || withDates[0]?.d || new Date(now.getTime() - (days - 1 - i) * 86400000);
+          trend.push({ date: toDateKey(d), shortDate: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }), score });
+        }
+      } else {
+        for (let i = days - 1; i >= 0; i--) {
+          const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i, 12, 0, 0);
+          trend.push({ date: toDateKey(d), shortDate: d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' }), score: 0 });
+        }
       }
       return trend;
     }
 
     function renderTrendChart(trendData) {
-      const max = Math.max(...trendData.map(t => t.score), 1);
+      const chartHeight = 80;
       $('trendChart').innerHTML = trendData.map(t =>
         `<div class="trend-bar-wrap" title="${t.shortDate}: ${t.score}%">
           <span class="trend-score">${t.score}%</span>
-          <div class="trend-bar" style="height:${(t.score / max) * 100}%"></div>
+          <div class="trend-bar" style="height:${Math.round((Math.min(100, Math.max(0, t.score)) / 100) * chartHeight)}px"></div>
         </div>`
       ).join('');
       $('trendLabels').innerHTML = trendData.map(t => `<span title="${t.date}">${t.shortDate}</span>`).join('');
+    }
+
+    function normalizeMealMoment(m) {
+      const moment = m.mealMoment || m.meal_moment || '';
+      if (['breakfast', 'lunch', 'dinner', 'snack'].includes(moment)) return moment;
+      const ts = m.timestamp || m.createdAt;
+      if (!ts) return 'meal';
+      const d = new Date(ts);
+      const h = d.getHours();
+      if (h < 11) return 'breakfast';
+      if (h < 17) return 'lunch';
+      return 'dinner';
     }
 
     // --- DASHBOARD ---
     async function renderDashboard() {
       renderWeightList();
       renderNextMealTip();
-      let meals = MOCK_MEALS;
+      let meals = [];
       try {
         const res = await fetch(url() + '/meals?user_id=demo');
         const data = await res.json();
-        if (res.ok && data.meals?.length) meals = data.meals;
+        if (res.ok && Array.isArray(data.meals)) meals = data.meals;
       } catch (_) {}
+      if (meals.length === 0) {
+        try {
+          const res = await fetch(url() + '/demo/meals');
+          const data = await res.json();
+          if (res.ok && Array.isArray(data.meals)) meals = data.meals;
+        } catch (_) {}
+      }
+      meals = meals.map(m => ({ ...m, mealMoment: normalizeMealMoment(m) }));
       const trendData = getTrendDataWithDates(meals);
       renderTrendChart(trendData);
-      $('mealsList').innerHTML = meals.map(m => {
+      if (meals.length === 0) {
+        $('mealsList').innerHTML = '<p style="color:var(--gray)">No meals yet. Analyze a meal first.</p>';
+      } else {
+        $('mealsList').innerHTML = meals.map(m => {
         const sc = m.complianceScore || 0;
         const cls = sc >= 80 ? 'score-high' : sc >= 50 ? 'score-mid' : 'score-low';
+        const moment = normalizeMealMoment(m);
         return `<div class="meal-row">
-          <div><strong>${m.mealMoment}</strong> — ${(m.ingredients || []).join(', ')} ${m.estimatedKcal ? `• ${m.estimatedKcal} kcal` : ''}</div>
+          <div><strong>${moment.charAt(0).toUpperCase() + moment.slice(1)}</strong> — ${(m.ingredients || []).join(', ')} ${m.estimatedKcal ? `• ${m.estimatedKcal} kcal` : ''}</div>
           <span class="meal-score ${cls}">${Math.round(sc)}%</span>
         </div>`;
       }).join('');
+      }
     }
 
     $('refreshMeals').onclick = async () => {
-      try {
-        const res = await fetch(url() + '/meals?user_id=demo');
-        const data = await res.json();
-        if (res.ok && data.meals?.length) {
-          const meals = data.meals;
-          $('mealsList').innerHTML = meals.slice(0, 10).map(m => {
-            const sc = m.complianceScore || 0;
-            const cls = sc >= 80 ? 'score-high' : sc >= 50 ? 'score-mid' : 'score-low';
-            return `<div class="meal-row"><div><strong>${m.mealMoment || 'meal'}</strong> — ${(m.ingredients || []).slice(0, 3).join(', ')} ${m.estimatedKcal ? `• ${m.estimatedKcal} kcal` : ''}</div><span class="meal-score ${cls}">${Math.round(sc)}%</span></div>`;
-          }).join('');
-          renderTrendChart(getTrendDataWithDates(meals));
-        } else renderDashboard();
-      } catch (_) { renderDashboard(); }
+      await renderDashboard();
     };
 
     function enterApp() {
@@ -1723,8 +2409,9 @@
     }
 
     $('heroEnterBtn').onclick = enterApp;
+    if ($('heroEnterBtn2')) $('heroEnterBtn2').onclick = enterApp;
 
-    // Hero always shows on load — user clicks "Get started" to enter
+    // Showcase always shows on load — user clicks demo button to enter
 
     function getTargets() {
       try {

@@ -13,7 +13,7 @@ struct AnalyzeFlowView: View {
     @State private var selectedImage: UIImage?
     @State private var showImagePicker = false
     @State private var showHeyCyanSheet = false
-    @State private var useCamera = true
+    @State private var imagePickerSource: UIImagePickerController.SourceType = .photoLibrary
     @State private var isAnalyzing = false
     @State private var result: AnalyzeMealResponse?
     @State private var errorMessage: String?
@@ -41,11 +41,7 @@ struct AnalyzeFlowView: View {
             .navigationTitle("Analyze Meal")
             .navigationBarTitleDisplayMode(.large)
             .sheet(isPresented: $showImagePicker) {
-                if useCamera {
-                    ImagePicker(sourceType: .camera, onImagePicked: handleImagePicked, onCancel: { showImagePicker = false })
-                } else {
-                    ImagePicker(sourceType: .photoLibrary, onImagePicked: handleImagePicked, onCancel: { showImagePicker = false })
-                }
+                ImagePicker(sourceType: imagePickerSource, onImagePicked: handleImagePicked, onCancel: { showImagePicker = false })
             }
             .sheet(isPresented: $showHeyCyanSheet) {
                 HeyCyanCaptureSheet(
@@ -102,7 +98,7 @@ struct AnalyzeFlowView: View {
             // Camera & Photo
             HStack(spacing: 16) {
                 Button {
-                    useCamera = true
+                    imagePickerSource = .camera
                     showImagePicker = true
                 } label: {
                     Label("Camera", systemImage: "camera.fill")
@@ -113,7 +109,7 @@ struct AnalyzeFlowView: View {
                 .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
 
                 Button {
-                    useCamera = false
+                    imagePickerSource = .photoLibrary
                     showImagePicker = true
                 } label: {
                     Label("Photo Library", systemImage: "photo.on.rectangle")
@@ -429,9 +425,9 @@ struct LoadingProgressBar: View {
     }
 }
 
-/// Simulated determinate progress bar for meal analysis (smooth fill over ~6s)
+/// Indeterminate progress bar for meal analysis (avoids "stuck at 92%" — API can take 30–90s)
 struct MealAnalysisProgressBar: View {
-    @State private var progress: CGFloat = 0
+    @State private var isAnimating = false
 
     var body: some View {
         VStack(spacing: 6) {
@@ -447,21 +443,18 @@ struct MealAnalysisProgressBar: View {
                                 endPoint: .trailing
                             )
                         )
-                        .frame(width: geo.size.width * min(progress, 1))
+                        .frame(width: geo.size.width * 0.35)
+                        .offset(x: isAnimating ? geo.size.width : -geo.size.width * 0.35)
                 }
             }
-            Text("\(Int(progress * 100))%")
+            Text("Analyzing…")
                 .font(.caption.bold())
                 .foregroundStyle(Theme.accent)
         }
         .onAppear {
-            progress = 0
-            withAnimation(.easeInOut(duration: 5.5)) {
-                progress = 0.92
+            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: false)) {
+                isAnimating = true
             }
-        }
-        .onDisappear {
-            progress = 0
         }
     }
 }

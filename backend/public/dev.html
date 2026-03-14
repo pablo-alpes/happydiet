@@ -104,14 +104,16 @@
     .rules-preview { font-size: 0.8rem; color: #6c757d; margin-top: 0.25rem; }
     .rule-section { padding: 0.75rem 1rem; border-radius: 8px; margin-top: 0.5rem; }
     .rule-section h3 { margin: 0 0 0.5rem 0; font-size: 0.95rem; }
-    .rule-items { display: flex; flex-wrap: wrap; gap: 0.35rem; }
-    .rule-items span { padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.9rem; }
+    .rule-items { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.4rem; }
+    .rule-item-card { display: flex; align-items: center; gap: 0.5rem; padding: 0.35rem 0.6rem; border-radius: 8px; font-size: 0.85rem; }
+    .rule-item-card .food-emoji { font-size: 1.15rem; flex-shrink: 0; }
+    .rule-section .rule-count { font-size: 0.75rem; font-weight: 400; opacity: 0.65; }
     .not-allowed-section { background: #f8d7da; color: #721c24; }
-    .not-allowed-section .rule-items span { background: #fff; color: #721c24; border: 1px solid #f5c6cb; }
+    .not-allowed-section .rule-item-card { background: #fff; color: #721c24; border: 1px solid #f5c6cb; border-radius: 8px; }
     .allowed-section { background: #d4edda; color: #155724; }
-    .allowed-section .rule-items span { background: #fff; color: #155724; border: 1px solid #c3e6cb; }
+    .allowed-section .rule-item-card { background: #fff; color: #155724; border: 1px solid #c3e6cb; border-radius: 8px; }
     .limit-section { background: #fff3cd; color: #856404; }
-    .limit-section .rule-items span { background: #fff; color: #856404; border: 1px solid #ffeaa7; }
+    .limit-section .rule-item-card { background: #fff; color: #856404; border: 1px solid #ffeaa7; border-radius: 8px; }
     .note-section { background: #e7f3ff; color: #004085; }
     .meal-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
     .camera-modal {
@@ -487,6 +489,30 @@
       }
     };
 
+    const FOOD_EMOJI_MAP = {
+      gluten: '🌾', trigo: '🌾', wheat: '🌾', bread: '🍞',
+      avena: '🥣', oats: '🥣', lácteos: '🥛', 'lácteos vaca': '🐄', dairy: '🥛',
+      'frutos secos': '🥜', nuts: '🥜', maicena: '🌽',
+      levadura: '🧫', patata: '🥔', potato: '🥔',
+      pasta: '🍝', arroz: '🍚', rice: '🍚', fritos: '🍟', fried: '🍟',
+      cereales: '🥣', queso: '🧀', quesos: '🧀', cheese: '🧀',
+      salsa: '🫙', salsas: '🫙', cerveza: '🍺', beer: '🍺',
+      dulces: '🍬', sugar: '🍬', soda: '🥤', chocolate: '🍫',
+      chicken: '🍗', pollo: '🍗', fish: '🐟', pescado: '🐟',
+      meat: '🥩', carne: '🥩', egg: '🥚', vegetables: '🥬', salad: '🥗',
+      fruit: '🍎', water: '💧', coffee: '☕', café: '☕', tea: '🍵',
+      protein: '💪', grains: '🌾', legumes: '🫘', yogurt: '🥛',
+    };
+    function getFoodEmoji(name) {
+      const l = name.toLowerCase().trim();
+      if (FOOD_EMOJI_MAP[l]) return FOOD_EMOJI_MAP[l];
+      for (const [k, e] of Object.entries(FOOD_EMOJI_MAP)) { if (l.includes(k) || k.includes(l)) return e; }
+      return '🍽️';
+    }
+    function foodCard(name) {
+      return `<div class="rule-item-card"><span class="food-emoji">${getFoodEmoji(name)}</span><span>${name}</span></div>`;
+    }
+
     function renderRulesList(rules) {
       const el = $('rulesList');
       const r = rules || window._lastParsedRules;
@@ -500,16 +526,16 @@
       const notes = r.filter(x => x?.type === 'note').map(x => x.text).filter(Boolean);
       let html = '';
       if (forbidden.length) {
-        html += `<div class="rule-section not-allowed-section"><h3>Not allowed</h3><div class="rule-items">${forbidden.map(i => `<span>${i}</span>`).join('')}</div></div>`;
+        html += `<div class="rule-section not-allowed-section"><h3>🚫 Avoid <span class="rule-count">(${forbidden.length})</span></h3><div class="rule-items">${forbidden.map(foodCard).join('')}</div></div>`;
       }
       if (allowed.length) {
-        html += `<div class="rule-section allowed-section"><h3>Allowed</h3><div class="rule-items">${allowed.map(i => `<span>${i}</span>`).join('')}</div></div>`;
+        html += `<div class="rule-section allowed-section"><h3>✅ Prefer <span class="rule-count">(${allowed.length})</span></h3><div class="rule-items">${allowed.map(foodCard).join('')}</div></div>`;
       }
       if (limits.length) {
-        html += limits.map(l => `<div class="rule-section limit-section"><h3>Limit</h3><div class="rule-items">${(l.items || []).map(i => `<span>${i}</span>`).join('')}</div><p style="font-size:0.85rem;margin-top:0.25rem">max ${l.maxPerDay} ${l.unit}/day</p></div>`).join('');
+        html += limits.map(l => `<div class="rule-section limit-section"><h3>⚖️ Limit</h3><div class="rule-items">${(l.items || []).map(foodCard).join('')}</div><p style="font-size:0.85rem;margin-top:0.25rem;font-weight:600">Max ${l.maxPerDay} ${l.unit}/day</p></div>`).join('');
       }
       if (notes.length) {
-        html += `<div class="rule-section note-section"><h3>Notes</h3><p>${notes.join(' • ')}</p></div>`;
+        html += `<div class="rule-section note-section"><h3>📝 Notes</h3><p>${notes.join(' • ')}</p></div>`;
       }
       if (!html) html = '<p style="color:#6c757d;">No structured rules found.</p>';
       el.innerHTML = html;

@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		03223D0C970C510175E7E818 /* BackendDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 252D0E2E5BDDB878E590BB4B /* BackendDiscovery.swift */; };
 		076FA5DAABFEEA232388ABB8 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6052D97768C1F51EE993CC0A /* AppState.swift */; };
 		0AA27457273BE1524304FB85 /* LiveAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF63531B51E8CD5A79B8912 /* LiveAPIClient.swift */; };
 		2F530DA66A6A2E5E5E240875 /* HappyDietApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C90C56EAF1399EEA5FDFE5C /* HappyDietApp.swift */; };
@@ -19,6 +20,7 @@
 		74EA320A0AAB1A7BBA25E7FD /* HeyCyanService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69688F17066CF1A41E427E63 /* HeyCyanService.swift */; };
 		7719176DE200DA630DE661D7 /* DietView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A62F707711FFAC27395B3B37 /* DietView.swift */; };
 		776D1F8B4D2037C980011697 /* HeroView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9595F4A42509F5D37CFA0F67 /* HeroView.swift */; };
+		79712097F8A0317E7330B05B /* CoachDataStoreTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 653C5224AEC7E2240957EDBA /* CoachDataStoreTests.swift */; };
 		7A07302367B579BECB380FB8 /* HeyCyanSDKBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EF6B0498052C19A0B1C4192 /* HeyCyanSDKBridge.swift */; };
 		83355514510E9E73DE4EB31F /* QCScanViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 596F969C1DF1EDC4729B4AD2 /* QCScanViewController.m */; };
 		94CB2E890B360F5DE35D1746 /* GoalsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 72482BE05CEFFC8D63A3E09E /* GoalsView.swift */; };
@@ -27,19 +29,35 @@
 		A4F9735886A2475B25BEF775 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBF8855044CED2641B77E8E7 /* DashboardView.swift */; };
 		B4C69CE391910F224327B3B8 /* CoachOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C2A14F11965298D98CFAEAE /* CoachOverlayView.swift */; };
 		B9489BA97D9B15DCFC9F3601 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5FBDCF421645B6AC2FBE026 /* MainTabView.swift */; };
+		B9C8DD3C27ED1E34342F2036 /* ConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = F6FF85567D80951DB5314686 /* ConfigTests.swift */; };
 		C55AC08872A04A6EA83AC18F /* AnalyzeFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5951FA1407DB867787C5176B /* AnalyzeFlowView.swift */; };
 		C6FC36FEABE215F30B21FAAF /* BackendClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFFB96ACBCAC9646FF85FD54 /* BackendClient.swift */; };
 		CAAD6B2D8965D4C3CE35F0B4 /* RulesTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 87C5F091AB37AFCE60E5C0FA /* RulesTabView.swift */; };
 		CC7D8D162CA7990B10C67100 /* CaptureSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E72BBDDEE42D601D12AD1E6F /* CaptureSource.swift */; };
+		D3AF2BCAA8F84078F338D0FB /* LiveAPIClientTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2D281E51D8CE73365AC5805B /* LiveAPIClientTests.swift */; };
 		E52950D2CCCD09CCA85C7D91 /* QCCentralManager.m in Sources */ = {isa = PBXBuildFile; fileRef = AB0E863950D9D14494011E71 /* QCCentralManager.m */; };
 		EE6A75EFF0018B9BFE4998D6 /* CoachDataStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = A88711C474EC3C733AAFF2CA /* CoachDataStore.swift */; };
 		F5F7AA8C43BEA989C093CB69 /* MoreTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97C06CFA327A974A6F181A3A /* MoreTabView.swift */; };
+		FA2F859B44BEB90031EABFB2 /* TrackView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 403C6094EDB3B0D2EFDD86F3 /* TrackView.swift */; };
 		FEABD43126D2C4E43B24FF55 /* QCScanView.m in Sources */ = {isa = PBXBuildFile; fileRef = A8E887F899AC6898E2E0E828 /* QCScanView.m */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		F6CEFD54DDB68BE45B9ACE2D /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 23A6892256E75B902CD01B26 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = DB7D50A73CCD9C8A12B461C5;
+			remoteInfo = HappyDiet;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		08B9EDDCD98E96E0124D9B6F /* MealsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealsView.swift; sourceTree = "<group>"; };
 		185805D8B54A8B24D59BBAB1 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+		252D0E2E5BDDB878E590BB4B /* BackendDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendDiscovery.swift; sourceTree = "<group>"; };
+		2D281E51D8CE73365AC5805B /* LiveAPIClientTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveAPIClientTests.swift; sourceTree = "<group>"; };
+		403C6094EDB3B0D2EFDD86F3 /* TrackView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrackView.swift; sourceTree = "<group>"; };
 		4D051415AD30AFE724B47DD7 /* HappyDiet-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "HappyDiet-Bridging-Header.h"; sourceTree = "<group>"; };
 		4E4917F2A26CFC8DF10BF51C /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
 		4E77A8995D39CAB4F2DCAB03 /* LiveCoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveCoachView.swift; sourceTree = "<group>"; };
@@ -50,6 +68,7 @@
 		5C2E9A5700BF866CF117C955 /* QCScanView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QCScanView.h; sourceTree = "<group>"; };
 		5F223312063EA4382505C692 /* QCCentralManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QCCentralManager.h; sourceTree = "<group>"; };
 		6052D97768C1F51EE993CC0A /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		653C5224AEC7E2240957EDBA /* CoachDataStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachDataStoreTests.swift; sourceTree = "<group>"; };
 		69688F17066CF1A41E427E63 /* HeyCyanService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeyCyanService.swift; sourceTree = "<group>"; };
 		72482BE05CEFFC8D63A3E09E /* GoalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsView.swift; sourceTree = "<group>"; };
 		7EF6B0498052C19A0B1C4192 /* HeyCyanSDKBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeyCyanSDKBridge.swift; sourceTree = "<group>"; };
@@ -66,10 +85,12 @@
 		AB0E863950D9D14494011E71 /* QCCentralManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QCCentralManager.m; sourceTree = "<group>"; };
 		ACA59CEB6AE9E985CB11BF80 /* QCScanViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QCScanViewController.h; sourceTree = "<group>"; };
 		AFFB96ACBCAC9646FF85FD54 /* BackendClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendClient.swift; sourceTree = "<group>"; };
+		D5346F6A489B80A020EBAAF2 /* HappyDietTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HappyDietTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D5FBDCF421645B6AC2FBE026 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
 		D8562750923012F3F2A8F970 /* HappyDiet.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HappyDiet.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDA101703CE87D2AFC7DDE99 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		E72BBDDEE42D601D12AD1E6F /* CaptureSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSource.swift; sourceTree = "<group>"; };
+		F6FF85567D80951DB5314686 /* ConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigTests.swift; sourceTree = "<group>"; };
 		FBF8855044CED2641B77E8E7 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -90,6 +111,14 @@
 			path = Goals;
 			sourceTree = "<group>";
 		};
+		2A0D0A39A7A046617664C9C8 /* Track */ = {
+			isa = PBXGroup;
+			children = (
+				403C6094EDB3B0D2EFDD86F3 /* TrackView.swift */,
+			);
+			path = Track;
+			sourceTree = "<group>";
+		};
 		32597B567D78978CAD9959D2 /* Dashboard */ = {
 			isa = PBXGroup;
 			children = (
@@ -102,6 +131,7 @@
 			isa = PBXGroup;
 			children = (
 				F9A795516AD896C02265AC50 /* HappyDiet */,
+				FF8781C8ABEE42A5130AA1BD /* HappyDietTests */,
 				50B97D4CCCB8E2BA2A917FAC /* Products */,
 			);
 			sourceTree = "<group>";
@@ -118,6 +148,7 @@
 			isa = PBXGroup;
 			children = (
 				D8562750923012F3F2A8F970 /* HappyDiet.app */,
+				D5346F6A489B80A020EBAAF2 /* HappyDietTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -152,6 +183,7 @@
 				5238E4AEDBB4B003F55F3D46 /* Meals */,
 				0369E32BDD60778BDE3D1ADF /* More */,
 				9CC710AC3DA4991B6B72E7B1 /* Rules */,
+				2A0D0A39A7A046617664C9C8 /* Track */,
 				D5FBDCF421645B6AC2FBE026 /* MainTabView.swift */,
 			);
 			path = Features;
@@ -178,6 +210,7 @@
 			children = (
 				6052D97768C1F51EE993CC0A /* AppState.swift */,
 				AFFB96ACBCAC9646FF85FD54 /* BackendClient.swift */,
+				252D0E2E5BDDB878E590BB4B /* BackendDiscovery.swift */,
 				E72BBDDEE42D601D12AD1E6F /* CaptureSource.swift */,
 				A88711C474EC3C733AAFF2CA /* CoachDataStore.swift */,
 				4E4917F2A26CFC8DF10BF51C /* Config.swift */,
@@ -257,9 +290,37 @@
 			path = HappyDiet;
 			sourceTree = "<group>";
 		};
+		FF8781C8ABEE42A5130AA1BD /* HappyDietTests */ = {
+			isa = PBXGroup;
+			children = (
+				653C5224AEC7E2240957EDBA /* CoachDataStoreTests.swift */,
+				F6FF85567D80951DB5314686 /* ConfigTests.swift */,
+				2D281E51D8CE73365AC5805B /* LiveAPIClientTests.swift */,
+			);
+			path = HappyDietTests;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		9D9D425F804F90F67D07EFA4 /* HappyDietTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 8B0C2440488C89A4335CD71B /* Build configuration list for PBXNativeTarget "HappyDietTests" */;
+			buildPhases = (
+				9CD6641B75429B0D7350ED87 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				1B5142C60682F5528965DCDA /* PBXTargetDependency */,
+			);
+			name = HappyDietTests;
+			packageProductDependencies = (
+			);
+			productName = HappyDietTests;
+			productReference = D5346F6A489B80A020EBAAF2 /* HappyDietTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		DB7D50A73CCD9C8A12B461C5 /* HappyDiet */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 69F9B47D3239F51C0FD67B38 /* Build configuration list for PBXNativeTarget "HappyDiet" */;
@@ -307,6 +368,7 @@
 			projectRoot = "";
 			targets = (
 				DB7D50A73CCD9C8A12B461C5 /* HappyDiet */,
+				9D9D425F804F90F67D07EFA4 /* HappyDietTests */,
 			);
 		};
 /* End PBXProject section */
@@ -341,6 +403,7 @@
 				C55AC08872A04A6EA83AC18F /* AnalyzeFlowView.swift in Sources */,
 				076FA5DAABFEEA232388ABB8 /* AppState.swift in Sources */,
 				C6FC36FEABE215F30B21FAAF /* BackendClient.swift in Sources */,
+				03223D0C970C510175E7E818 /* BackendDiscovery.swift in Sources */,
 				CC7D8D162CA7990B10C67100 /* CaptureSource.swift in Sources */,
 				EE6A75EFF0018B9BFE4998D6 /* CoachDataStore.swift in Sources */,
 				B4C69CE391910F224327B3B8 /* CoachOverlayView.swift in Sources */,
@@ -366,10 +429,29 @@
 				CAAD6B2D8965D4C3CE35F0B4 /* RulesTabView.swift in Sources */,
 				74B40A145B89C7699AB031C7 /* TTSHelper.swift in Sources */,
 				4B9193E0CE2F8DE4AFCA9159 /* Theme.swift in Sources */,
+				FA2F859B44BEB90031EABFB2 /* TrackView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9CD6641B75429B0D7350ED87 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				79712097F8A0317E7330B05B /* CoachDataStoreTests.swift in Sources */,
+				B9C8DD3C27ED1E34342F2036 /* ConfigTests.swift in Sources */,
+				D3AF2BCAA8F84078F338D0FB /* LiveAPIClientTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		1B5142C60682F5528965DCDA /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = DB7D50A73CCD9C8A12B461C5 /* HappyDiet */;
+			targetProxy = F6CEFD54DDB68BE45B9ACE2D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		131E27A0305AA9350EBA1756 /* Release */ = {
@@ -386,6 +468,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
+					"-ObjC",
 					"-framework",
 					QCSDK,
 				);
@@ -488,6 +571,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
+					"-ObjC",
 					"-framework",
 					QCSDK,
 				);
@@ -510,6 +594,44 @@
 					UIInterfaceOrientationLandscapeLeft,
 					UIInterfaceOrientationLandscapeRight,
 				);
+			};
+			name = Debug;
+		};
+		5EF469A9CD2F2A2666CA3147 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.happydiet.app.tests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HappyDiet.app/HappyDiet";
+			};
+			name = Release;
+		};
+		9B2AA4FFD6745041DE4E8653 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.happydiet.app.tests;
+				SDKROOT = iphoneos;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HappyDiet.app/HappyDiet";
 			};
 			name = Debug;
 		};
@@ -586,6 +708,15 @@
 			buildConfigurations = (
 				3574C09375B212AC1446D301 /* Debug */,
 				D83944FD8CF440B734B16577 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		8B0C2440488C89A4335CD71B /* Build configuration list for PBXNativeTarget "HappyDietTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9B2AA4FFD6745041DE4E8653 /* Debug */,
+				5EF469A9CD2F2A2666CA3147 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;

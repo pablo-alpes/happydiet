@@ -130,47 +130,44 @@ struct RecentMealsView: View {
     }
 }
 
-// MARK: - Meal Suggestions
+// MARK: - Meal Suggestions (link to agent)
 
 struct MealSuggestionsView: View {
-    private let mealSuggestions: [String: [String]] = [
-        "breakfast": ["Oatmeal with berries and almonds", "Greek yogurt with banana", "Eggs with avocado and whole grain toast"],
-        "lunch": ["Grilled chicken salad with quinoa", "Turkey wrap with hummus", "Grilled fish with spinach and sweet potato"],
-        "dinner": ["Salmon with broccoli and rice", "Grilled chicken with vegetables", "Lean protein with salad and whole grains"],
-    ]
+    @EnvironmentObject var appState: AppState
+
+    private let promptForCoach = "Suggest some healthy meal options for my diet and show me what they look like. Generate images of the meals you recommend."
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 20) {
-                Text("Meal ideas based on your plan")
+            VStack(alignment: .leading, spacing: 24) {
+                Text("Meal suggestions with images")
                     .font(.headline)
                     .foregroundStyle(.primary)
+                Text("Ask the coach for personalized meal ideas. The coach can suggest options based on your diet plan and generate images so you can see what the meals look like.")
+                    .font(.subheadline)
+                    .foregroundStyle(Theme.textMuted)
 
-                ForEach(["breakfast", "lunch", "dinner"], id: \.self) { meal in
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text(meal.capitalized)
-                            .font(.title3.bold())
-                            .foregroundStyle(Theme.accent)
-
-                        if let ideas = mealSuggestions[meal] {
-                            ForEach(ideas, id: \.self) { idea in
-                                HStack(alignment: .top, spacing: 8) {
-                                    Text("•")
-                                        .foregroundStyle(Theme.accent)
-                                    Text(idea)
-                                        .font(.body)
-                                        .foregroundStyle(.primary)
-                                }
-                                .padding(.vertical, 4)
-                            }
-                        }
-                    }
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .background(Theme.card)
-                    .clipShape(RoundedRectangle(cornerRadius: Theme.radius))
-                    .shadow(color: Theme.shadow, radius: 4, x: 0, y: 2)
+                VStack(alignment: .leading, spacing: 12) {
+                    Text("How it works")
+                        .font(.subheadline.bold())
+                    Text("1. Tap the button below to open the Coach")
+                    Text("2. The coach will suggest meals and can generate images")
+                    Text("3. You'll see both the suggestions and visual examples")
                 }
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+                Button {
+                    appState.mealSuggestionPrompt = promptForCoach
+                    appState.selectedTab = 4
+                } label: {
+                    Label("Ask coach for meal suggestions", systemImage: "bubble.left.and.bubble.right.fill")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Theme.accent)
             }
             .padding()
         }
@@ -182,19 +179,24 @@ struct MealSuggestionsView: View {
 // MARK: - Settings (Backend URL for device testing)
 
 struct SettingsView: View {
+    @EnvironmentObject var dataStore: CoachDataStore
     @State private var backendURLText: String = ""
     @State private var savedMessage: String?
     @State private var testResult: String?
     @State private var isTesting = false
+    @State private var showClearConfirm = false
+    @State private var isClearing = false
+    @State private var clearResult: String?
+    private let client = BackendClient()
 
     var body: some View {
         Form {
             Section {
-                TextField("Backend URL (e.g. http://192.168.1.5:8080)", text: $backendURLText)
+                TextField("Backend URL override (optional)", text: $backendURLText)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .keyboardType(.URL)
-                Text("On device: use your Mac's IP. Simulator: leave empty for localhost.")
+                Text("Leave empty for automatic backend discovery on device. Set only if you want a fixed URL (e.g. Cloud Run).")
                     .font(.caption)
                     .foregroundStyle(Theme.textMuted)
                 HStack {
@@ -202,9 +204,10 @@ struct SettingsView: View {
                         let trimmed = backendURLText.trimmingCharacters(in: .whitespaces)
                         if trimmed.isEmpty {
                             HappyDietConfig.backendURLOverride = nil
-                            savedMessage = "Using default from plist"
+                            savedMessage = "Using automatic backend selection"
                         } else {
-                            HappyDietConfig.backendURLOverride = trimmed
+                            let url = Self.normalizeBackendURL(trimmed)
+                            HappyDietConfig.backendURLOverride = url
                             savedMessage = "Saved. Reconnect Coach to use new URL."
                         }
                     }
@@ -231,20 +234,62 @@ struct SettingsView: View {
             } header: {
                 Text("Backend URL")
             } footer: {
-                Text("Current: \(HappyDietConfig.backendURL.absoluteString)")
+                let u = HappyDietConfig.backendURL
+                let host = u.host ?? "?"
+                let port = u.port ?? (u.scheme == "https" ? 443 : 8080)
+                let ws = (u.scheme == "https" ? "wss" : "ws") + "://\(host):\(port)/live"
+                Text("Current: \(HappyDietConfig.backendURL.absoluteString)\nLive Coach: \(ws)")
             }
+
+            Section {
+                Button(role: .destructive) {
+                    showClearConfirm = true
+                } label: {
+                    Label("Clear all data", systemImage: "trash")
+                }
+                .disabled(isClearing)
+                if isClearing {
+                    ProgressView("Clearing…")
+                }
+                if let msg = clearResult {
+                    Text(msg)
+                        .font(.caption)
+                        .foregroundStyle(Theme.accent)
+                }
+            } header: {
+                Text("Data")
+            } footer: {
+                Text("Clears meals (backend), weight, tasks, checkins, targets, feedback, and journal. Cannot be undone.")
+            }
+        }
+        .confirmationDialog("Clear all data?", isPresented: $showClearConfirm) {
+            Button("Clear", role: .destructive) {
+                Task { await clearAllData() }
+            }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This will delete all your meals, weight logs, tasks, and other data. This cannot be undone.")
         }
         .navigationTitle("Settings")
         .onAppear {
-            backendURLText = HappyDietConfig.backendURLOverride ?? ""
+            backendURLText = HappyDietConfig.backendURLOverride ?? HappyDietConfig.backendURL.absoluteString
         }
+    }
+
+    private static func normalizeBackendURL(_ input: String) -> String {
+        var s = input.trimmingCharacters(in: .whitespaces)
+        if !s.isEmpty && !s.hasPrefix("http://") && !s.hasPrefix("https://") {
+            s = "http://" + s
+        }
+        return s
     }
 
     private func testConnection() {
         isTesting = true
         testResult = nil
-        let url = HappyDietConfig.backendURL
-        var request = URLRequest(url: url)
+        let base = HappyDietConfig.backendURL
+        let healthURL = base.appendingPathComponent("health")
+        var request = URLRequest(url: healthURL)
         request.timeoutInterval = 5
         URLSession.shared.dataTask(with: request) { _, response, error in
             DispatchQueue.main.async {
@@ -262,6 +307,24 @@ struct SettingsView: View {
                 }
             }
         }.resume()
+    }
+
+    private func clearAllData() async {
+        isClearing = true
+        clearResult = nil
+        var parts: [String] = []
+        do {
+            let n = try await client.clearMeals()
+            if n > 0 { parts.append("\(n) meals") }
+        } catch {
+            parts.append("meals: \(error.localizedDescription)")
+        }
+        await MainActor.run {
+            dataStore.clearLocalData()
+            parts.append("local data")
+            clearResult = parts.isEmpty ? "Cleared." : "Cleared: \(parts.joined(separator: ", "))."
+            isClearing = false
+        }
     }
 }
 
@@ -348,5 +411,6 @@ struct CoachTasksView: View {
         }
         .background(Theme.bg)
         .navigationTitle("Coach Tasks")
+        .task { await dataStore.refreshTasks() }
     }
 }

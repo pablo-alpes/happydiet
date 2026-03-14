@@ -11,7 +11,7 @@ struct DietView: View {
     @State private var dietText = ""
     @State private var selectedImage: UIImage?
     @State private var showImagePicker = false
-    @State private var useCamera = true
+    @State private var imagePickerSource: UIImagePickerController.SourceType = .photoLibrary
     @State private var showHeyCyanSheet = false
     @State private var isParsing = false
     @State private var parsedRules: [DietRuleParsed] = []
@@ -43,11 +43,7 @@ struct DietView: View {
             .background(Theme.bg)
             .navigationTitle("Diet & Behaviour")
             .sheet(isPresented: $showImagePicker) {
-                if useCamera {
-                    ImagePicker(sourceType: .camera, onImagePicked: handleImagePicked, onCancel: { showImagePicker = false })
-                } else {
-                    ImagePicker(sourceType: .photoLibrary, onImagePicked: handleImagePicked, onCancel: { showImagePicker = false })
-                }
+                ImagePicker(sourceType: imagePickerSource, onImagePicked: handleImagePicked, onCancel: { showImagePicker = false })
             }
             .sheet(isPresented: $showHeyCyanSheet) {
                 HeyCyanCaptureSheet(
@@ -107,7 +103,7 @@ struct DietView: View {
                 .disabled((dietText.isEmpty && selectedImage == nil) || isParsing)
 
                 Button {
-                    useCamera = true
+                    imagePickerSource = .camera
                     showImagePicker = true
                 } label: {
                     Label("Camera", systemImage: "camera.fill")
@@ -116,7 +112,7 @@ struct DietView: View {
                 .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
 
                 Button {
-                    useCamera = false
+                    imagePickerSource = .photoLibrary
                     showImagePicker = true
                 } label: {
                     Label("Photo", systemImage: "photo.on.rectangle")

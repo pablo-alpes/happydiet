@@ -18,6 +18,7 @@ const mockVertexAI = {
     ingredients: ['chicken', 'rice', 'salad', 'soda'],
     estimatedKcal: 500,
   }),
+  checkComplianceSemantic: async () => [],
 };
 const mealRepo = {
   async save(meal) {

@@ -13,6 +13,15 @@ struct ChatMessage: Identifiable {
     let id = UUID()
     let role: String
     let text: String
+    var imageData: Data?
+    var imageCaption: String?
+
+    init(role: String, text: String, imageData: Data? = nil, imageCaption: String? = nil) {
+        self.role = role
+        self.text = text
+        self.imageData = imageData
+        self.imageCaption = imageCaption
+    }
 }
 
 struct LiveCoachView: View {
@@ -25,6 +34,8 @@ struct LiveCoachView: View {
     @State private var messages: [ChatMessage] = []
     @State private var inputText = ""
     @State private var showImagePicker = false
+    @State private var imagePickerSource: UIImagePickerController.SourceType = .photoLibrary
+    @State private var showImageSourceActionSheet = false
     @State private var showHeyCyanSheet = false
     @State private var selectedImage: UIImage?
     @State private var audioPlayer: LivePCMPlayer?
@@ -33,10 +44,13 @@ struct LiveCoachView: View {
     @State private var audioCapture: LiveAudioCapture?
     @State private var coachTextBuffer = ""
     @State private var streamingCoachText = ""
+    @State private var userVoiceBuffer = ""
     @State private var waitingForCoachResponse = false
     @State private var lastSentWasMeal = false
+    @State private var reconnectTask: Task<Void, Never>?
 
     private let quickPrompts = [
+        "Suggest meal ideas and show me what they look like",
         "Let's do a coaching session on my compliance",
         "Am I on track with my weight?",
         "What does my compliance trend mean?",
@@ -76,6 +90,17 @@ struct LiveCoachView: View {
 
                 if isConnected {
                     Divider()
+                    if waitingForCoachResponse || coachState == "speaking" {
+                        Button {
+                            sendInterrupt()
+                        } label: {
+                            Label("Stop", systemImage: "stop.fill")
+                                .font(.subheadline)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(.red)
+                        .padding(.horizontal)
+                    }
                     quickPromptsRow
                     inputBar
                 }
@@ -85,13 +110,28 @@ struct LiveCoachView: View {
             .navigationBarTitleDisplayMode(.inline)
             .sheet(isPresented: $showImagePicker) {
                 ImagePicker(
-                    sourceType: .photoLibrary,
+                    sourceType: imagePickerSource,
                     onImagePicked: { img in
                         showImagePicker = false
                         handleImagePicked(img)
                     },
                     onCancel: { showImagePicker = false }
                 )
+            }
+            .confirmationDialog("Add photo", isPresented: $showImageSourceActionSheet) {
+                if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                    Button("Take Photo") {
+                        imagePickerSource = .camera
+                        showImagePicker = true
+                    }
+                }
+                Button("Choose from Library") {
+                    imagePickerSource = .photoLibrary
+                    showImagePicker = true
+                }
+                Button("Cancel", role: .cancel) {}
+            } message: {
+                Text("Camera captures a new photo. Library picks from your Photos.")
             }
             .sheet(isPresented: $showHeyCyanSheet) {
                 HeyCyanCaptureSheet(
@@ -103,10 +143,29 @@ struct LiveCoachView: View {
                 )
             }
         }
+        .onChange(of: appState.backendDiscoveredVersion) {
+            if !isConnected { connect() }
+        }
         .onAppear {
             configureAudioSessionForCoach()
+            if !isConnected {
+                connect()
+            }
+            if let prompt = appState.consumeMealSuggestionPrompt() {
+                inputText = prompt
+            }
+            if isConnected, let c = client, let img = appState.consumePendingImageForCoach(), let b64 = img.toJPEGBase64() {
+                c.sendImage(base64: b64)
+                let imgData = img.jpegData(compressionQuality: 0.8)
+                messages.append(ChatMessage(role: "user", text: "[sent meal photo]", imageData: img.jpegData(compressionQuality: 0.8)))
+                lastSentWasMeal = true
+                waitingForCoachResponse = true
+                coachState = "thinking"
+            }
         }
         .onDisappear {
+            reconnectTask?.cancel()
+            reconnectTask = nil
             audioCapture?.stop()
             audioPlayer?.stop()
             client?.disconnect()
@@ -116,7 +175,7 @@ struct LiveCoachView: View {
     private func configureAudioSessionForCoach() {
         do {
             let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+            try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetoothHFP])
             try session.setActive(true)
         } catch {
             print("LiveCoachView: audio session setup failed: \(error)")
@@ -129,6 +188,8 @@ struct LiveCoachView: View {
         HStack(spacing: 12) {
             Button(isConnected ? "Disconnect" : "Connect") {
                 if isConnected {
+                    reconnectTask?.cancel()
+                    reconnectTask = nil
                     audioPlayer?.stop()
                     client?.disconnect()
                     isConnected = false
@@ -193,25 +254,36 @@ struct LiveCoachView: View {
                     .padding(.vertical, 40)
             }
             ForEach(messages) { msg in
-                chatBubble(role: msg.role, text: msg.text)
+                chatBubble(msg: msg)
             }
             if !streamingCoachText.isEmpty {
-                chatBubble(role: "coach", text: streamingCoachText)
+                chatBubble(msg: ChatMessage(role: "coach", text: streamingCoachText))
             }
         }
     }
 
-    private func chatBubble(role: String, text: String) -> some View {
+    private func chatBubble(msg: ChatMessage) -> some View {
         HStack {
-            if role == "user" { Spacer(minLength: 48) }
-            Text(text)
-                .font(.subheadline)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 10)
-                .background(role == "user" ? Theme.accent : Color(.tertiarySystemBackground))
-                .foregroundStyle(role == "user" ? .white : .primary)
-                .clipShape(RoundedRectangle(cornerRadius: 16))
-            if role == "coach" { Spacer(minLength: 48) }
+            if msg.role == "user" { Spacer(minLength: 48) }
+            VStack(alignment: msg.role == "user" ? .trailing : .leading, spacing: 8) {
+                if let data = msg.imageData, let ui = UIImage(data: data) {
+                    Image(uiImage: ui)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(maxWidth: 220, maxHeight: 180)
+                        .clipShape(RoundedRectangle(cornerRadius: 12))
+                }
+                if !msg.text.isEmpty {
+                    Text(msg.text)
+                        .font(.subheadline)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .background(msg.role == "user" ? Theme.accent : Color(.tertiarySystemBackground))
+                        .foregroundStyle(msg.role == "user" ? .white : .primary)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                }
+            }
+            if msg.role == "coach" { Spacer(minLength: 48) }
         }
     }
 
@@ -297,7 +369,7 @@ struct LiveCoachView: View {
             }
 
             Button {
-                showImagePicker = true
+                showImageSourceActionSheet = true
             } label: {
                 Image(systemName: "photo")
                     .font(.title3)
@@ -326,8 +398,37 @@ struct LiveCoachView: View {
     // MARK: - Networking
 
     private func connect() {
+        let baseURL = HappyDietConfig.backendURL
+        let healthURL = baseURL.appendingPathComponent("health")
+
+        connectionStatus = "Checking backend..."
+        var request = URLRequest(url: healthURL)
+        request.timeoutInterval = 5
+        URLSession.shared.dataTask(with: request) { [self] _, response, error in
+            Task { @MainActor in
+                let httpOk = (response as? HTTPURLResponse)?.statusCode == 200
+                if error != nil || !httpOk {
+                    connectionStatus = "Backend unreachable"
+                    let hint = connectionHint(baseURL: baseURL)
+                    handleEvent(.error("Cannot reach backend at \(baseURL.absoluteString). \(hint)"))
+                    return
+                }
+                doConnect(baseURL: baseURL)
+            }
+        }.resume()
+    }
+
+    private func connectionHint(baseURL: URL) -> String {
+        let host = baseURL.host ?? ""
+        if host == "localhost" || host == "127.0.0.1" {
+            return "On a physical device, use your Mac's IP (e.g. http://192.168.1.5:8080). Mac and iPhone must be on same Wi‑Fi. Start backend: npm run dev in backend folder."
+        }
+        return "Ensure backend is running (npm run dev), Mac and iPhone on same Wi‑Fi, and URL is correct. Test in More > Settings."
+    }
+
+    private func doConnect(baseURL: URL) {
         connectionStatus = "Connecting..."
-        let c = LiveAPIClient()
+        let c = LiveAPIClient(baseURL: baseURL)
         let delegate = LiveCoachDelegate(
             onEvent: { event in
                 Task { @MainActor in
@@ -340,6 +441,16 @@ struct LiveCoachView: View {
         client = c
         let ctx = buildCoachContext()
         c.connect(context: ctx)
+    }
+
+    private func scheduleReconnect() {
+        reconnectTask?.cancel()
+        reconnectTask = Task {
+            connectionStatus = "Reconnecting in 3s…"
+            try? await Task.sleep(nanoseconds: 3_000_000_000)
+            guard !Task.isCancelled, !isConnected else { return }
+            connect()
+        }
     }
 
     private func buildCoachContext() -> [String: Any] {
@@ -371,6 +482,8 @@ struct LiveCoachView: View {
             coachState = "idle"
             waitingForCoachResponse = false
             lastSentWasMeal = false
+            userVoiceBuffer = ""
+            scheduleReconnect()
         case .setupComplete:
             isConnected = true
             connectionStatus = "Connected"
@@ -403,17 +516,33 @@ struct LiveCoachView: View {
             }
             audioPlayer?.enqueue(data: data)
         case .interrupted:
+            audioPlayer?.stop()
             waitingForCoachResponse = false
             lastSentWasMeal = false
             coachState = "idle"
             coachTextBuffer = ""
             streamingCoachText = ""
+            userVoiceBuffer = ""
+        case .mealImage(let data, let caption):
+            messages.append(ChatMessage(role: "coach", text: caption ?? "Generated meal", imageData: data, imageCaption: caption))
+        case .task(let task, let due):
+            dataStore.addTask(task, due: due)
+        case .userTranscription(let text, let finished):
+            let t = text.trimmingCharacters(in: .whitespaces)
+            if !t.isEmpty {
+                userVoiceBuffer += (userVoiceBuffer.isEmpty ? "" : " ") + t
+            }
+            if finished && !userVoiceBuffer.isEmpty {
+                messages.append(ChatMessage(role: "user", text: userVoiceBuffer.trimmingCharacters(in: .whitespaces)))
+                userVoiceBuffer = ""
+            }
         case .error(let msg):
             waitingForCoachResponse = false
             lastSentWasMeal = false
             coachState = "idle"
             connectionStatus = "Error"
             messages.append(ChatMessage(role: "coach", text: "Error: \(msg)"))
+            if !isConnected { scheduleReconnect() }
         }
     }
 
@@ -431,10 +560,20 @@ struct LiveCoachView: View {
     private func handleImagePicked(_ image: UIImage) {
         guard let base64 = image.toJPEGBase64() else { return }
         client?.sendImage(base64: base64)
-        messages.append(ChatMessage(role: "user", text: "[sent meal photo]"))
+        let imgData = image.jpegData(compressionQuality: 0.8)
+        messages.append(ChatMessage(role: "user", text: "[sent meal photo]", imageData: imgData))
         lastSentWasMeal = true
         waitingForCoachResponse = true
         coachState = "thinking"
+    }
+
+    private func sendInterrupt() {
+        audioPlayer?.stop()
+        coachTextBuffer = ""
+        streamingCoachText = ""
+        waitingForCoachResponse = false
+        coachState = "idle"
+        client?.sendInterrupt()
     }
 
     private func toggleVoice() {
@@ -536,7 +675,7 @@ final class LivePCMPlayer {
             let session = AVAudioSession.sharedInstance()
             // Use playAndRecord + defaultToSpeaker so coach voice plays through speaker (not earpiece)
             // when app uses both mic (voice input) and playback (coach response).
-            try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetooth])
+            try session.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetoothHFP])
             try session.setActive(true)
             try session.overrideOutputAudioPort(.speaker)
         } catch {

@@ -120,7 +120,7 @@
 |-----------|----------------|
 | **Web Showcase** | index.html — Live API (voice + image), chat, Speak; demo without phone |
 | **Web App / Dev Playground** | app.html, dev.html — camera/upload, diet parse, meal analyze, TTS, rules, meals |
-| **iOS App** | Image capture (camera, Photo Library, HeyCyan), diet rules, compliance, dashboard, Live Coach, TTS |
+| **iOS App** | Image capture (camera, Photo Library, HeyCyan), diet rules, compliance, dashboard, Live Coach, TTS; background modes: Bluetooth (BLE), audio, fetch, processing, location, nearby-interaction, external-accessory |
 | **Backend** | REST API; Reader, Processor, Reporter; Vision, parse-diet, TTS, Firestore |
 | **Firestore** | `meals`, `diet_rules` |
 | **Vertex AI** | Vision (meal → ingredients), parse diet (text/image → rules), semantic compliance check |
@@ -131,7 +131,22 @@
 ## Live API Flow (Implemented)
 
 ```
-User → iOS Live Coach → ws://backend/live (proxy) → Vertex AI Live API → tool analyze_meal → Backend → JSON → Live API speaks
+User → iOS Live Coach or Web Showcase → ws://backend/live (proxy) → Vertex AI Live API → tool analyze_meal → Backend → JSON → Live API speaks
 ```
 
 Live API: voice I/O, barge-in, tool orchestration; backend proxy handles GCP auth and tool execution.
+
+### Proxy Format Translation
+
+Clients (Web and iOS) send messages in camelCase. Vertex AI Live API expects snake_case. The proxy (`live-api-proxy.ts`) translates:
+
+| Client sends | Proxy forwards to Vertex |
+|--------------|--------------------------|
+| `realtimeInput.audio` | `realtime_input.media_chunks` — Vertex expects `media_chunks[]` for audio; clients send `audio: { data, mimeType }` |
+| `realtimeInput.audioStreamEnd` | `realtime_input.audio_stream_end` |
+| `realtimeInput.mediaChunks` | `realtime_input.media_chunks` (images/video) |
+| `clientContent.turns`, `turnComplete` | `client_content.turns`, `turn_complete` (snake_case) |
+
+**Audio format:** 16 kHz PCM, base64. Clients send `audio/pcm;rate=16000`. The proxy maps `audio` → `media_chunks` because Vertex's wire format uses `media_chunks[]` for realtime audio input.
+
+**Debug logging:** The proxy logs `[live-proxy] fwd realtimeInput` and `[live-proxy] fwd clientContent` when forwarding; use backend logs to troubleshoot mic/text issues.

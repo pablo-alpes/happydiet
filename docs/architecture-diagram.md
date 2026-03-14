@@ -76,12 +76,15 @@ Client (Web or iOS) → POST /analyze-meal (image_base64, user_id)
 
 ```
 Client (Web index.html or iOS Live Coach) → ws://backend/live (WebSocket)
-                                         → Vertex AI Live API (proxy)
+                                         → Backend proxy (format translation: audio → media_chunks, camelCase → snake_case)
+                                         → Vertex AI Live API
                                          → User speaks / sends image
                                          → Tool call: analyze_meal → Backend
                                          → Backend returns JSON
                                          → Live API speaks to user (barge-in supported)
 ```
+
+**Proxy:** Translates client formats to Vertex wire format. See [stack-architecture.md § Proxy Format Translation](./stack-architecture.md#proxy-format-translation).
 
 ---
 

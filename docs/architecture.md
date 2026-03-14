@@ -37,7 +37,7 @@
 
 **HTTP:** Client → `POST /analyze-meal`, `POST /parse-diet`, `GET /meals`, `GET /rules` → Backend → Vision → Rule Engine → Firestore → JSON. Optional `POST /speak` for TTS.
 
-**Live API:** Client (Web or iOS) → `ws://backend/live` → Vertex AI Live API → tool `analyze_meal` → Backend → JSON → Live API speaks (barge-in supported).
+**Live API:** Client (Web or iOS) → `ws://backend/live` (proxy translates formats: `audio` → `media_chunks`, camelCase → snake_case) → Vertex AI Live API → tool `analyze_meal` → Backend → JSON → Live API speaks (barge-in supported). See [stack-architecture.md § Proxy Format Translation](./stack-architecture.md#proxy-format-translation).
 
 **Agent pipeline:** Both entry points invoke `analyzeMeal()` → `readerAgent()` → `processorAgent()` → `reporterAgent()`. See [agents.md](./agents.md) for implementation (files, orchestration, entry points).
 
@@ -55,7 +55,7 @@
 
 | Component | Responsibility |
 |-----------|----------------|
-| iOS App | Live Coach (Live API), Analyze, Diet, Dashboard; TTS; HeyCyan capture (native only) |
+| iOS App | Live Coach (Live API), Analyze, Diet, Dashboard; TTS; HeyCyan capture (native only); background modes: Bluetooth (BLE central/peripheral), audio, fetch, processing, location, nearby-interaction, external-accessory |
 | Web Showcase | index.html — Live API (voice + image), chat, Speak |
 | Web App | app.html — same look/feel as iOS: Analyze, Diet, Dashboard |
 | Dev Playground | dev.html — full flow testing: diet parse, meal analyze, TTS, rules, meals |

@@ -44,15 +44,43 @@ function itemMatchesAnyRule(item: string, rules: DietRule[], type: 'forbidden' |
   return false;
 }
 
+export interface CalorieContext {
+  mealKcal?: number;
+  dailyKcalSoFar?: number;
+  dailyKcalTarget?: number;
+}
+
+const DEFAULT_DAILY_KCAL_TARGET = 2000;
+const MEAL_KCAL_THRESHOLDS = [
+  { max: 800, penalty: 0, level: 'ok' },
+  { max: 1200, penalty: 8, level: 'high' },
+  { max: 1800, penalty: 18, level: 'very_high' },
+  { max: 3000, penalty: 32, level: 'extreme' },
+  { max: Infinity, penalty: 45, level: 'bomb' },
+] as const;
+
+/** Extract a daily kcal target from note rules (e.g. "1800 kcal", "stay under 2000 calories") */
+export function extractKcalTarget(rules: DietRule[]): number | undefined {
+  for (const rule of rules) {
+    if (rule.type !== 'note') continue;
+    const match = rule.text.match(/(\d{3,5})\s*(?:kcal|calories?|cal)\b/i);
+    if (match) return parseInt(match[1], 10);
+  }
+  return undefined;
+}
+
 export function evaluateCompliance(
   ingredients: string[],
-  rules: DietRule[]
+  rules: DietRule[],
+  calorieCtx?: CalorieContext
 ): ComplianceResult {
   const compliantItems: string[] = [];
   const nonCompliantItems: string[] = [];
   const uncertainItems: string[] = [];
   const suggestions: string[] = [];
   const hasRules = rules.length > 0;
+
+  const hasAllowedRules = rules.some((r) => r.type === 'allowed');
 
   for (const ingredient of ingredients) {
     if (!ingredient) continue;
@@ -63,19 +91,55 @@ export function evaluateCompliance(
       if (fr?.reason) suggestions.push(`${ingredient}: ${fr.reason}`);
       continue;
     }
-    const inAllowed = hasRules && itemMatchesAnyRule(ingredient, rules, 'allowed');
-    if (inAllowed) {
+    if (!hasRules || !hasAllowedRules) {
       compliantItems.push(ingredient);
-    } else if (hasRules) {
-      uncertainItems.push(ingredient);
     } else {
-      compliantItems.push(ingredient);
+      const inAllowed = itemMatchesAnyRule(ingredient, rules, 'allowed');
+      if (inAllowed) {
+        compliantItems.push(ingredient);
+      } else {
+        uncertainItems.push(ingredient);
+      }
     }
   }
 
   const total = ingredients.length;
   const compliantCount = compliantItems.length + uncertainItems.length;
-  const score = total === 0 ? 100 : Math.round((compliantCount / total) * 100);
+  let score = total === 0 ? 100 : Math.round((compliantCount / total) * 100);
+
+  let calorieWarning: string | undefined;
+  const kcalTarget = calorieCtx?.dailyKcalTarget ?? extractKcalTarget(rules) ?? DEFAULT_DAILY_KCAL_TARGET;
+  const mealKcal = calorieCtx?.mealKcal;
+  const dailyKcalSoFar = calorieCtx?.dailyKcalSoFar ?? 0;
+
+  if (mealKcal != null && mealKcal > 0) {
+    const threshold = MEAL_KCAL_THRESHOLDS.find((t) => mealKcal <= t.max)!;
+    if (threshold.penalty > 0) {
+      score = Math.max(0, score - threshold.penalty);
+      if (threshold.level === 'bomb') {
+        calorieWarning = `This meal is ~${mealKcal} kcal — that is a calorie bomb. This single meal exceeds a full day's intake. Please moderate portions significantly.`;
+        suggestions.unshift(`Extreme calorie intake (~${mealKcal} kcal). Split into smaller meals or reduce portions drastically.`);
+      } else if (threshold.level === 'extreme') {
+        calorieWarning = `This meal is ~${mealKcal} kcal — extremely high. That is almost an entire day's calories in one sitting. Consider much smaller portions.`;
+        suggestions.unshift(`Very high calorie meal (~${mealKcal} kcal). Aim for 500-800 kcal per meal.`);
+      } else if (threshold.level === 'very_high') {
+        calorieWarning = `This meal is ~${mealKcal} kcal — above target. Try reducing portion sizes.`;
+        suggestions.unshift(`High calorie meal (~${mealKcal} kcal). Consider lighter portions.`);
+      } else {
+        calorieWarning = `This meal is ~${mealKcal} kcal — a bit heavy. Watch your portions for the rest of the day.`;
+      }
+    }
+
+    const dailyTotal = dailyKcalSoFar + mealKcal;
+    if (dailyTotal > kcalTarget) {
+      const overPct = Math.round(((dailyTotal - kcalTarget) / kcalTarget) * 100);
+      const dailyPenalty = overPct >= 100 ? 25 : overPct >= 50 ? 15 : overPct >= 20 ? 8 : 3;
+      score = Math.max(0, score - dailyPenalty);
+      const existing = calorieWarning ?? '';
+      calorieWarning = `${existing} Daily total: ~${dailyTotal} kcal (target: ${kcalTarget}). You are ${overPct}% over your daily limit.`.trim();
+      suggestions.unshift(`Daily calorie target exceeded (${dailyTotal}/${kcalTarget} kcal). Go lighter on remaining meals.`);
+    }
+  }
 
   return {
     score,
@@ -86,6 +150,10 @@ export function evaluateCompliance(
     detalle: nonCompliantItems.length > 0
       ? `Off plan: ${nonCompliantItems.join(', ')}`
       : 'All items compliant',
+    calorieWarning,
+    mealKcal,
+    dailyKcalTotal: mealKcal != null ? dailyKcalSoFar + mealKcal : undefined,
+    kcalTarget: mealKcal != null ? kcalTarget : undefined,
   };
 }
 

@@ -45,11 +45,28 @@ async function withRetry<T>(fn: () => Promise<T>, context: string): Promise<T> {
 export interface MealRepository {
   save(meal: Omit<MealRecord, 'id'>): Promise<void>;
   listByUser(userId: string): Promise<MealRecord[]>;
+  getDailyKcal(userId: string): Promise<number>;
+  deleteAllByUser(userId: string): Promise<number>;
 }
 
 export interface DietRulesRepository {
   getByUser(userId: string): Promise<DietRule[]>;
   saveRules(userId: string, rules: DietRule[], name?: string): Promise<void>;
+}
+
+export interface TaskRecord {
+  id?: string;
+  userId: string;
+  task: string;
+  due: string;
+  done: boolean;
+  createdAt?: Date;
+}
+
+export interface TasksRepository {
+  listByUser(userId: string): Promise<TaskRecord[]>;
+  add(userId: string, task: string, due: string): Promise<TaskRecord>;
+  toggleDone(userId: string, taskId: string): Promise<void>;
 }
 
 export function createFirestoreRepositories(config: {
@@ -99,6 +116,35 @@ export function createFirestoreRepositories(config: {
         timestamp: doc.data().timestamp?.toDate?.() ?? doc.data().timestamp,
       })) as MealRecord[];
     },
+
+    async getDailyKcal(userId) {
+      const now = new Date();
+      const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+      const snapshot = await mealsDb
+        .collection('meals')
+        .where('userId', '==', userId)
+        .where('timestamp', '>=', startOfDay)
+        .get();
+
+      return snapshot.docs.reduce((sum, doc) => {
+        const kcal = doc.data().estimatedKcal;
+        return sum + (typeof kcal === 'number' ? kcal : 0);
+      }, 0);
+    },
+
+    async deleteAllByUser(userId: string) {
+      const snapshot = await mealsDb.collection('meals').where('userId', '==', userId).get();
+      const batch = mealsDb.batch();
+      for (const doc of snapshot.docs) {
+        batch.delete(doc.ref);
+      }
+      await batch.commit();
+      const count = snapshot.docs.length;
+      if (count > 0) {
+        console.info('[persistence] meals.deleteAllByUser', { userId, count });
+      }
+      return count;
+    },
   };
 
   const dietRulesRepo: DietRulesRepository = {
@@ -135,5 +181,61 @@ export function createFirestoreRepositories(config: {
     },
   };
 
-  return { mealRepo, dietRulesRepo };
+  const tasksDb = new Firestore({
+    projectId: config.projectId,
+    ...(config.mealsDatabaseId && { databaseId: config.mealsDatabaseId }),
+  });
+
+  const tasksRepo: TasksRepository = {
+    async listByUser(userId) {
+      const snapshot = await tasksDb
+        .collection('tasks')
+        .where('userId', '==', userId)
+        .limit(100)
+        .get();
+
+      const docs = snapshot.docs
+        .sort((a, b) => (b.data().createdAt?.toMillis?.() ?? 0) - (a.data().createdAt?.toMillis?.() ?? 0))
+        .map((doc) => {
+        const d = doc.data();
+        return {
+          id: doc.id,
+          userId: d.userId,
+          task: d.task ?? '',
+          due: d.due ?? '',
+          done: d.done ?? false,
+          createdAt: d.createdAt?.toDate?.() ?? d.createdAt,
+        } as TaskRecord;
+      });
+      return docs;
+    },
+    async add(userId, task, due) {
+      const ref = await tasksDb.collection('tasks').add({
+        userId,
+        task: task.trim(),
+        due: (due ?? '').trim(),
+        done: false,
+        createdAt: new Date(),
+      });
+      const doc = await ref.get();
+      const d = doc.data()!;
+      return {
+        id: ref.id,
+        userId: d.userId,
+        task: d.task,
+        due: d.due,
+        done: d.done,
+        createdAt: d.createdAt?.toDate?.(),
+      } as TaskRecord;
+    },
+    async toggleDone(userId, taskId) {
+      const ref = tasksDb.collection('tasks').doc(taskId);
+      const doc = await ref.get();
+      if (!doc.exists || doc.data()?.userId !== userId) return;
+      const current = doc.data()?.done ?? false;
+      await ref.update({ done: !current });
+    },
+  };
+
+  return { mealRepo, dietRulesRepo, tasksRepo };
 }

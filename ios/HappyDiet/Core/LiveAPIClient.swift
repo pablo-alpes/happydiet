@@ -14,8 +14,11 @@ enum LiveAPIEvent {
     case setupComplete
     case text(String)
     case audio(Data)
+    case mealImage(Data, String?)
     case turnComplete
     case interrupted
+    case userTranscription(text: String, finished: Bool)
+    case task(task: String, due: String)
     case error(String)
 }
 
@@ -58,10 +61,10 @@ final class LiveAPIClient: NSObject, URLSessionWebSocketDelegate {
         t.resume()
 
         connectTimeoutTimer?.invalidate()
-        connectTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { [weak self] _ in
+        connectTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 30, repeats: false) { [weak self] _ in
             guard let self, self.task != nil else { return }
             let wsURL = self.liveURL?.absoluteString ?? self.baseURL.absoluteString
-            self.delegate?.liveClient(self, didReceive: .error("Connection timeout (10s). Check backend at \(wsURL). On device use Mac IP in Settings."))
+            self.delegate?.liveClient(self, didReceive: .error("WebSocket timeout. Backend at \(wsURL) did not respond. Ensure: 1) Backend running (npm run dev), 2) Same Wi‑Fi, 3) Correct URL in More > Settings."))
             self.disconnect()
         }
     }
@@ -94,7 +97,7 @@ final class LiveAPIClient: NSObject, URLSessionWebSocketDelegate {
         guard let error else { return }
         let url = liveURL?.absoluteString ?? baseURL.absoluteString
         let msg = error.localizedDescription
-        let hint = "Backend URL: \(url). On device, use Mac IP (e.g. http://192.168.x.x:8080). Check More > Settings."
+        let hint = "Server unreachable at \(url). Ensure backend is running (npm run dev), Mac and iPhone on same Wi‑Fi, and URL is correct in More > Settings."
         delegate?.liveClient(self, didReceive: .error("\(msg). \(hint)"))
         self.task = nil
     }
@@ -127,6 +130,17 @@ final class LiveAPIClient: NSObject, URLSessionWebSocketDelegate {
 
     func sendAudioStreamEnd() {
         let msg: [String: Any] = ["realtimeInput": ["audioStreamEnd": true]]
+        sendJSON(msg)
+    }
+
+    /// Send interrupt to stop the coach mid-response (same as web Stop button).
+    func sendInterrupt() {
+        let msg: [String: Any] = [
+            "clientContent": [
+                "turns": [["role": "user", "parts": [["text": "Stop"]]]],
+                "turnComplete": true,
+            ],
+        ]
         sendJSON(msg)
     }
 
@@ -179,6 +193,31 @@ final class LiveAPIClient: NSObject, URLSessionWebSocketDelegate {
         }
     }
 
+    private func fetchMealImage(path: String, caption: String?) {
+        let pathNorm = path.hasPrefix("/") ? path : "/\(path)"
+        let base = baseURL.absoluteString.hasSuffix("/") ? String(baseURL.absoluteString.dropLast()) : baseURL.absoluteString
+        guard let url = URL(string: base + pathNorm) else {
+            delegate?.liveClient(self, didReceive: .error("Invalid meal image URL"))
+            return
+        }
+        Task {
+            do {
+                let (data, _) = try await URLSession.shared.data(from: url)
+                guard !data.isEmpty else {
+                    await MainActor.run { delegate?.liveClient(self, didReceive: .error("Empty meal image")) }
+                    return
+                }
+                await MainActor.run {
+                    delegate?.liveClient(self, didReceive: .mealImage(data, caption))
+                }
+            } catch {
+                await MainActor.run {
+                    delegate?.liveClient(self, didReceive: .error("Failed to fetch meal image: \(error.localizedDescription)"))
+                }
+            }
+        }
+    }
+
     private func handleMessage(_ raw: String) {
         guard let data = raw.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
@@ -187,6 +226,25 @@ final class LiveAPIClient: NSObject, URLSessionWebSocketDelegate {
            let msg = json["message"] as? String {
             delegate?.liveClient(self, didReceive: .error(msg))
             return
+        }
+
+        if let type = json["type"] as? String, type == "task" {
+            let task = (json["task"] as? String) ?? ""
+            let due = (json["due"] as? String) ?? ""
+            delegate?.liveClient(self, didReceive: .task(task: task, due: due))
+            return
+        }
+
+        if let type = json["type"] as? String, type == "meal_image" {
+            let caption = json["suggestion"] as? String
+            if let b64 = json["imageBase64"] as? String, let data = Data(base64Encoded: b64) {
+                delegate?.liveClient(self, didReceive: .mealImage(data, caption))
+                return
+            }
+            if let path = json["imageUrl"] as? String, !path.isEmpty {
+                fetchMealImage(path: path, caption: caption)
+                return
+            }
         }
 
         if json["setup_complete"] != nil || json["setupComplete"] != nil {
@@ -201,8 +259,21 @@ final class LiveAPIClient: NSObject, URLSessionWebSocketDelegate {
             return
         }
 
-        // Process model_turn parts FIRST (text + audio) — same message can have both parts and turn_complete.
-        // If we checked turn_complete first and returned, we'd never deliver the audio.
+        // Input transcription: user's voice as text (add to chat when finished).
+        let inTrans = json["input_transcription"] as? [String: Any] ?? json["inputTranscription"] as? [String: Any]
+            ?? sc?["input_transcription"] as? [String: Any] ?? sc?["inputTranscription"] as? [String: Any]
+        if let inObj = inTrans, let txt = (inObj["text"] ?? inObj) as? String, !txt.isEmpty {
+            let finished = (inObj["finished"] as? Bool) ?? false
+            delegate?.liveClient(self, didReceive: .userTranscription(text: txt, finished: finished))
+        }
+
+        // Output transcription: streaming text as the model speaks (Vertex Live API).
+        let outTrans = sc?["output_transcription"] as? [String: Any] ?? sc?["outputTranscription"] as? [String: Any]
+        if let txt = outTrans?["text"] as? String, !txt.isEmpty {
+            delegate?.liveClient(self, didReceive: .text(txt))
+        }
+
+        // Model turn parts: text + audio (batch at end of turn).
         let modelTurn = sc?["model_turn"] as? [String: Any] ?? sc?["modelTurn"] as? [String: Any]
         if let partList = modelTurn?["parts"] as? [[String: Any]] {
             for part in partList {

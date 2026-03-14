@@ -1,0 +1,90 @@
+# HappyDiet CI/CD — Deploy backend to Cloud Run on push to main
+# Requires GitHub secrets: GCP_PROJECT_ID, GCP_SA_KEY (service account JSON, base64)
+name: Deploy to Cloud Run
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+env:
+  REGION: us-central1
+  SERVICE_NAME: happydiet-backend
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install dependencies
+        working-directory: backend
+        run: npm ci
+
+      - name: Run tests
+        working-directory: backend
+        run: npm run test:ci
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: backend/test-results/
+          retention-days: 7
+
+  deploy:
+    name: Deploy to Cloud Run
+    needs: test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Deploy to Cloud Run
+        working-directory: backend
+        run: |
+          gcloud run deploy ${{ env.SERVICE_NAME }} \
+            --source . \
+            --region ${{ env.REGION }} \
+            --allow-unauthenticated \
+            --set-env-vars "GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }},GOOGLE_CLOUD_LOCATION=${{ env.REGION }}" \
+            --project ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Get service URL
+        id: url
+        run: |
+          URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+            --region ${{ env.REGION }} \
+            --format 'value(status.url)' \
+            --project ${{ secrets.GCP_PROJECT_ID }})
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "Deployed to $URL"
+
+      - name: Smoke test
+        run: |
+          curl -sf "${{ steps.url.outputs.url }}/health" || exit 1
+          echo "Health check passed."
