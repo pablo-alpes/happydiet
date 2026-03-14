@@ -10,6 +10,7 @@
 #   prod — happydiet-backend (from main branch)
 #
 # Tests must pass before any deployment.
+# Deploy uses gcloud builds submit — build runs in GCP, more reliable than runner-side deploy.
 name: Deploy to Cloud Run
 
 on:
@@ -30,14 +31,13 @@ on:
 
 env:
   REGION: us-central1
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   test:
     name: Test
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4.3.1
+      - uses: actions/checkout@v4
         with:
           submodules: false
 
@@ -58,7 +58,7 @@ jobs:
 
       - name: Upload test results
         if: always()
-        uses: actions/upload-artifact@v4.6.2
+        uses: actions/upload-artifact@v4
         with:
           name: test-results
           path: backend/test-results/
@@ -72,26 +72,15 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev')
     runs-on: ubuntu-latest
     environment: dev
+    timeout-minutes: 15
     permissions:
       contents: read
       id-token: write
 
     steps:
-      - uses: actions/checkout@v4.3.1
+      - uses: actions/checkout@v4
         with:
           submodules: false
-
-      - name: Check required secrets
-        run: |
-          if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then
-            echo "::error::GCP_PROJECT_ID secret is not set. Add it in Settings → Secrets and variables → Actions"
-            exit 1
-          fi
-          if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
-            echo "::error::GCP_SA_KEY secret is not set. Add it in Settings → Secrets and variables → Actions"
-            exit 1
-          fi
-          echo "Secrets configured."
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -103,29 +92,21 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Deploy to Cloud Run (dev)
-        working-directory: backend
+      - name: Deploy via Cloud Build (dev)
         run: |
-          gcloud run deploy happydiet-backend-dev \
-            --source . \
-            --region ${{ env.REGION }} \
-            --allow-unauthenticated \
-            --set-env-vars "GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }},GOOGLE_CLOUD_LOCATION=${{ env.REGION }},ENV=dev" \
-            --project ${{ secrets.GCP_PROJECT_ID }}
+          gcloud builds submit \
+            --config cloudbuild.yaml \
+            --substitutions=_SERVICE_NAME=happydiet-backend-dev,_REGION=${{ env.REGION }},_ENV=dev \
+            --project ${{ secrets.GCP_PROJECT_ID }} \
+            .
 
-      - name: Get service URL
-        id: url
+      - name: Smoke test
         run: |
           URL=$(gcloud run services describe happydiet-backend-dev \
             --region ${{ env.REGION }} \
             --format 'value(status.url)' \
             --project ${{ secrets.GCP_PROJECT_ID }})
-          echo "url=$URL" >> $GITHUB_OUTPUT
-          echo "Deployed to $URL"
-
-      - name: Smoke test
-        run: |
-          curl -sf "${{ steps.url.outputs.url }}/health" || exit 1
+          curl -sf "$URL/health" || exit 1
           echo "Health check passed."
 
   deploy-prod:
@@ -136,26 +117,15 @@ jobs:
       (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod')
     runs-on: ubuntu-latest
     environment: prod
+    timeout-minutes: 15
     permissions:
       contents: read
       id-token: write
 
     steps:
-      - uses: actions/checkout@v4.3.1
+      - uses: actions/checkout@v4
         with:
           submodules: false
-
-      - name: Check required secrets
-        run: |
-          if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then
-            echo "::error::GCP_PROJECT_ID secret is not set. Add it in Settings → Secrets and variables → Actions"
-            exit 1
-          fi
-          if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
-            echo "::error::GCP_SA_KEY secret is not set. Add it in Settings → Secrets and variables → Actions"
-            exit 1
-          fi
-          echo "Secrets configured."
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -167,27 +137,19 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Deploy to Cloud Run (prod)
-        working-directory: backend
+      - name: Deploy via Cloud Build (prod)
         run: |
-          gcloud run deploy happydiet-backend \
-            --source . \
-            --region ${{ env.REGION }} \
-            --allow-unauthenticated \
-            --set-env-vars "GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }},GOOGLE_CLOUD_LOCATION=${{ env.REGION }},ENV=prod" \
-            --project ${{ secrets.GCP_PROJECT_ID }}
+          gcloud builds submit \
+            --config cloudbuild.yaml \
+            --substitutions=_SERVICE_NAME=happydiet-backend,_REGION=${{ env.REGION }},_ENV=prod \
+            --project ${{ secrets.GCP_PROJECT_ID }} \
+            .
 
-      - name: Get service URL
-        id: url
+      - name: Smoke test
         run: |
           URL=$(gcloud run services describe happydiet-backend \
             --region ${{ env.REGION }} \
             --format 'value(status.url)' \
             --project ${{ secrets.GCP_PROJECT_ID }})
-          echo "url=$URL" >> $GITHUB_OUTPUT
-          echo "Deployed to $URL"
-
-      - name: Smoke test
-        run: |
-          curl -sf "${{ steps.url.outputs.url }}/health" || exit 1
+          curl -sf "$URL/health" || exit 1
           echo "Health check passed."

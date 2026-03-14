@@ -1,11 +1,12 @@
 # HappyDiet CI/CD - tests before deploy (test:ci produces JUnit report)
 # If tests fail, deploy step does not run.
 # Run from repo root: gcloud builds submit --config cloudbuild.yaml .
-# Or connect GitHub and create trigger for push to main.
+# Or: gcloud builds submit --config cloudbuild.yaml --substitutions=_SERVICE_NAME=happydiet-backend-dev .
 # Cloud Build provides PROJECT_ID automatically.
 substitutions:
   _REGION: us-central1
   _SERVICE_NAME: happydiet-backend
+  _ENV: prod
 steps:
   - name: 'node:20'
     entrypoint: npm
@@ -29,5 +30,5 @@ steps:
       - '${_REGION}'
       - '--allow-unauthenticated'
       - '--set-env-vars'
-      - 'GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${_REGION}'
+      - 'GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=${_REGION},ENV=${_ENV}'
     dir: 'backend'
