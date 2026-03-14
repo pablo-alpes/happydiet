@@ -71,6 +71,7 @@
 		653C5224AEC7E2240957EDBA /* CoachDataStoreTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachDataStoreTests.swift; sourceTree = "<group>"; };
 		69688F17066CF1A41E427E63 /* HeyCyanService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeyCyanService.swift; sourceTree = "<group>"; };
 		72482BE05CEFFC8D63A3E09E /* GoalsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoalsView.swift; sourceTree = "<group>"; };
+		78FF40F7A8DC54EBD85F6CFC /* HappyDiet.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HappyDiet.entitlements; sourceTree = "<group>"; };
 		7EF6B0498052C19A0B1C4192 /* HeyCyanSDKBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeyCyanSDKBridge.swift; sourceTree = "<group>"; };
 		830B350B7762906036748876 /* LiveAudioCapture.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveAudioCapture.swift; sourceTree = "<group>"; };
 		87C5F091AB37AFCE60E5C0FA /* RulesTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RulesTabView.swift; sourceTree = "<group>"; };
@@ -87,7 +88,7 @@
 		AFFB96ACBCAC9646FF85FD54 /* BackendClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendClient.swift; sourceTree = "<group>"; };
 		D5346F6A489B80A020EBAAF2 /* HappyDietTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = HappyDietTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D5FBDCF421645B6AC2FBE026 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
-		D8562750923012F3F2A8F970 /* HappyDiet.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HappyDiet.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D8562750923012F3F2A8F970 /* HappyDiet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HappyDiet.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDA101703CE87D2AFC7DDE99 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		E72BBDDEE42D601D12AD1E6F /* CaptureSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSource.swift; sourceTree = "<group>"; };
 		F6FF85567D80951DB5314686 /* ConfigTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ConfigTests.swift; sourceTree = "<group>"; };
@@ -285,6 +286,7 @@
 				72B09E6657D01AD441491DF6 /* Features */,
 				41816AE5D73F7CB6D3FFDA03 /* Integrations */,
 				4D051415AD30AFE724B47DD7 /* HappyDiet-Bridging-Header.h */,
+				78FF40F7A8DC54EBD85F6CFC /* HappyDiet.entitlements */,
 				8C90C56EAF1399EEA5FDFE5C /* HappyDietApp.swift */,
 			);
 			path = HappyDiet;
@@ -458,15 +460,27 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = HappyDiet/HappyDiet.entitlements;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = M7W9HYCCHN;
 				ENABLE_PREVIEWS = YES;
-				"EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = "QCCentralManager.m QCScanViewController.m QCScanView.m";
+				"EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = (
+					QCCentralManager.m,
+					QCScanViewController.m,
+					QCScanView.m,
+				);
 				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/Frameworks";
-				"GCC_PREPROCESSOR_DEFINITIONS[sdk=iphoneos*]" = "$(inherited) HEYCYAN_SDK_LINKED=1";
+				"GCC_PREPROCESSOR_DEFINITIONS[sdk=iphoneos*]" = (
+					"$(inherited)",
+					"HEYCYAN_SDK_LINKED=1",
+				);
 				INFOPLIST_FILE = HappyDiet/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"-ObjC",
 					"-framework",
@@ -480,17 +494,8 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "HappyDiet/HappyDiet-Bridging-Header.h";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				UILaunchScreen = "[:]";
-				UISupportedInterfaceOrientations = (
-					UIInterfaceOrientationPortrait,
-					UIInterfaceOrientationLandscapeLeft,
-					UIInterfaceOrientationLandscapeRight,
-				);
-				"UISupportedInterfaceOrientations~ipad" = (
-					UIInterfaceOrientationPortrait,
-					UIInterfaceOrientationPortraitUpsideDown,
-					UIInterfaceOrientationLandscapeLeft,
-					UIInterfaceOrientationLandscapeRight,
-				);
+				UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				"UISupportedInterfaceOrientations~ipad" = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 			};
 			name = Release;
 		};
@@ -561,15 +566,27 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = HappyDiet/HappyDiet.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = M7W9HYCCHN;
 				ENABLE_PREVIEWS = YES;
-				"EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = "QCCentralManager.m QCScanViewController.m QCScanView.m";
+				"EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = (
+					QCCentralManager.m,
+					QCScanViewController.m,
+					QCScanView.m,
+				);
 				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/Frameworks";
-				"GCC_PREPROCESSOR_DEFINITIONS[sdk=iphoneos*]" = "$(inherited) HEYCYAN_SDK_LINKED=1";
+				"GCC_PREPROCESSOR_DEFINITIONS[sdk=iphoneos*]" = (
+					"$(inherited)",
+					"HEYCYAN_SDK_LINKED=1",
+				);
 				INFOPLIST_FILE = HappyDiet/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"-ObjC",
 					"-framework",
@@ -583,17 +600,8 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "HappyDiet/HappyDiet-Bridging-Header.h";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				UILaunchScreen = "[:]";
-				UISupportedInterfaceOrientations = (
-					UIInterfaceOrientationPortrait,
-					UIInterfaceOrientationLandscapeLeft,
-					UIInterfaceOrientationLandscapeRight,
-				);
-				"UISupportedInterfaceOrientations~ipad" = (
-					UIInterfaceOrientationPortrait,
-					UIInterfaceOrientationPortraitUpsideDown,
-					UIInterfaceOrientationLandscapeLeft,
-					UIInterfaceOrientationLandscapeRight,
-				);
+				UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				"UISupportedInterfaceOrientations~ipad" = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 			};
 			name = Debug;
 		};

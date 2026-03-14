@@ -26,6 +26,9 @@ struct HeroView: View {
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 32)
                     .lineLimit(4)
+                Text("CI/CD: dev + prod · tests before deploy")
+                    .font(.caption2)
+                    .foregroundStyle(.white.opacity(0.65))
                 Button(action: onEnter) {
                     Text("Get started")
                         .font(.headline)

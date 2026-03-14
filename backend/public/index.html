@@ -241,6 +241,7 @@
     .sc-pstep { display: flex; align-items: center; gap: 0.35rem; padding: 0.45rem 0.85rem; background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.25); border-radius: 12px; font-size: 0.9rem; font-weight: 600; }
     .sc-pstep .ico { font-size: 1.15rem; }
     .sc-parrow { opacity: 0.45; font-size: 1rem; }
+    .sc-hero-platforms { font-size: 0.9rem; color: rgba(255,255,255,0.88); margin: 0.75rem 0 1rem; line-height: 1.5; }
     .sc-btn-enter { display: inline-block; padding: 0.85rem 2rem; font-size: 1.05rem; border-radius: 14px; background: white; color: var(--accent); font-weight: 700; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.2); transition: transform 0.15s; text-decoration: none; }
     .sc-btn-enter:hover { transform: scale(1.04); }
     .sc-scroll-hint { text-align: center; margin-top: 1rem; font-size: 0.8rem; opacity: 0.6; }
@@ -391,6 +392,7 @@
             <span class="sc-parrow">→</span>
             <span class="sc-pstep"><span class="ico">🗣</span> Speak</span>
           </div>
+          <p class="sc-hero-platforms">📱 <strong>iOS app</strong> with camera, Live Coach, and <strong>HeyCyan lenses</strong> (&lt;$100) — hands-free capture; image transfer manual (iOS limits).</p>
           <button class="sc-btn-enter" id="heroEnterBtn">Try the Live Demo</button>
           <div class="sc-scroll-hint">↓ Scroll to explore the architecture</div>
         </div>
@@ -446,7 +448,7 @@
           <div class="layer-title"><span class="layer-tag">Layer 1</span><span class="layer-name">Clients — Web &amp; iOS</span></div>
           <div class="sc-arch-row">
             <div class="sc-arch-box client"><span class="box-icon">🌐</span><span class="box-label">Web Showcase</span><div class="box-desc">Live API (WebSocket)<br>Voice input · Image upload</div></div>
-            <div class="sc-arch-box client"><span class="box-icon">📱</span><span class="box-label">iOS App</span><div class="box-desc">Live Coach (WebSocket)<br>Camera · Photo Library · HeyCyan</div></div>
+            <div class="sc-arch-box client"><span class="box-icon">📱</span><span class="box-label">iOS App</span><div class="box-desc">Live Coach (WebSocket)<br>Camera · Photo Library · HeyCyan<br><small style="opacity:0.8">(image transfer manual — iOS limits)</small></div></div>
             <div class="sc-arch-box client"><span class="box-icon">🧪</span><span class="box-label">Web App / Dev</span><div class="box-desc">REST API (HTTPS)<br>Camera · Upload · Dashboard</div></div>
           </div>
         </div>
@@ -590,6 +592,7 @@
             <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">Cloud TTS</span><span class="chip-use">→ Reporter → /speak endpoint → natural voice</span></div>
             <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">CI/CD</span><span class="chip-use">→ GitHub Actions: dev + prod, tests before deploy</span></div>
             <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">100+ Tests</span><span class="chip-use">→ Unit, integration, E2E, UAT (vitest) — must pass before deploy</span></div>
+            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">HeyCyan Lenses</span><span class="chip-use">→ iOS app works with glasses; image transfer manual (iOS limits). Dev paused (budget); seamless auto-transfer requires manufacturer dev program access</span></div>
           </div>
         </div>
 
@@ -615,6 +618,7 @@
         <div class="sc-impact-card"><h4>🏥 Clinical Visibility</h4><p>Nutritionists get objective adherence data between appointments — automatically, not self-reported. The dashboard is ready for the doctor's follow-up on day one.</p></div>
         <div class="sc-impact-card"><h4>💚 Coaching Without Shame</h4><p>When you eat off-plan, the AI explains what happened and suggests what to do next. No guilt, no punishment. Lasting change starts with understanding.</p></div>
         <div class="sc-impact-card"><h4>🔬 Beyond Nutrition</h4><p>The architecture scales: diabetes management, post-surgery diets, allergy tracking, medication compliance. The Rule Engine enforces whatever the clinician prescribes.</p></div>
+        <div class="sc-impact-card"><h4>👓 Affordable Smart Lenses</h4><p>HeyCyan integration — lenses under $100 for hands-free capture on iOS. The app works with the glasses; image transfer requires a manual trigger (iOS limits). Development paused due to budget; the next step for seamless auto-transfer would require access to the manufacturer's developer program (enrolled developers / org team only).</p></div>
       </div>
     </section>
 

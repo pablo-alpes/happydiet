@@ -46,7 +46,8 @@ if gcloud iam service-accounts describe "$SA_EMAIL" --project="$PROJECT_ID" 2>/d
 else
   gcloud iam service-accounts create "$SA_NAME" \
     --display-name="HappyDiet CI/CD" \
-    --project="$PROJECT_ID"
+    --project="$PROJECT_ID" \
+    --quiet
 fi
 
 # 4. Grant IAM roles to SA
@@ -72,12 +73,14 @@ echo ""
 echo ">>> Creating service account key for GitHub Actions..."
 gcloud iam service-accounts keys create "$KEY_FILE" \
   --iam-account="$SA_EMAIL" \
-  --project="$PROJECT_ID" 2>/dev/null || {
+  --project="$PROJECT_ID" \
+  --quiet 2>/dev/null || {
   echo "  Key may already exist. Creating new key..."
   rm -f "$KEY_FILE"
   gcloud iam service-accounts keys create "$KEY_FILE" \
     --iam-account="$SA_EMAIL" \
-    --project="$PROJECT_ID"
+    --project="$PROJECT_ID" \
+    --quiet
 }
 
 # 6. Deploy backend

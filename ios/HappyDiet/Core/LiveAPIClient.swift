@@ -289,11 +289,16 @@ final class LiveAPIClient: NSObject, URLSessionWebSocketDelegate {
         }
 
         // Fire turnComplete LAST so progress bar stays until full response (text + audio) is delivered.
-        if sc?["turn_complete"] as? Bool == true || sc?["turnComplete"] as? Bool == true {
+        // Check both server_content and top-level (Vertex may vary).
+        let tcInSc = sc?["turn_complete"] as? Bool == true || sc?["turnComplete"] as? Bool == true
+        let tcTop = json["turn_complete"] as? Bool == true || json["turnComplete"] as? Bool == true
+        if tcInSc || tcTop {
             delegate?.liveClient(self, didReceive: .turnComplete)
             return
         }
-        if let gc = sc?["generation_complete"] as? Bool, gc {
+        let gcInSc = sc?["generation_complete"] as? Bool == true || sc?["generationComplete"] as? Bool == true
+        let gcTop = json["generation_complete"] as? Bool == true || json["generationComplete"] as? Bool == true
+        if gcInSc || gcTop {
             delegate?.liveClient(self, didReceive: .turnComplete)
         }
     }

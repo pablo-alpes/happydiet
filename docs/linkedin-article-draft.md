@@ -150,6 +150,7 @@ The **Gemini Live Agent Challenge** asks for experiences that go "beyond the tex
 | **Barge-in** | Users interrupt the coach mid-sentence; it stops and listens |
 | **Tool use** | The Live API agent calls `analyze_meal` as a tool — the backend does the real work |
 | **Beyond text box** | Voice-first design: the primary interaction is speaking and listening, not typing |
+| **Accessible hardware** | HeyCyan integration — affordable lenses (<$100) for hands-free capture on iOS. App works with glasses; image transfer manual (iOS limits). Dev paused (budget); seamless auto-transfer requires manufacturer dev program access. AI on low-cost hardware to reach more users |
 
 **The paradigm shift:** Traditional diet apps are forms you fill out. HappyDiet is a conversation you have. That's the difference between passive logging and active behavioral guidance.
 
@@ -159,7 +160,7 @@ The **Gemini Live Agent Challenge** asks for experiences that go "beyond the tex
 
 Diet-related diseases are the leading preventable cause of death worldwide ([WHO, 2025](https://www.who.int/europe/news/item/25-06-2025-1.8-million-avoidable-deaths-annually-in-europe)). The burden falls hardest on those with the least access to professional guidance.
 
-**Accessibility.** Voice-first, photo-based interaction makes dietary coaching accessible to the elderly, low-literacy populations, people with disabilities, and anyone who struggles with traditional app UIs. No typing. No databases. No math.
+**Accessibility.** Voice-first, photo-based interaction makes dietary coaching accessible to the elderly, low-literacy populations, people with disabilities, and anyone who struggles with traditional app UIs. No typing. No databases. No math. I also built support for affordable smart lenses (under $100) — the app works with the glasses; image transfer is manual (iOS limits). Development paused due to budget; seamless auto-transfer would require access to the manufacturer's developer program.
 
 **Clinical visibility.** Nutritionists prescribe diets and lose visibility for weeks. HappyDiet generates objective adherence data — automatically, from meal photos. The dashboard is ready for the doctor's follow-up on day one.
 
@@ -181,7 +182,7 @@ The gap they described is the same one every nutritionist faces: prescribe a pla
 
 - **2026:** Pilot with digital health clinics in Madrid and Paris
 - **2027:** API integrations for insurers and clinical platforms
-- **Smart glasses:** HeyCyan integration — hands-free, first-person meal capture. True See, Hear, Speak.
+- **Smart lenses:** HeyCyan integration — affordable lenses under $100 for hands-free capture on iOS. The app works with the glasses; image transfer requires a manual trigger (iOS limits). Development paused due to budget; the next step for seamless auto-transfer would require access to the manufacturer's developer program (enrolled developers / org team only). Goal: hands-free capture for everyone. True See, Hear, Speak.
 - **Doctor-facing reports:** Weekly aggregate compliance data for clinical follow-ups
 - **Proactive coaching:** Score alerts, trend nudges, pattern detection
 
@@ -215,7 +216,7 @@ HappyDiet runs entirely on Google Cloud. Built for the Gemini Live Agent Challen
 >
 > The gap: every diet app counts calories. None of them check whether what you ate aligns with the specific rules your doctor prescribed. That's what nutritionists actually care about. That's what HappyDiet does.
 >
-> **108 tests. 100% coverage. 3-agent pipeline. Entirely on Google Cloud.**
+> **108 tests. 100% coverage. 3-agent pipeline. Entirely on Google Cloud.** HeyCyan lenses support (<$100) — app works with glasses; image transfer manual (iOS limits). Dev paused (budget); seamless auto-transfer requires manufacturer dev program access.
 >
 > Full article below 👇
 >

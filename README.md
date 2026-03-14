@@ -61,7 +61,9 @@ HappyDiet is the first tool that measures **real dietary compliance** — not ju
 
 ### 👓 HeyCyan Glasses (iOS)
 
-- **BLE capture:** Take a meal photo with HeyCyan glasses; send to Analyze or Live Coach.
+- **Hands-free capture:** Take a meal photo with HeyCyan glasses; send to Analyze or Live Coach.
+- **Affordable hardware:** Lenses under $100 — AI on low-cost hardware to make the tool even more accessible.
+- **Current status:** App works with glasses; image transfer manual (iOS limits). Development paused (budget); seamless auto-transfer would require manufacturer developer program access (enrolled devs / org team only).
 - **Native iOS only** — web cannot access BLE.
 
 ---
@@ -155,14 +157,22 @@ Auth: `gcloud auth application-default login` or `GOOGLE_APPLICATION_CREDENTIALS
 
 ## Deploy to Google Cloud
 
+**Future updates** (GCP already set up):
+```bash
+git checkout main && git pull origin main
+./scripts/deploy.sh happydiet-1-490118
+./scripts/verify.sh
+```
+
+**First-time setup:**
 ```bash
 chmod +x scripts/*.sh
 ./scripts/setup-gcp.sh    # Enable APIs (one-time)
 ./scripts/deploy.sh       # Tests + deploy to Cloud Run
-./scripts/verify.sh       # Health check
+./scripts/verify.sh      # Health check
 ```
 
-Manual: [docs/deployment-cicd.md](docs/deployment-cicd.md) | [scripts/README.md](scripts/README.md)
+**CI/CD:** Push to `main` triggers GitHub Actions (tests + deploy). See [docs/deployment-cicd.md](docs/deployment-cicd.md) for full pipeline docs.
 
 ---
 
@@ -181,6 +191,7 @@ cd backend && npm test
 | Doc | Description |
 |-----|-------------|
 | [docs/how-to-launch.md](docs/how-to-launch.md) | Step-by-step launch guide |
+| [docs/deployment-cicd.md](docs/deployment-cicd.md) | Deployment & CI/CD pipeline |
 | [docs/features.md](docs/features.md) | Full feature inventory |
 | [docs/architecture-diagram.md](docs/architecture-diagram.md) | Architecture diagram |
 | [docs/setup.md](docs/setup.md) | Backend setup |

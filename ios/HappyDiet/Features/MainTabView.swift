@@ -64,5 +64,8 @@ struct MainTabView: View {
         .tint(Theme.accent)
         .environmentObject(appState)
         .environmentObject(dataStore)
+        .task {
+            await dataStore.refreshTasks()
+        }
     }
 }

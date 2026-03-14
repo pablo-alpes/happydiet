@@ -76,6 +76,8 @@
 
 > "Every mandatory requirement for the Gemini Live Agent Challenge is met. Gemini model, GenAI SDK, Live API with barge-in, Cloud Run hosting, Firestore for data, Cloud TTS for voice, and over 100 tests.
 >
+> We run a full CI/CD pipeline: dev and prod environments, tests before every deploy, and automatic deploys when we push to main. Nothing goes to production without passing the test suite.
+>
 > Now let me show you it working."
 
 *[Click "Try the Live Demo" or "Launch Live Demo" button]*
@@ -135,6 +137,8 @@
 *[Screen: scroll back to the showcase Social Impact section, or switch to camera on you.]*
 
 > "HappyDiet isn't just a tech demo. Voice-first coaching makes healthy eating accessible to people who can't use traditional diet apps — the elderly, low-literacy populations, anyone who just wants to point a camera and listen.
+>
+> I also built support for affordable smart lenses — under $100 — so users can capture meals hands-free on iOS. The app works with the glasses; image transfer requires a manual trigger due to iOS limits. I stopped development there due to lack of budget — the next step for seamless auto-transfer would require access to the manufacturer's developer program, which is only for enrolled developers or org team members.
 >
 > A nutrition clinic called it 'ground-breaking.' We're piloting in Madrid and Paris in 2026.
 >

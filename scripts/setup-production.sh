@@ -36,12 +36,16 @@ gcloud services enable \
   texttospeech.googleapis.com \
   run.googleapis.com \
   cloudbuild.googleapis.com \
-  artifactregistry.googleapis.com
+  artifactregistry.googleapis.com \
+  --quiet
 
-# 3. Auth
+# 3. Auth (skip if already authenticated; run manually if needed: gcloud auth application-default login)
 echo ""
-echo "Authenticating (opens browser)..."
-gcloud auth application-default login
+echo "Checking auth..."
+if ! gcloud auth application-default print-access-token &>/dev/null; then
+  echo "Authenticating (opens browser)..."
+  gcloud auth application-default login
+fi
 
 # 4. Firestore databases
 echo ""
@@ -50,19 +54,30 @@ echo "Creating Firestore databases (if not exist)..."
 # List existing databases
 EXISTING=$(gcloud firestore databases list --format='value(name)' 2>/dev/null || true)
 
+# Ensure (default) exists first — required before creating additional DBs
+if ! echo "$EXISTING" | grep -qF 'databases/(default)' 2>/dev/null; then
+  echo "  Creating (default) database..."
+  gcloud firestore databases create --location="$REGION" --type=firestore-native --quiet 2>/dev/null || {
+    echo "  Note: Create Firestore manually: https://console.cloud.google.com/firestore → Create database (Native, $REGION)"
+    EXISTING=""  # Will skip additional DBs if default failed
+  fi
+  EXISTING=$(gcloud firestore databases list --format='value(name)' 2>/dev/null || true)
+fi
+
 create_db_if_missing() {
   local db_id="$1"
   if echo "$EXISTING" | grep -q "^projects/$PROJECT_ID/databases/$db_id$" 2>/dev/null; then
     echo "  Database '$db_id' already exists."
   else
     echo "  Creating database '$db_id'..."
-    gcloud firestore databases create --database="$db_id" --location="$REGION" --type=firestore-native 2>/dev/null || {
-      echo "  Note: If '(default)' exists, create '$db_id' manually in Console: https://console.cloud.google.com/firestore"
-    }
+    if gcloud firestore databases create --database="$db_id" --location="$REGION" --type=firestore-native --quiet 2>/dev/null; then
+      EXISTING="$EXISTING"$'\n'"projects/$PROJECT_ID/databases/$db_id"
+    else
+      echo "  Note: Create '$db_id' manually in Console: https://console.cloud.google.com/firestore"
+    fi
   fi
 }
 
-# (default) is created automatically when Firestore is first used
 # Create happydiet and rules if we want separate DBs
 if [[ "$MEALS_DB" != "(default)" ]]; then
   create_db_if_missing "$MEALS_DB"

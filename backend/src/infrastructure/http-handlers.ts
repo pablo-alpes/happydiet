@@ -139,7 +139,10 @@ export function createSpeakHandler(ttsClient: { synthesize: (text: string) => Pr
   };
 }
 
-export function createRulesHandler(dietRulesRepo: DietRulesRepository) {
+export function createRulesHandler(
+  dietRulesRepo: DietRulesRepository,
+  getDemoRules: () => Array<Record<string, unknown>>
+) {
   return async (req: Request, res: Response) => {
     const userId = (req.query.user_id as string) ?? req.query.userId ?? 'demo';
     try {
@@ -147,6 +150,10 @@ export function createRulesHandler(dietRulesRepo: DietRulesRepository) {
       res.json({ rules });
     } catch (err) {
       console.error('get-rules error:', err);
+      if (userId === 'demo') {
+        res.json({ rules: getDemoRules() });
+        return;
+      }
       res.status(500).json({ error: 'Failed to fetch rules' });
     }
   };

@@ -1,6 +1,6 @@
 # HappyDiet — Deployment Scripts
 
-Programmatic deployment for Cloud Run. **Bonus:** [Gemini Live Agent Challenge](https://geminiliveagentchallenge.devpost.com) awards points for automated deployment.
+Programmatic deployment for Cloud Run. See [docs/deployment-cicd.md](../docs/deployment-cicd.md) for full CI/CD pipeline documentation.
 
 ## Prerequisites
 
@@ -14,12 +14,37 @@ Programmatic deployment for Cloud Run. **Bonus:** [Gemini Live Agent Challenge](
 | `bootstrap-cloud.sh` | **Full programmatic setup** — APIs, Firestore, SA, deploy, GitHub secrets instructions |
 | `setup-gcp.sh` | Enable APIs (Vertex AI, Firestore, Cloud Run, etc.) |
 | `setup-production.sh` | Full production setup (APIs, Firestore DBs, .env) |
-| `deploy.sh` | Run tests + deploy backend to Cloud Run |
+| `deploy.sh` | Run tests + deploy backend to Cloud Run (supports ENV=dev for dev) |
+| `trigger-deploy.sh` | Trigger deploy when main/dev evolves (local or via GitHub API) |
 | `verify.sh` | Health check deployed service |
 | `test-ci.sh` | Simulate Cloud Build test step (npm ci, test:ci, build) |
 | `smoke-test.sh` | Post-deploy smoke test (health + meals) |
 
 ## Usage
+
+### Future updates (deploy latest from main)
+
+```bash
+# From repo root — use when GCP is already set up
+git checkout main && git pull origin main
+./scripts/deploy.sh happydiet-1-490118
+./scripts/verify.sh
+```
+
+Or push to `main` — GitHub Actions deploys automatically if secrets are configured.
+
+### Trigger deploy when main evolves
+
+```bash
+# Deploy prod locally (pull latest main first)
+./scripts/trigger-deploy.sh prod --push --local
+
+# Deploy dev locally
+./scripts/trigger-deploy.sh dev --local
+
+# Trigger via GitHub Actions (requires gh CLI)
+./scripts/trigger-deploy.sh prod
+```
 
 ### Quick start (full bootstrap)
 

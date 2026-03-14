@@ -150,6 +150,9 @@ final class HeyCyanSDKBridge: NSObject {
                 }
                 return
             }
+            DispatchQueue.main.async {
+                HeyCyanService.shared.setLastTransferWiFi(ssid: ss, password: pw)
+            }
             HeyCyanWiFiTransfer.fetchLatestPhoto(ssid: ss, password: pw) { result in
                 DispatchQueue.main.async {
                     switch result {

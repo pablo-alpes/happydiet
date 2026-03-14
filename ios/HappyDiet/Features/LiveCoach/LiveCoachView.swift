@@ -48,6 +48,9 @@ struct LiveCoachView: View {
     @State private var waitingForCoachResponse = false
     @State private var lastSentWasMeal = false
     @State private var reconnectTask: Task<Void, Never>?
+    @State private var thinkingTimeoutTask: Task<Void, Never>?
+    @State private var receivedAudioThisTurn = false
+    @State private var pendingMealPromptToSend: String?
 
     private let quickPrompts = [
         "Suggest meal ideas and show me what they look like",
@@ -146,13 +149,35 @@ struct LiveCoachView: View {
         .onChange(of: appState.backendDiscoveredVersion) {
             if !isConnected { connect() }
         }
+        .onChange(of: isConnected) {
+            if isConnected, let prompt = pendingMealPromptToSend, !prompt.isEmpty, let c = client {
+                pendingMealPromptToSend = nil
+                c.sendText(prompt)
+                messages.append(ChatMessage(role: "user", text: prompt))
+                receivedAudioThisTurn = false
+                waitingForCoachResponse = true
+                coachState = "thinking"
+                startThinkingTimeout()
+            }
+        }
         .onAppear {
             configureAudioSessionForCoach()
+            Task { await dataStore.refreshTasks() }
             if !isConnected {
                 connect()
             }
-            if let prompt = appState.consumeMealSuggestionPrompt() {
+            if let prompt = appState.consumeMealSuggestionPrompt(), !prompt.isEmpty {
                 inputText = prompt
+                pendingMealPromptToSend = prompt
+                if isConnected, let c = client {
+                    pendingMealPromptToSend = nil
+                    c.sendText(prompt)
+                    messages.append(ChatMessage(role: "user", text: prompt))
+                    receivedAudioThisTurn = false
+                    waitingForCoachResponse = true
+                    coachState = "thinking"
+                    startThinkingTimeout()
+                }
             }
             if isConnected, let c = client, let img = appState.consumePendingImageForCoach(), let b64 = img.toJPEGBase64() {
                 c.sendImage(base64: b64)
@@ -418,6 +443,23 @@ struct LiveCoachView: View {
         }.resume()
     }
 
+    private func startThinkingTimeout() {
+        thinkingTimeoutTask?.cancel()
+        thinkingTimeoutTask = Task {
+            try? await Task.sleep(nanoseconds: 90_000_000_000)
+            guard !Task.isCancelled else { return }
+            await MainActor.run {
+                guard waitingForCoachResponse else { return }
+                thinkingTimeoutTask = nil
+                waitingForCoachResponse = false
+                lastSentWasMeal = false
+                coachState = "idle"
+                connectionStatus = "Response timeout"
+                messages.append(ChatMessage(role: "coach", text: "The coach took too long to respond. Try again or check your connection."))
+            }
+        }
+    }
+
     private func connectionHint(baseURL: URL) -> String {
         let host = baseURL.host ?? ""
         if host == "localhost" || host == "127.0.0.1" {
@@ -477,6 +519,8 @@ struct LiveCoachView: View {
             isConnected = true
             connectionStatus = "Connected"
         case .disconnected(let reason):
+            thinkingTimeoutTask?.cancel()
+            thinkingTimeoutTask = nil
             isConnected = false
             connectionStatus = reason ?? "Disconnected"
             coachState = "idle"
@@ -492,30 +536,52 @@ struct LiveCoachView: View {
                 client?.sendImage(base64: b64)
                 messages.append(ChatMessage(role: "user", text: "[sent meal photo]"))
                 lastSentWasMeal = true
+                receivedAudioThisTurn = false
                 waitingForCoachResponse = true
                 coachState = "thinking"
+                startThinkingTimeout()
+            } else if let prompt = pendingMealPromptToSend, !prompt.isEmpty {
+                pendingMealPromptToSend = nil
+                client?.sendText(prompt)
+                messages.append(ChatMessage(role: "user", text: prompt))
+                receivedAudioThisTurn = false
+                waitingForCoachResponse = true
+                coachState = "thinking"
+                startThinkingTimeout()
             }
         case .text(let s):
             coachState = "speaking"
             coachTextBuffer += s
             streamingCoachText = coachTextBuffer
         case .turnComplete:
+            thinkingTimeoutTask?.cancel()
+            thinkingTimeoutTask = nil
             waitingForCoachResponse = false
             lastSentWasMeal = false
             coachState = "idle"
-            if !coachTextBuffer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                messages.append(ChatMessage(role: "coach", text: coachTextBuffer.trimmingCharacters(in: .whitespacesAndNewlines)))
-                dataStore.addJournalEntry(text: coachTextBuffer.trimmingCharacters(in: .whitespacesAndNewlines))
+            let trimmed = coachTextBuffer.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                messages.append(ChatMessage(role: "coach", text: trimmed))
+                dataStore.addJournalEntry(text: trimmed)
+                // TTS fallback: if we got text but no audio, speak it so the agent is heard
+                if !receivedAudioThisTurn {
+                    Task {
+                        await TTSHelper.speak(trimmed, backend: nil)
+                    }
+                }
             }
             coachTextBuffer = ""
             streamingCoachText = ""
         case .audio(let data):
+            receivedAudioThisTurn = true
             coachState = "speaking"
             if audioPlayer == nil {
                 audioPlayer = LivePCMPlayer()
             }
             audioPlayer?.enqueue(data: data)
         case .interrupted:
+            thinkingTimeoutTask?.cancel()
+            thinkingTimeoutTask = nil
             audioPlayer?.stop()
             waitingForCoachResponse = false
             lastSentWasMeal = false
@@ -537,6 +603,8 @@ struct LiveCoachView: View {
                 userVoiceBuffer = ""
             }
         case .error(let msg):
+            thinkingTimeoutTask?.cancel()
+            thinkingTimeoutTask = nil
             waitingForCoachResponse = false
             lastSentWasMeal = false
             coachState = "idle"
@@ -553,18 +621,21 @@ struct LiveCoachView: View {
         client?.sendText(text)
         messages.append(ChatMessage(role: "user", text: text))
         lastSentWasMeal = false
+        receivedAudioThisTurn = false
         waitingForCoachResponse = true
         coachState = "thinking"
+        startThinkingTimeout()
     }
 
     private func handleImagePicked(_ image: UIImage) {
         guard let base64 = image.toJPEGBase64() else { return }
         client?.sendImage(base64: base64)
-        let imgData = image.jpegData(compressionQuality: 0.8)
-        messages.append(ChatMessage(role: "user", text: "[sent meal photo]", imageData: imgData))
+        messages.append(ChatMessage(role: "user", text: "[sent meal photo]", imageData: image.jpegData(compressionQuality: 0.8)))
         lastSentWasMeal = true
+        receivedAudioThisTurn = false
         waitingForCoachResponse = true
         coachState = "thinking"
+        startThinkingTimeout()
     }
 
     private func sendInterrupt() {

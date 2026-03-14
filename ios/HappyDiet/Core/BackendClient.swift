@@ -149,11 +149,23 @@ struct Meal: Decodable, Identifiable {
 
 // MARK: - BackendClient
 
-enum BackendError: Error {
+enum BackendError: Error, LocalizedError {
     case invalidURL
     case httpError(status: Int, message: String?)
     case decodingError(Error)
     case networkError(Error)
+
+    var errorDescription: String? {
+        switch self {
+        case .invalidURL: return "Invalid backend URL. Check More → Settings."
+        case .httpError(let status, let msg):
+            if status == 404 { return "Not found (404). Check backend URL and that the server is running." }
+            if status == 503 { return "Backend unavailable. Try again later." }
+            return msg ?? "Server error (HTTP \(status))."
+        case .decodingError(let err): return "Invalid response: \(err.localizedDescription)"
+        case .networkError(let err): return "Network: \(err.localizedDescription)"
+        }
+    }
 }
 
 final class BackendClient {
@@ -235,6 +247,19 @@ final class BackendClient {
         let (data, response) = try await session.data(for: request)
         try validateResponse(data: data, response: response, url: url)
 
+        struct RulesResponse: Decodable { let rules: [DietRuleParsed] }
+        let decoded = try JSONDecoder().decode(RulesResponse.self, from: data)
+        return decoded.rules
+    }
+
+    /// GET /demo/rules — fallback when /rules fails (e.g. no Firestore), same data as web app.
+    func fetchDemoRules() async throws -> [DietRuleParsed] {
+        let url = baseURL.appendingPathComponent("demo").appendingPathComponent("rules")
+        var request = URLRequest(url: url)
+        request.httpMethod = "GET"
+        if let key = apiKey { request.setValue(key, forHTTPHeaderField: "X-API-Key") }
+        let (data, response) = try await session.data(for: request)
+        try validateResponse(data: data, response: response, url: url)
         struct RulesResponse: Decodable { let rules: [DietRuleParsed] }
         let decoded = try JSONDecoder().decode(RulesResponse.self, from: data)
         return decoded.rules
@@ -326,7 +351,9 @@ final class BackendClient {
     private func validateResponse(data: Data, response: URLResponse, url: URL) throws {
         guard let http = response as? HTTPURLResponse else { return }
         guard (200...299).contains(http.statusCode) else {
-            let message = (try? JSONDecoder().decode([String: String].self, from: data))?["error"]
+            struct ErrorBody: Decodable { let error: String?; let detail: String? }
+            let body = (try? JSONDecoder().decode(ErrorBody.self, from: data))
+            let message = body?.detail ?? body?.error
             throw BackendError.httpError(status: http.statusCode, message: message)
         }
     }

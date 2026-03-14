@@ -266,11 +266,13 @@ struct AnalyzeFlowView: View {
     private func errorDescription(_ e: BackendError) -> String {
         switch e {
         case .httpError(let status, let msg):
-            if status == 503 { return "Backend not configured. Start the server or set GOOGLE_CLOUD_PROJECT." }
-            return msg ?? "HTTP \(status)"
+            if status == 404 { return "Analyze endpoint not found (404). Check backend URL in More → Settings and that the server is deployed." }
+            if status == 405 { return "Wrong method (405). Ensure the app is using the correct backend URL." }
+            if status == 503 { return "Backend not configured or service unavailable. Check backend URL in More → Settings." }
+            return msg ?? "Server error (HTTP \(status))."
         case .decodingError(let err): return "Invalid response: \(err.localizedDescription)"
         case .networkError(let err): return "Network: \(err.localizedDescription)"
-        case .invalidURL: return "Invalid URL"
+        case .invalidURL: return "Invalid backend URL. Check More → Settings."
         }
     }
 

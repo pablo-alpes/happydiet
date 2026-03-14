@@ -258,12 +258,15 @@ struct DietView: View {
         Task {
             do {
                 let rules = try await client.fetchRules()
-                await MainActor.run {
-                    parsedRules = rules
-                }
+                await MainActor.run { parsedRules = rules }
             } catch {
-                await MainActor.run {
-                    errorMessage = error.localizedDescription
+                do {
+                    let rules = try await client.fetchDemoRules()
+                    await MainActor.run { parsedRules = rules }
+                } catch _ {
+                    await MainActor.run {
+                        errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                    }
                 }
             }
         }

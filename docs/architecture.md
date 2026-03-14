@@ -51,6 +51,19 @@
 
 ---
 
+## CI/CD
+
+| Trigger | Environment | Service |
+|---------|-------------|---------|
+| Push to `main` | prod | happydiet-backend |
+| Push to `dev` | dev | happydiet-backend-dev |
+| PR to main/dev | — | Tests only |
+| Manual | prod or dev | `./scripts/trigger-deploy.sh [prod\|dev]` |
+
+Tests run before every deploy; smoke test runs after. See [deployment-cicd.md](./deployment-cicd.md).
+
+---
+
 ## Component Responsibilities
 
 | Component | Responsibility |

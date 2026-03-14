@@ -23,8 +23,17 @@ final class HeyCyanService: ObservableObject {
 
     @Published private(set) var connectionState: HeyCyanConnectionState = .disconnected
     @Published private(set) var lastError: String?
+    /// After BLE capture, glasses WiFi details for manual transfer if auto-join fails.
+    @Published private(set) var lastTransferSSID: String?
+    @Published private(set) var lastTransferPassword: String?
 
     private init() {}
+
+    /// Called by SDK bridge when glasses report WiFi details (so user can manually connect if auto-join fails).
+    func setLastTransferWiFi(ssid: String, password: String) {
+        lastTransferSSID = ssid
+        lastTransferPassword = password
+    }
 
     /// Capture a photo from glasses: BLE+WiFi when SDK linked, or WiFi-only with manual SSID.
     func capturePhoto(onImagePicked: @escaping (UIImage) -> Void, onCancel: @escaping () -> Void) {
@@ -105,22 +114,34 @@ enum HeyCyanConnectionState {
 
 final class HeyCyanWiFiTransfer {
     /// Connect to glasses WiFi and fetch latest photo. Call when glasses are already in transfer mode.
+    /// With Hotspot Configuration entitlement, iOS shows an in-app "Join [network]?" dialog — user taps Join once.
     static func fetchLatestPhoto(ssid: String, password: String = "123456789", completion: @escaping (Result<UIImage, HeyCyanError>) -> Void) {
         let config = NEHotspotConfiguration(ssid: ssid, passphrase: password, isWEP: false)
         config.joinOnce = true
 
         NEHotspotConfigurationManager.shared.apply(config) { error in
-            if let e = error {
-                completion(.failure(HeyCyanError(message: "WiFi: \(e.localizedDescription). Ensure glasses are in transfer mode.")))
+            if let e = error as NSError? {
+                let isConfigError = e.domain == "NEHotspotConfigurationErrorDomain" && (e.code == 7 || e.code == 8)
+                if isConfigError {
+                    // User may have tapped "Join" — iOS sometimes still reports an error. Try discovery anyway after a delay.
+                    DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 6) {
+                        discoverAndDownload(completion: completion)
+                    }
+                    return
+                }
+                let message = "Join the glasses' Wi‑Fi in Settings → Wi‑Fi, then tap Fetch below."
+                completion(.failure(HeyCyanError(message: message)))
                 return
             }
-            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 3) {
+            // Success: iOS joined the network. Wait for interface to be ready then discover.
+            DispatchQueue.global(qos: .userInitiated).asyncAfter(deadline: .now() + 5) {
                 discoverAndDownload(completion: completion)
             }
         }
     }
 
-    private static let candidateIPs = ["192.168.43.1", "192.168.4.1", "192.168.1.1", "192.168.0.1", "10.0.0.1"]
+    // HeyCyan/Android hotspot defaults; SDK uses /files/media.config for connectivity test
+    private static let candidateIPs = ["192.168.43.1", "192.168.4.1", "192.168.1.1", "192.168.0.1", "10.0.0.1", "192.168.49.1"]
 
     private static func discoverAndDownload(completion: @escaping (Result<UIImage, HeyCyanError>) -> Void) {
         let group = DispatchGroup()
@@ -147,28 +168,67 @@ final class HeyCyanWiFiTransfer {
     }
 
     private static func testConnection(ip: String, completion: @escaping (Bool) -> Void) {
-        let url = URL(string: "http://\(ip)/manifest.json")!
-        var req = URLRequest(url: url)
-        req.timeoutInterval = 3
-        URLSession.shared.dataTask(with: req) { _, response, _ in
-            let ok = (response as? HTTPURLResponse)?.statusCode == 200
-            completion(ok)
-        }.resume()
+        // HeyCyan SDK uses /files/media.config for connectivity; some devices use /manifest.json
+        let urls = ["http://\(ip)/files/media.config", "http://\(ip)/manifest.json"]
+        var remaining = urls.makeIterator()
+        func tryNext() {
+            guard let urlString = remaining.next(), let url = URL(string: urlString) else {
+                completion(false)
+                return
+            }
+            var req = URLRequest(url: url)
+            req.timeoutInterval = 3
+            URLSession.shared.dataTask(with: req) { _, response, _ in
+                if (response as? HTTPURLResponse)?.statusCode == 200 {
+                    completion(true)
+                } else {
+                    tryNext()
+                }
+            }.resume()
+        }
+        tryNext()
     }
 
     private static func fetchManifestAndDownload(deviceIP: String, completion: @escaping (Result<UIImage, HeyCyanError>) -> Void) {
-        let url = URL(string: "http://\(deviceIP)/manifest.json")!
-        URLSession.shared.dataTask(with: url) { data, response, error in
-            guard let data = data,
-                  let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
-                  let files = json["files"] as? [[String: Any]],
-                  let latest = files.first(where: { ($0["type"] as? String)?.lowercased() == "photo" || ($0["type"] as? String)?.lowercased() == "image" })
-                      ?? files.first,
-                  let filename = latest["filename"] as? String else {
-                DispatchQueue.main.async { completion(.failure(HeyCyanError(message: "No photos in manifest"))) }
+        // Try manifest.json first (files array with filename/type)
+        let jsonURL = URL(string: "http://\(deviceIP)/manifest.json")!
+        URLSession.shared.dataTask(with: jsonURL) { data, _, _ in
+            if let data = data,
+               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any],
+               let files = json["files"] as? [[String: Any]],
+               let latest = files.first(where: { ($0["type"] as? String)?.lowercased() == "photo" || ($0["type"] as? String)?.lowercased() == "image" })
+                   ?? files.first,
+               let filename = latest["filename"] as? String {
+                let fileURL = "http://\(deviceIP)/files/\(filename)"
+                downloadImage(urlString: fileURL, completion: completion)
                 return
             }
-            let fileURL = "http://\(deviceIP)/files/\(filename)"
+            // Fallback: /files/media.config (line-based list of filenames)
+            tryMediaConfig(deviceIP: deviceIP, completion: completion)
+        }.resume()
+    }
+
+    private static func tryMediaConfig(deviceIP: String, completion: @escaping (Result<UIImage, HeyCyanError>) -> Void) {
+        let url = URL(string: "http://\(deviceIP)/files/media.config")!
+        URLSession.shared.dataTask(with: url) { data, _, _ in
+            guard let data = data,
+                  let text = String(data: data, encoding: .utf8) else {
+                DispatchQueue.main.async { completion(.failure(HeyCyanError(message: "No manifest or media.config found on device"))) }
+                return
+            }
+            let lines = text.components(separatedBy: .newlines)
+            let filenames = lines
+                .map { $0.trimmingCharacters(in: .whitespaces) }
+                .filter { !$0.isEmpty && !$0.hasPrefix("#") }
+                .compactMap { line -> String? in
+                    if line.hasPrefix("http") { return URL(string: line)?.lastPathComponent }
+                    return line.contains("/") ? String(line.split(separator: "/").last ?? "") : line
+                }
+            guard let first = filenames.first else {
+                DispatchQueue.main.async { completion(.failure(HeyCyanError(message: "No media files in media.config"))) }
+                return
+            }
+            let fileURL = "http://\(deviceIP)/files/\(first)"
             downloadImage(urlString: fileURL, completion: completion)
         }.resume()
     }

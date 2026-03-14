@@ -39,6 +39,7 @@
 | **iOS App** | Analyze tab (camera/photo → compliance), Diet tab (parse/save rules, load saved), Dashboard, **Live Coach** (text + image → Live API → audio), backend TTS with AV fallback |
 | **Dev Playground** | Diet input (text + image), parse/save, meal upload, analyze, TTS, Rules tab (full diet view), Dashboard |
 | **Deployment** | setup-production.sh, deploy.sh, Cloud Run config |
+| **CI/CD** | GitHub Actions (dev + prod), tests before deploy, `trigger-deploy.sh` |
 
 ### Pending ⚠️
 

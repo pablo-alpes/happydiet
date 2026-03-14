@@ -30,7 +30,8 @@ gcloud services enable \
   texttospeech.googleapis.com \
   run.googleapis.com \
   cloudbuild.googleapis.com \
-  artifactregistry.googleapis.com
+  artifactregistry.googleapis.com \
+  --quiet
 
 echo ""
 echo "APIs enabled. Next steps:"

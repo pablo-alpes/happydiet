@@ -20,7 +20,7 @@ import {
   createAddTaskHandler,
   createToggleTaskHandler,
 } from './infrastructure/http-handlers.js';
-import { createDemoMealsHandler, createDemoRulesHandler, getDemoMeals } from './infrastructure/demo-handlers.js';
+import { createDemoMealsHandler, createDemoRulesHandler, getDemoMeals, getDemoRules } from './infrastructure/demo-handlers.js';
 import type { VertexAIClient } from './infrastructure/vertex-ai-client.js';
 import type { MealRepository, DietRulesRepository, TasksRepository } from './infrastructure/firestore-repository.js';
 
@@ -75,7 +75,7 @@ export function createApp(deps: AppDeps) {
   app.patch('/tasks/:id', createToggleTaskHandler(tasksRepo));
   app.delete('/meals', createClearDataHandler(deps.mealRepo));
   app.post('/clear-data', createClearDataHandler(deps.mealRepo));
-  app.get('/rules', createRulesHandler(deps.dietRulesRepo));
+  app.get('/rules', createRulesHandler(deps.dietRulesRepo, getDemoRules));
   app.get('/demo/meals', createDemoMealsHandler());
   app.get('/demo/rules', createDemoRulesHandler());
 

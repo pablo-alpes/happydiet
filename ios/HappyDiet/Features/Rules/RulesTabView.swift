@@ -54,9 +54,17 @@ struct RulesTabView: View {
                 isLoading = false
             }
         } catch {
-            await MainActor.run {
-                errorMessage = error.localizedDescription
-                isLoading = false
+            do {
+                let list = try await client.fetchDemoRules()
+                await MainActor.run {
+                    rules = list
+                    isLoading = false
+                }
+            } catch _ {
+                await MainActor.run {
+                    errorMessage = (error as? LocalizedError)?.errorDescription ?? error.localizedDescription
+                    isLoading = false
+                }
             }
         }
     }

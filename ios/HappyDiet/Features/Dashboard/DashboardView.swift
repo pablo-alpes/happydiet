@@ -15,6 +15,7 @@ struct DashboardView: View {
     @State private var isLoadingMeals = false
     @State private var showImpactInfo = false
     @State private var backendUnreachable = false
+    @State private var loadMealsRetryCount = 0
 
     private let client = BackendClient()
     private let mealSuggestions: [String: [String]] = [
@@ -56,12 +57,15 @@ struct DashboardView: View {
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd"
         let today = formatter.string(from: Date())
-        return dataStore.weightEntries.prefix(14).enumerated().compactMap { idx, e -> (Int, Double)? in
+        let fromStore: [(day: Int, kg: Double)] = dataStore.weightEntries.prefix(14).enumerated().compactMap { idx, e -> (day: Int, kg: Double)? in
             guard let d = formatter.date(from: e.date) else { return nil }
             let todayDate = formatter.date(from: today) ?? Date()
             let daysAgo = Calendar.current.dateComponents([.day], from: d, to: todayDate).day ?? idx
-            return (min(max(0, daysAgo), 13), e.kg)
-        }.sorted { $0.day < $1.day }
+            return (day: min(max(0, daysAgo), 13), kg: e.kg)
+        }
+        let sortedFromStore = fromStore.sorted { $0.day < $1.day }
+        if !sortedFromStore.isEmpty { return sortedFromStore }
+        return (0..<14).map { i in (day: i, kg: 75.0 - Double(i) * 0.1 + Double(i % 3) * 0.3) }
     }
 
     private var nextMealKey: String {
@@ -115,34 +119,67 @@ struct DashboardView: View {
     private func loadMeals() async {
         await MainActor.run { isLoadingMeals = true; backendUnreachable = false }
         do {
-            let list = try await client.fetchMeals()
-            await MainActor.run { meals = list; isLoadingMeals = false; backendUnreachable = false }
+            var list = try await client.fetchMeals()
+            if list.isEmpty && HappyDietConfig.defaultUserId == "demo" {
+                list = Self.demoMealsFallback
+            }
+            await MainActor.run { meals = list; isLoadingMeals = false; backendUnreachable = false; loadMealsRetryCount = 0 }
         } catch {
             await MainActor.run {
                 isLoadingMeals = false
                 backendUnreachable = true
                 if meals.isEmpty { meals = Self.demoMealsFallback }
+                if loadMealsRetryCount < 1 {
+                    loadMealsRetryCount += 1
+                    Task {
+                        try? await Task.sleep(nanoseconds: 2_000_000_000)
+                        await loadMeals()
+                    }
+                }
             }
         }
     }
 
-    private static let demoMealsFallback: [Meal] = (0..<7).compactMap { i in
+    /// Same date range as web app: today back 14 days so compliance/weight chart shows data.
+    private static var demoMealsFallback: [Meal] {
         let cal = Calendar.current
-        guard let date = cal.date(byAdding: .day, value: -i, to: Date()) else { return nil }
-        let moment = i % 3 == 0 ? "breakfast" : (i % 3 == 1 ? "lunch" : "dinner")
-        return Meal(
-            id: "demo-\(i)",
-            userId: "demo",
-            timestamp: ISO8601DateFormatter().string(from: date),
-            mealMoment: moment,
-            ingredients: ["oatmeal", "banana", "almonds"],
-            estimatedKcal: 380,
-            complianceScore: Double(72 + (i % 20)),
-            compliantItems: ["oatmeal", "banana"],
-            nonCompliantItems: [],
-            suggestions: [],
-            dietVersion: nil
-        )
+        let now = Date()
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withInternetDateTime]
+        var fallback: [Meal] = []
+        let ingredientsList = [
+            ["greek yogurt", "berries", "honey"], ["eggs", "avocado", "whole grain toast"],
+            ["oatmeal", "banana", "almonds"], ["smoothie", "spinach", "banana"],
+            ["grilled fish", "asparagus", "sweet potato"], ["oatmeal", "blueberries", "walnuts"],
+            ["chicken salad", "quinoa", "olive oil"], ["grilled fish", "spinach", "sweet potato"],
+            ["turkey wrap", "hummus", "carrots"], ["pizza", "soda"],
+            ["smoothie", "spinach", "banana", "protein powder"], ["chicken stir-fry", "vegetables", "brown rice"],
+            ["grilled chicken", "salad", "quinoa"], ["salmon", "broccoli", "rice"],
+        ]
+        let scores: [Double] = [78, 90, 92, 95, 96, 94, 88, 98, 85, 35, 95, 92, 95, 88]
+        for i in 0..<14 {
+            guard let date = cal.date(byAdding: .day, value: -i, to: now),
+                  let at10 = cal.date(bySettingHour: 10, minute: 0, second: 0, of: date) else { continue }
+            var ts = formatter.string(from: at10)
+            if !ts.hasSuffix("Z") { ts += "Z" }
+            let moment = i % 3 == 0 ? "breakfast" : (i % 3 == 1 ? "lunch" : "dinner")
+            let ing = ingredientsList[i % ingredientsList.count]
+            let score = scores[i % scores.count]
+            fallback.append(Meal(
+                id: "demo-\(i)",
+                userId: "demo",
+                timestamp: ts,
+                mealMoment: moment,
+                ingredients: ing,
+                estimatedKcal: 350 + (i * 20) % 400,
+                complianceScore: score,
+                compliantItems: score >= 50 ? ing : [],
+                nonCompliantItems: score < 50 ? ing : [],
+                suggestions: [],
+                dietVersion: nil
+            ))
+        }
+        return fallback.sorted { (m1, m2) in (m1.timestamp ?? "") > (m2.timestamp ?? "") }
     }
 
     // MARK: - Compliance Trend (top)

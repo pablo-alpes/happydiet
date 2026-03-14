@@ -122,12 +122,32 @@ struct HeyCyanCaptureSheet: View {
                     }
 
                     if let err = errorMessage {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(Theme.orange)
+                        VStack(alignment: .leading, spacing: 10) {
                             Text(err)
                                 .font(.subheadline)
                                 .foregroundStyle(.primary)
+                            if let ssid = HeyCyanService.shared.lastTransferSSID, !ssid.isEmpty {
+                                HStack(spacing: 12) {
+                                    Button {
+                                        let pw = HeyCyanService.shared.lastTransferPassword ?? "123456789"
+                                        UIPasteboard.general.string = "Network: \(ssid)\nPassword: \(pw)"
+                                    } label: {
+                                        Label("Copy network & password", systemImage: "doc.on.doc")
+                                            .font(.subheadline.weight(.medium))
+                                    }
+                                    .buttonStyle(.borderedProminent)
+                                    .tint(Theme.accent)
+                                    Button {
+                                        if let url = URL(string: UIApplication.openSettingsURLString) {
+                                            UIApplication.shared.open(url)
+                                        }
+                                    } label: {
+                                        Label("Open Settings", systemImage: "gear")
+                                            .font(.subheadline.weight(.medium))
+                                    }
+                                    .buttonStyle(.bordered)
+                                }
+                            }
                         }
                         .padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -162,7 +182,7 @@ struct HeyCyanCaptureSheet: View {
     private func captureViaBLE() {
         isConnecting = true
         errorMessage = nil
-        statusMessage = "Scanning for glasses…"
+        statusMessage = "Scanning for glasses… When your device asks to join the network, tap Join."
         HeyCyanService.shared.capturePhoto { img in
             isConnecting = false
             statusMessage = ""
@@ -171,6 +191,8 @@ struct HeyCyanCaptureSheet: View {
             isConnecting = false
             errorMessage = HeyCyanService.shared.lastError ?? "BLE capture cancelled."
             statusMessage = ""
+            if let ssid = HeyCyanService.shared.lastTransferSSID { manualSSID = ssid }
+            if let pw = HeyCyanService.shared.lastTransferPassword { manualPassword = pw }
         }
     }
 #endif

@@ -140,3 +140,20 @@ flowchart TB
 | **Vertex AI** | Gemini: Vision, parse-diet, semantic compliance, Live API |
 | **Firestore** | `meals`, `diet_rules` collections |
 | **Cloud TTS** | Text-to-speech for `/speak` endpoint |
+
+---
+
+## CI/CD Pipeline
+
+| Trigger | Action |
+|---------|--------|
+| **Push to main** | Tests → Deploy to **prod** (`happydiet-backend`) |
+| **Push to dev** | Tests → Deploy to **dev** (`happydiet-backend-dev`) |
+| **Pull request** | Tests only (no deploy) |
+| **Manual** | `workflow_dispatch` — choose dev or prod |
+
+**How we ensure CI/CD:**
+- Tests must pass before any deployment (`npm run test:ci`).
+- Two environments: dev (staging) and prod (production).
+- GitHub Actions runs on every push; manual trigger via `./scripts/trigger-deploy.sh [prod\|dev]`.
+- Smoke test (`/health`) runs after each deploy.

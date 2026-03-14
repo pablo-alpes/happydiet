@@ -60,8 +60,12 @@ export function createDemoMealsHandler() {
   };
 }
 
+export function getDemoRules(): typeof MOCK_RULES {
+  return MOCK_RULES;
+}
+
 export function createDemoRulesHandler() {
   return (_req: Request, res: Response) => {
-    res.json({ rules: MOCK_RULES });
+    res.json({ rules: getDemoRules() });
   };
 }
