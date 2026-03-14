@@ -4,6 +4,36 @@
 
 ---
 
+## Quick Start — Future Updates (Deploy from main)
+
+**Use this when:** GCP is already set up and you want to deploy the latest code.
+
+```bash
+# From repo root
+git checkout main && git pull origin main
+./scripts/deploy.sh happydiet-1-490118
+./scripts/verify.sh
+```
+
+**Or let CI/CD do it:** Push to `main` — GitHub Actions runs tests and deploys automatically (see [CI/CD Pipeline](#ci-cd-pipeline) below).
+
+---
+
+## Current Deployment Record
+
+| Item | Value |
+|------|-------|
+| **Project** | `happydiet-1-490118` |
+| **Region** | `us-central1` |
+| **Service (prod)** | `happydiet-backend` |
+| **Service (dev)** | `happydiet-backend-dev` |
+| **Prod URL** | `https://happydiet-backend-718973726500.us-central1.run.app` |
+| **Firestore DBs** | `happydiet` (meals), `rules` (diet rules) |
+
+**iOS:** Set `BACKEND_URL` in `HappyDietConfig.plist` or in-app Settings to the Service URL above.
+
+---
+
 ## Deployment Overview
 
 ```
@@ -18,6 +48,92 @@
 │  Firestore      │                  │  (same project)   │
 └─────────────────┘                  └──────────────────┘
 ```
+
+---
+
+## CI/CD Pipeline
+
+HappyDiet supports two CI/CD options: **GitHub Actions** (recommended) and **Cloud Build**. Two environments: **dev** (staging) and **prod** (production).
+
+### GitHub Actions (`.github/workflows/deploy.yml`)
+
+| Trigger | Environment | Action |
+|---------|-------------|--------|
+| **Push** to `main` or `master` | prod | Tests → Deploy `happydiet-backend` → Smoke test |
+| **Push** to `dev` | dev | Tests → Deploy `happydiet-backend-dev` → Smoke test |
+| **Pull request** to main/dev | — | Tests only (no deploy) |
+| **Manual** (`workflow_dispatch`) | prod or dev | Choose environment → Tests → Deploy → Smoke test |
+
+**Required secrets** (Settings → Secrets and variables → Actions):
+
+| Secret | Description |
+|--------|-------------|
+| `GCP_PROJECT_ID` | GCP project ID (e.g. `happydiet-1-490118`) |
+| `GCP_SA_KEY` | Service account JSON key (contents of `scripts/.cicd-sa-key.json`) |
+
+**Pipeline steps:**
+1. Checkout code
+2. Setup Node.js 20, install deps (`npm ci`)
+3. Run tests (`npm run test:ci`) — **must pass before deploy**
+4. Upload test results artifact
+5. *(On push/manual only)* Authenticate to GCP, deploy to Cloud Run, smoke test `/health`
+
+**To add secrets (recommended):** Run `./scripts/setup-github-secrets.sh` — uses existing key and `gh` to add secrets securely. One-time: `gh auth login` first.
+
+**Alternative:** Run `./scripts/bootstrap-cloud.sh PROJECT_ID` — creates the key, then copy `scripts/.cicd-sa-key.json` into `GCP_SA_KEY` in GitHub.
+
+### Trigger deployment when main evolves
+
+| Method | Command |
+|--------|---------|
+| **Automatic** | Push to `main` (prod) or `dev` (dev) — pipeline runs automatically |
+| **Manual (local)** | `./scripts/trigger-deploy.sh prod --local` or `./scripts/trigger-deploy.sh dev --local` |
+| **Manual (GitHub API)** | `./scripts/trigger-deploy.sh prod` (requires `gh` CLI) |
+| **Pull latest + deploy** | `./scripts/trigger-deploy.sh prod --push --local` |
+
+### Cloud Build (`cloudbuild.yaml`)
+
+| Trigger | Action |
+|---------|--------|
+| `gcloud builds submit` or Cloud Build trigger on push | Run tests → Deploy to Cloud Run |
+
+**Location:** Repo root. Steps run in `backend/` via `dir: backend`.
+
+**Substitutions:** `_REGION` (us-central1), `_SERVICE_NAME` (happydiet-backend). `PROJECT_ID` is provided by Cloud Build.
+
+**To run manually:**
+```bash
+gcloud builds submit --config cloudbuild.yaml .
+```
+
+**To connect GitHub:** [Cloud Build → Repositories](https://console.cloud.google.com/cloud-build/repositories) → Connect repo → Create trigger for push to `main`, config path `cloudbuild.yaml`.
+
+### Environment Variables Passed to Cloud Run
+
+| Variable | Required | Source |
+|----------|----------|--------|
+| `GOOGLE_CLOUD_PROJECT` | Yes | Project ID |
+| `GOOGLE_CLOUD_LOCATION` | No (default us-central1) | Region |
+| `FIRESTORE_DATABASE_MEALS` | No (default happydiet) | `backend/.env` |
+| `FIRESTORE_DATABASE_RULES` | No (default rules) | `backend/.env` |
+| `API_KEY` | No | `backend/.env` (optional) |
+| `VERTEX_AI_MODEL` | No | `backend/.env` (optional) |
+
+The `deploy.sh` script reads `backend/.env` and forwards these to Cloud Run. GitHub Actions and Cloud Build use project/region only; add Firestore DB names via `.env` if using non-default DBs.
+
+### How we ensure CI/CD
+
+| Guarantee | How |
+|-----------|-----|
+| **Tests before deploy** | `test` job runs first; `deploy` jobs `need: test`. If tests fail, deploy never runs. |
+| **Two environments** | dev (staging) and prod (production) — test changes in dev before merging to main. |
+| **Automatic on push** | Push to `main` or `dev` triggers the pipeline; no manual step required. |
+| **Smoke test after deploy** | Each deploy runs `curl /health`; fails the job if unhealthy. |
+| **Manual trigger** | `workflow_dispatch` or `./scripts/trigger-deploy.sh` for on-demand deploys. |
+
+**Verification:** After setup, push a small change to `main` and confirm the Actions tab shows: Test → Deploy to Prod → Smoke test. Same for `dev` branch.
+
+**Create dev branch (if needed):** `git checkout -b dev && git push -u origin dev` — then pushes to `dev` deploy to the dev environment.
 
 ---
 
@@ -244,28 +360,39 @@ Runs: `npm ci` → `npm run test:ci` → `npm run build`. See [testing.md](./tes
 | Step | Action |
 |------|--------|
 | 1 | `gcloud config set project YOUR_PROJECT_ID` |
-| 2 | Enable APIs (§2) |
-| 3 | Create Firestore database |
+| 2 | Enable APIs (§2) or run `./scripts/setup-gcp.sh` |
+| 3 | Create Firestore database: `./scripts/setup-production.sh` or [Console](https://console.cloud.google.com/firestore) |
 | 4 | `gcloud auth application-default login` |
-| 5 | Deploy: `gcloud run deploy happydiet-backend --source backend --region us-central1 --allow-unauthenticated --set-env-vars GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID` |
-| 6 | Verify: `curl https://YOUR-URL/health` |
+| 5 | Deploy: `./scripts/deploy.sh YOUR_PROJECT_ID` (from repo root) |
+| 6 | Verify: `./scripts/verify.sh` or `curl https://YOUR-URL/health` |
 | 7 | Update iOS `BACKEND_URL` to Cloud Run URL |
-| 8 | (Optional) Connect GitHub + create trigger, or use GitHub Actions with `GCP_PROJECT_ID` + `GCP_SA_KEY` |
+| 8 | (Optional) Add GitHub secrets `GCP_PROJECT_ID`, `GCP_SA_KEY` for automatic deploys on push to main |
 
 ---
 
-## 10. Troubleshooting
+## 10. Script Behavior
+
+Deployment scripts use `--quiet` on gcloud commands to avoid interactive prompts (e.g. "Do you want to continue (Y/n)?"). If a command still prompts, answer `Y` or run with `yes | ./scripts/deploy.sh PROJECT_ID`.
+
+- **deploy.sh:** Runs from repo root; uses `backend/.env` for Firestore DBs and optional vars
+- **bootstrap-cloud.sh:** One-time setup; skips auth if already authenticated
+- **setup-production.sh:** Creates `(default)` Firestore DB first, then `happydiet` and `rules`
+
+---
+
+## 11. Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
 | 503 from `/analyze-meal` | Set `GOOGLE_CLOUD_PROJECT` on Cloud Run |
 | Permission denied | Ensure Cloud Run service account has `roles/aiplatform.user` and Firestore access |
-| Build fails | Check `npm run test:ci` passes locally |
-| Deploy from wrong dir | Use `--source backend` when running from repo root |
+| Build fails | Check `npm run test:ci` passes locally in `backend/` |
+| Deploy from wrong dir | Run `./scripts/deploy.sh` from repo root (it uses `backend/` internally) |
+| Firestore DB errors | Run `./scripts/setup-production.sh` to create DBs; or create manually in [Console](https://console.cloud.google.com/firestore) |
 
 ---
 
-## 11. Terraform (Optional IaC)
+## 12. Terraform (Optional IaC)
 
 For infrastructure-as-code, use Terraform:
 
@@ -280,7 +407,7 @@ See [infra/terraform/README.md](../infra/terraform/README.md).
 
 ---
 
-## 12. Summary
+## 13. Summary
 
 | Question | Answer |
 |----------|--------|
