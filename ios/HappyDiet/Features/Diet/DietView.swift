@@ -2,7 +2,7 @@
 //  DietView.swift
 //  HappyDiet
 //
-//  Diet rules: text input, image capture, parse & save to backend.
+//  Diet rules matching website: intro, How it works, parse & save, full rules display.
 //
 
 import SwiftUI
@@ -12,103 +12,36 @@ struct DietView: View {
     @State private var selectedImage: UIImage?
     @State private var showImagePicker = false
     @State private var useCamera = true
+    @State private var showHeyCyanSheet = false
     @State private var isParsing = false
     @State private var parsedRules: [DietRuleParsed] = []
     @State private var errorMessage: String?
+    @State private var feedbackText = ""
+    @EnvironmentObject var dataStore: CoachDataStore
 
     private let client = BackendClient()
+    private let feedbackQuick = ["Dinners", "Weekends", "Eating out", "Soda cravings", "Stress eating", "Breakfast skip", "Social events"]
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(alignment: .leading, spacing: 20) {
-                    Text("Enter diet rules or capture an image (printed plan, handwritten notes)")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-
-                    TextField("e.g. No sugar, no soda, avoid bread", text: $dietText, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
-                        .lineLimit(3...6)
-
-                    HStack(spacing: 12) {
-                        Button {
-                            parseAndSave(save: false)
-                        } label: {
-                            Label("Parse", systemImage: "doc.text.magnifyingglass")
-                        }
-                        .buttonStyle(.bordered)
-                        .disabled(dietText.isEmpty && selectedImage == nil || isParsing)
-
-                        Button {
-                            parseAndSave(save: true)
-                        } label: {
-                            Label("Parse & Save", systemImage: "square.and.arrow.down")
-                        }
-                        .buttonStyle(.borderedProminent)
-                        .disabled(dietText.isEmpty && selectedImage == nil || isParsing)
-
-                        Button {
-                            useCamera = true
-                            showImagePicker = true
-                        } label: {
-                            Label("Camera", systemImage: "camera.fill")
-                        }
-                        .buttonStyle(.bordered)
-                        .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
-
-                        Button {
-                            useCamera = false
-                            showImagePicker = true
-                        } label: {
-                            Label("Photo", systemImage: "photo.on.rectangle")
-                        }
-                        .buttonStyle(.bordered)
-
-                        Button {
-                            loadSavedRules()
-                        } label: {
-                            Label("Load saved", systemImage: "arrow.down.circle")
-                        }
-                        .buttonStyle(.bordered)
-                    }
-
-                    if let image = selectedImage {
-                        Image(uiImage: image)
-                            .resizable()
-                            .scaledToFit()
-                            .frame(maxHeight: 160)
-                            .clipShape(RoundedRectangle(cornerRadius: 8))
-                        Button("Clear image") {
-                            selectedImage = nil
-                        }
-                        .font(.caption)
-                    }
-
-                    if isParsing {
-                        ProgressView("Parsing…")
-                            .padding()
-                    }
-
+                    rulesIntroCard
+                    uploadCard
                     if !parsedRules.isEmpty {
-                        FullDietRulesView(rules: parsedRules)
+                        rulesHowCard
+                        fullRulesCard
                     }
-
+                    feedbackCard
                     if let err = errorMessage {
-                        HStack {
-                            Image(systemName: "exclamationmark.triangle.fill")
-                                .foregroundStyle(.orange)
-                            Text(err)
-                                .font(.subheadline)
-                        }
-                        .padding()
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .background(Color.orange.opacity(0.2))
-                        .clipShape(RoundedRectangle(cornerRadius: 8))
+                        ErrorBanner(message: err)
                     }
                 }
                 .padding()
+                .padding(.bottom, 100)
             }
-            .navigationTitle("Diet Rules")
+            .background(Theme.bg)
+            .navigationTitle("Diet")
             .sheet(isPresented: $showImagePicker) {
                 if useCamera {
                     ImagePicker(sourceType: .camera, onImagePicked: handleImagePicked, onCancel: { showImagePicker = false })
@@ -116,7 +49,206 @@ struct DietView: View {
                     ImagePicker(sourceType: .photoLibrary, onImagePicked: handleImagePicked, onCancel: { showImagePicker = false })
                 }
             }
+            .sheet(isPresented: $showHeyCyanSheet) {
+                HeyCyanCaptureSheet(
+                    onImagePicked: { img in
+                        showHeyCyanSheet = false
+                        selectedImage = img
+                        errorMessage = nil
+                    },
+                    onCancel: { showHeyCyanSheet = false }
+                )
+            }
         }
+    }
+
+    private var rulesIntroCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("How it works")
+                .font(.headline)
+                .foregroundStyle(Theme.accent)
+            Text("Your plan is parsed into four types of rules. The coach and meal analyzer use these to guide you — ask \"why can't I eat X?\" and the coach will explain based on your rules.")
+                .font(.subheadline)
+                .foregroundStyle(Theme.textMuted)
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(Theme.accentMutedGradient)
+        .overlay(
+            RoundedRectangle(cornerRadius: Theme.radius)
+                .stroke(Theme.accent.opacity(0.2), lineWidth: 1)
+        )
+        .clipShape(RoundedRectangle(cornerRadius: Theme.radius))
+    }
+
+    private var uploadCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Upload or type your diet plan")
+                .font(.headline)
+            Text("From text or image (printed plan, handwritten notes, PDF screenshot)")
+                .font(.caption)
+                .foregroundStyle(Theme.textMuted)
+            TextField("e.g. No sugar, no soda, avoid white bread. Allowed: vegetables, lean protein.", text: $dietText, axis: .vertical)
+                .textFieldStyle(.roundedBorder)
+                .foregroundStyle(.primary)
+                .lineLimit(3...6)
+            FlowLayout(spacing: 10) {
+                Button { parseAndSave(save: false) } label: {
+                    Label("Parse", systemImage: "doc.text.magnifyingglass")
+                }
+                .buttonStyle(.bordered)
+                .disabled((dietText.isEmpty && selectedImage == nil) || isParsing)
+
+                Button { parseAndSave(save: true) } label: {
+                    Label("Parse & Save", systemImage: "square.and.arrow.down")
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Theme.accent)
+                .disabled((dietText.isEmpty && selectedImage == nil) || isParsing)
+
+                Button {
+                    useCamera = true
+                    showImagePicker = true
+                } label: {
+                    Label("Camera", systemImage: "camera.fill")
+                }
+                .buttonStyle(.bordered)
+                .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
+
+                Button {
+                    useCamera = false
+                    showImagePicker = true
+                } label: {
+                    Label("Photo", systemImage: "photo.on.rectangle")
+                }
+                .buttonStyle(.bordered)
+
+                Button {
+                    showHeyCyanSheet = true
+                } label: {
+                    Label("Lenses", systemImage: "eyeglasses")
+                }
+                .buttonStyle(.bordered)
+
+                Button { loadSavedRules() } label: {
+                    Label("Load saved", systemImage: "arrow.down.circle")
+                }
+                .buttonStyle(.bordered)
+            }
+
+            if let image = selectedImage {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxHeight: 140)
+                    .clipShape(RoundedRectangle(cornerRadius: 10))
+                Button("Clear image") { selectedImage = nil }
+                    .font(.caption)
+            }
+
+            if isParsing {
+                ProgressView("Parsing…")
+                    .padding()
+            }
+        }
+        .padding()
+        .cardStyle()
+    }
+
+    private var rulesHowCard: some View {
+        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+            rulesHowItem(icon: "🚫", label: "Avoid", desc: "Foods to skip", color: Theme.red)
+            rulesHowItem(icon: "✓", label: "Prefer", desc: "Foods to choose", color: Theme.green)
+            rulesHowItem(icon: "⚖", label: "Limit", desc: "Max per day", color: Theme.orange)
+            rulesHowItem(icon: "📝", label: "Notes", desc: "Tips & reasons", color: Theme.gray)
+        }
+    }
+
+    private func rulesHowItem(icon: String, label: String, desc: String, color: Color) -> some View {
+        VStack(spacing: 6) {
+            Text(icon)
+                .font(.title2)
+            Text(label)
+                .font(.subheadline.bold())
+                .foregroundStyle(color)
+            Text(desc)
+                .font(.caption2)
+                .foregroundStyle(Theme.textMuted)
+        }
+        .frame(maxWidth: .infinity)
+        .padding()
+        .background(color.opacity(0.1))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private var fullRulesCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Your diet plan")
+                .font(.headline)
+            FullDietRulesView(rules: parsedRules)
+        }
+        .padding()
+        .cardStyle()
+    }
+
+    private var feedbackCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Compliance feedback — what's difficult?")
+                .font(.headline)
+            Text("Log what you struggle with. The coach uses this for coaching sessions.")
+                .font(.caption)
+                .foregroundStyle(Theme.textMuted)
+            Text("Quick choices")
+                .font(.subheadline.bold())
+                .foregroundStyle(.primary)
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 8) {
+                    ForEach(feedbackQuick, id: \.self) { q in
+                        Button(q) {
+                            dataStore.addFeedback(q)
+                        }
+                        .font(.subheadline)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 10)
+                        .background(Theme.orange.opacity(0.2))
+                        .foregroundStyle(Theme.orange)
+                        .clipShape(Capsule())
+                    }
+                }
+            }
+            HStack {
+                TextField("e.g. Dinners slip when I eat out…", text: $feedbackText)
+                    .textFieldStyle(.roundedBorder)
+                    .foregroundStyle(.primary)
+                Button("Add") {
+                    let t = feedbackText.trimmingCharacters(in: .whitespaces)
+                    if !t.isEmpty {
+                        dataStore.addFeedback(t)
+                        feedbackText = ""
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Theme.accent)
+                .disabled(feedbackText.trimmingCharacters(in: .whitespaces).isEmpty)
+            }
+            if !dataStore.feedbackEntries.isEmpty {
+                ForEach(dataStore.feedbackEntries.prefix(10)) { e in
+                    HStack {
+                        Text(e.text)
+                            .font(.subheadline)
+                        Spacer()
+                        Text(e.date)
+                            .font(.caption2)
+                            .foregroundStyle(Theme.gray)
+                    }
+                    .padding(8)
+                    .background(Color(.tertiarySystemBackground))
+                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                }
+            }
+        }
+        .padding()
+        .cardStyle()
     }
 
     private func handleImagePicked(_ image: UIImage) {
@@ -161,9 +293,6 @@ struct DietView: View {
                 }
                 await MainActor.run {
                     parsedRules = response.rules
-                    if let first = response.rules.first(where: { ($0.type ?? "forbidden") == "forbidden" }), let firstItems = first.items, !firstItems.isEmpty {
-                        dietText = "Avoid: \(firstItems.joined(separator: ", "))"
-                    }
                     isParsing = false
                 }
             } catch let e as BackendError {
@@ -190,9 +319,22 @@ struct DietView: View {
         case .invalidURL: return "Invalid URL"
         }
     }
+
+    private func addFeedback(_ text: String) {
+        let t = text.trimmingCharacters(in: .whitespaces)
+        guard !t.isEmpty else { return }
+        dataStore.addFeedback(t)
+    }
 }
 
-// MARK: - Full Diet Rules Display
+// MARK: - Full Diet Rules Display (nicer: chips, why explanations)
+
+private let RULE_WHY: [String: String] = [
+    "forbidden": "These foods work against your goals. The coach can explain why each is restricted when you ask.",
+    "allowed": "These fit your plan. Prioritize them when building meals — the coach can suggest combos.",
+    "limit": "Enjoy in moderation. Staying under the limit keeps you on track.",
+    "note": "Extra guidance from your plan. Use these to steer daily choices.",
+]
 
 struct FullDietRulesView: View {
     let rules: [DietRuleParsed]
@@ -217,62 +359,95 @@ struct FullDietRulesView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             if !forbidden.isEmpty {
-                RuleSection(title: "Not allowed", items: forbidden, color: .red)
+                RuleSectionChips(title: "🚫 Avoid", items: forbidden, color: Theme.red, why: RULE_WHY["forbidden"] ?? "")
             }
             if !allowed.isEmpty {
-                RuleSection(title: "Allowed", items: allowed, color: .green)
+                RuleSectionChips(title: "✓ Prefer", items: allowed, color: Theme.green, why: RULE_WHY["allowed"] ?? "")
             }
             ForEach(Array(limits.enumerated()), id: \.offset) { _, lim in
-                VStack(alignment: .leading, spacing: 4) {
-                    RuleSection(title: "Limit", items: lim.items, color: .orange)
+                VStack(alignment: .leading, spacing: 8) {
+                    RuleSectionChips(title: "⚖ Limit", items: lim.items, color: Theme.orange, why: RULE_WHY["limit"] ?? "")
                     Text("max \(lim.max) \(lim.unit)/day")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .font(.subheadline.bold())
+                        .foregroundStyle(Theme.orange)
                 }
-                .padding(10)
+                .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.orange.opacity(0.08))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .background(Theme.orange.opacity(0.08))
+                .overlay(alignment: .leading) {
+                    Rectangle()
+                        .fill(Theme.orange)
+                        .frame(width: 5)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 14))
             }
             if !notes.isEmpty {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text("Notes")
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("📝 Notes & reasons")
                         .font(.subheadline.bold())
-                        .foregroundStyle(.blue)
+                        .foregroundStyle(Theme.gray)
                     Text(notes.joined(separator: " • "))
+                        .font(.subheadline)
+                        .foregroundStyle(Theme.textMuted)
+                    Text(RULE_WHY["note"] ?? "")
                         .font(.caption)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(Theme.textMuted)
+                        .italic()
                 }
-                .padding(10)
+                .padding(16)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.blue.opacity(0.08))
-                .clipShape(RoundedRectangle(cornerRadius: 8))
+                .background(Theme.gray.opacity(0.08))
+                .overlay(alignment: .leading) {
+                    Rectangle()
+                        .fill(Theme.gray)
+                        .frame(width: 5)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 14))
             }
         }
     }
 }
 
-struct RuleSection: View {
+struct RuleSectionChips: View {
     let title: String
     let items: [String]
     let color: Color
+    let why: String
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 10) {
             Text(title)
-                .font(.subheadline.bold())
+                .font(.headline)
                 .foregroundStyle(color)
-            Text(items.joined(separator: ", "))
-                .font(.caption)
-                .foregroundStyle(color)
-                .lineLimit(nil)
+            FlowLayout(spacing: 8) {
+                ForEach(items, id: \.self) { item in
+                    Text(item)
+                        .font(.subheadline)
+                        .fontWeight(.medium)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 8)
+                        .background(color.opacity(0.2))
+                        .foregroundStyle(color)
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                }
+            }
+            if !why.isEmpty {
+                Text(why)
+                    .font(.caption)
+                    .foregroundStyle(Theme.textMuted)
+                    .italic()
+            }
         }
-        .padding(10)
+        .padding(16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(color.opacity(0.08))
-        .clipShape(RoundedRectangle(cornerRadius: 8))
+        .overlay(alignment: .leading) {
+            Rectangle()
+                .fill(color)
+                .frame(width: 5)
+        }
+        .clipShape(RoundedRectangle(cornerRadius: 14))
     }
 }
-

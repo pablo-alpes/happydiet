@@ -3,7 +3,7 @@
 //  HappyDiet
 //
 //  Sheet for capturing a meal photo from HeyCyan glasses.
-//  Options: 1) Full BLE+WiFi (when SDK linked) 2) Manual WiFi (enter SSID when glasses in transfer mode)
+//  Full BLE + WiFi when HEYCYAN_SDK_LINKED, WiFi-only otherwise, Camera/Photo fallback.
 //
 
 import SwiftUI
@@ -12,68 +12,57 @@ struct HeyCyanCaptureSheet: View {
     let onImagePicked: (UIImage) -> Void
     let onCancel: () -> Void
 
-    @State private var statusMessage = "Connect your HeyCyan glasses"
+    @State private var statusMessage = ""
     @State private var isConnecting = false
     @State private var manualSSID = ""
     @State private var manualPassword = "123456789"
     @State private var errorMessage: String?
+    @State private var showCamera = false
+    @State private var showPhotoLibrary = false
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                VStack(spacing: 24) {
-                    Image(systemName: "eyeglasses")
-                        .font(.system(size: 60))
-                        .foregroundStyle(.secondary)
-
-                    Text("HeyCyan Glasses")
-                        .font(.title2.bold())
-
-                    Text(statusMessage)
-                        .font(.body)
-                        .multilineTextAlignment(.center)
-                        .foregroundStyle(.secondary)
-                        .padding(.horizontal)
-
-                    if let err = errorMessage {
-                        Text(err)
-                            .font(.caption)
-                            .foregroundStyle(.red)
-                            .padding(.horizontal)
-                    }
-
-                    if isConnecting {
-                        ProgressView()
-                            .scaleEffect(1.2)
-                            .padding()
-                    }
+                VStack(spacing: 20) {
 
 #if HEYCYAN_SDK_LINKED
-                    // BLE capture (full flow: scan → connect → take photo → transfer)
-                    Button {
-                        captureViaBLE()
-                    } label: {
-                        Label("Capture via Bluetooth", systemImage: "antenna.radiowaves.left.and.right")
-                            .frame(maxWidth: .infinity)
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(isConnecting)
-                    .padding(.horizontal)
-#endif
-
-                    // Manual WiFi option (works without SDK)
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Fetch via WiFi")
+                        Label("Capture via Bluetooth", systemImage: "antenna.radiowaves.left.and.right")
                             .font(.headline)
-                        Text("1. Put glasses in transfer mode (HeyCyan app or button)\n2. Note the WiFi name (e.g. W630_xxxx)\n3. Enter it below and tap Fetch")
+                            .foregroundStyle(Theme.accent)
+                        Text("Scan, connect, take photo and transfer — all automatic.")
                             .font(.caption)
                             .foregroundStyle(.secondary)
-                        TextField("Glasses WiFi name (SSID)", text: $manualSSID)
+                        Button {
+                            captureViaBLE()
+                        } label: {
+                            Label("Start BLE capture", systemImage: "antenna.radiowaves.left.and.right")
+                                .frame(maxWidth: .infinity)
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .tint(Theme.accent)
+                        .disabled(isConnecting)
+                    }
+                    .padding()
+                    .background(Theme.accentMuted)
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+#endif
+
+                    VStack(alignment: .leading, spacing: 12) {
+                        Label("Transfer via WiFi", systemImage: "wifi")
+                            .font(.headline)
+                            .foregroundStyle(Theme.accent)
+                        Text("Put glasses in transfer mode, then enter the WiFi name shown on the glasses display.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        TextField("WiFi name (e.g. W630_xxxx)", text: $manualSSID)
                             .textFieldStyle(.roundedBorder)
+                            .foregroundStyle(.primary)
                             .textInputAutocapitalization(.never)
                             .autocorrectionDisabled()
                         TextField("Password (often 123456789)", text: $manualPassword)
                             .textFieldStyle(.roundedBorder)
+                            .foregroundStyle(.primary)
                             .textInputAutocapitalization(.never)
                         Button {
                             fetchViaWiFi()
@@ -82,33 +71,69 @@ struct HeyCyanCaptureSheet: View {
                                 .frame(maxWidth: .infinity)
                         }
                         .buttonStyle(.borderedProminent)
+                        .tint(Theme.accent)
                         .disabled(manualSSID.trimmingCharacters(in: .whitespaces).isEmpty || isConnecting)
                     }
                     .padding()
                     .background(Color(.secondarySystemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .padding(.horizontal)
 
-#if !HEYCYAN_SDK_LINKED
                     VStack(alignment: .leading, spacing: 12) {
-                        Text("Full BLE + WiFi (optional)")
+                        Label("Camera / Photo Library", systemImage: "camera.fill")
                             .font(.headline)
-                        Text("""
-                        For automatic BLE capture, add QCSDK.framework:
-                        1. Run: ./ios/scripts/setup-heycyan.sh
-                        2. Add QCSDK.framework to the HappyDiet target
-                        3. Set HEYCYAN_SDK_LINKED in Build Settings
-                        See docs/heycyan-integration.md
-                        """)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                            .foregroundStyle(.primary)
+                        Text("Use phone camera or pick a photo as fallback.")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                        HStack(spacing: 12) {
+                            Button {
+                                showCamera = true
+                            } label: {
+                                Label("Camera", systemImage: "camera.fill")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                            .disabled(!UIImagePickerController.isSourceTypeAvailable(.camera))
+
+                            Button {
+                                showPhotoLibrary = true
+                            } label: {
+                                Label("Photo", systemImage: "photo.on.rectangle")
+                                    .frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                        }
                     }
                     .padding()
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(Color(.tertiarySystemBackground))
+                    .background(Color(.secondarySystemBackground))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
-                    .padding(.horizontal)
-#endif
+
+                    if isConnecting {
+                        VStack(spacing: 8) {
+                            ProgressView()
+                                .scaleEffect(1.2)
+                            if !statusMessage.isEmpty {
+                                Text(statusMessage)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                        .padding()
+                    }
+
+                    if let err = errorMessage {
+                        HStack {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .foregroundStyle(Theme.orange)
+                            Text(err)
+                                .font(.subheadline)
+                                .foregroundStyle(.primary)
+                        }
+                        .padding()
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .background(Theme.orange.opacity(0.15))
+                        .clipShape(RoundedRectangle(cornerRadius: 10))
+                    }
 
                     Spacer()
                 }
@@ -123,6 +148,13 @@ struct HeyCyanCaptureSheet: View {
                     }
                 }
             }
+            .navigationTitle("Capture meal")
+            .sheet(isPresented: $showCamera) {
+                ImagePicker(sourceType: .camera, onImagePicked: { img in showCamera = false; onImagePicked(img) }, onCancel: { showCamera = false })
+            }
+            .sheet(isPresented: $showPhotoLibrary) {
+                ImagePicker(sourceType: .photoLibrary, onImagePicked: { img in showPhotoLibrary = false; onImagePicked(img) }, onCancel: { showPhotoLibrary = false })
+            }
         }
     }
 
@@ -130,14 +162,15 @@ struct HeyCyanCaptureSheet: View {
     private func captureViaBLE() {
         isConnecting = true
         errorMessage = nil
-        statusMessage = "Connecting to glasses…"
+        statusMessage = "Scanning for glasses…"
         HeyCyanService.shared.capturePhoto { img in
             isConnecting = false
+            statusMessage = ""
             onImagePicked(img)
         } onCancel: {
             isConnecting = false
-            errorMessage = HeyCyanService.shared.lastError
-            statusMessage = "BLE capture failed."
+            errorMessage = HeyCyanService.shared.lastError ?? "BLE capture cancelled."
+            statusMessage = ""
         }
     }
 #endif
@@ -150,11 +183,12 @@ struct HeyCyanCaptureSheet: View {
         statusMessage = "Connecting to \(ssid)…"
         HeyCyanService.shared.capturePhotoViaWiFi(ssid: ssid, password: manualPassword) { img in
             isConnecting = false
+            statusMessage = ""
             onImagePicked(img)
         } onCancel: {
             isConnecting = false
-            errorMessage = HeyCyanService.shared.lastError
-            statusMessage = "Connection failed. Check SSID and password."
+            errorMessage = HeyCyanService.shared.lastError ?? "WiFi transfer failed. Check SSID and password."
+            statusMessage = ""
         }
     }
 }

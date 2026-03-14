@@ -16,9 +16,6 @@ targets:
     type: application
     platform: iOS
     deploymentTarget: "17.0"
-    dependencies:
-      - framework: Frameworks/QCSDK.framework
-        embed: true
     sources:
       - path: HappyDiet
         type: group
@@ -35,11 +32,12 @@ targets:
         PRODUCT_NAME: HappyDiet
         INFOPLIST_FILE: HappyDiet/Info.plist
         CODE_SIGN_STYLE: Automatic
-        DEVELOPMENT_TEAM: M7W9HYCCHN
         FRAMEWORK_SEARCH_PATHS: $(SRCROOT)/Frameworks
+        SWIFT_OBJC_BRIDGING_HEADER: HappyDiet/HappyDiet-Bridging-Header.h
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SWIFT_EMIT_LOC_STRINGS: YES
         ENABLE_PREVIEWS: YES
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks"
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
@@ -51,6 +49,24 @@ targets:
           - UIInterfaceOrientationLandscapeLeft
           - UIInterfaceOrientationLandscapeRight
         TARGETED_DEVICE_FAMILY: "1,2"
+        # Device (iphoneos): enable HeyCyan BLE via QCSDK
+        "SWIFT_ACTIVE_COMPILATION_CONDITIONS[sdk=iphoneos*]": "$(inherited) HEYCYAN_SDK_LINKED"
+        "GCC_PREPROCESSOR_DEFINITIONS[sdk=iphoneos*]": "$(inherited) HEYCYAN_SDK_LINKED=1"
+        "OTHER_LDFLAGS[sdk=iphoneos*]": ["-framework", "QCSDK"]
+        # Simulator: exclude QCSDK ObjC files (they import device-only framework headers)
+        "EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]": "QCCentralManager.m QCScanViewController.m QCScanView.m"
       configs:
         Debug:
           CODE_SIGN_IDENTITY: "Apple Development"
+    postCompileScripts:
+      - script: |
+          if [ "$PLATFORM_NAME" = "iphoneos" ]; then
+            DEST="$BUILT_PRODUCTS_DIR/$FRAMEWORKS_FOLDER_PATH"
+            mkdir -p "$DEST"
+            cp -R "$SRCROOT/Frameworks/QCSDK.framework" "$DEST/"
+            if [ -n "$EXPANDED_CODE_SIGN_IDENTITY" ]; then
+              codesign --force --sign "$EXPANDED_CODE_SIGN_IDENTITY" "$DEST/QCSDK.framework"
+            fi
+          fi
+        name: "Embed QCSDK (device only)"
+        basedOnDependencyAnalysis: false

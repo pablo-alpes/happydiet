@@ -2,7 +2,7 @@
 //  AppState.swift
 //  HappyDiet
 //
-//  Shared app state for cross-tab communication (e.g. Analyze → Live Coach).
+//  Shared app state for cross-tab communication (e.g. Analyze → Coach tab).
 //
 
 import SwiftUI
@@ -11,19 +11,34 @@ import SwiftUI
 final class AppState: ObservableObject {
     static let shared = AppState()
 
-    /// When set, Live Coach should send this image when connected.
+    /// When set, Coach tab sends this image when connected (e.g. from "Hear from coach" in Analyze).
     @Published var pendingImageForCoach: UIImage?
 
-    /// Selected tab index (0=Live, 1=Analyze, 2=Diet, 3=Dashboard)
+    /// When set, Analyze tab uses this image (e.g. from Lenses capture in More).
+    @Published var pendingImageForAnalyze: UIImage?
+
+    /// Selected tab index (0=Dashboard, 1=Diet, 2=Rules, 3=Analyze, 4=Agent, 5=More)
     @Published var selectedTab: Int = 0
 
+    /// Switch to Coach tab and queue image for when user connects.
     func requestCoachForImage(_ image: UIImage?) {
         pendingImageForCoach = image
-        selectedTab = 0
+        selectedTab = 4
     }
 
     func consumePendingImageForCoach() -> UIImage? {
         defer { pendingImageForCoach = nil }
         return pendingImageForCoach
+    }
+
+    /// Queue image for Analyze tab and switch to it.
+    func requestAnalyzeForImage(_ image: UIImage?) {
+        pendingImageForAnalyze = image
+        selectedTab = 3
+    }
+
+    func consumePendingImageForAnalyze() -> UIImage? {
+        defer { pendingImageForAnalyze = nil }
+        return pendingImageForAnalyze
     }
 }

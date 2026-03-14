@@ -11,6 +11,7 @@ import AVFoundation
 
 struct LiveCoachView: View {
     @EnvironmentObject var appState: AppState
+    @EnvironmentObject var dataStore: CoachDataStore
     @State private var client: LiveAPIClient?
     @State private var isConnected = false
     @State private var statusText = "Tap Connect to start"
@@ -21,6 +22,10 @@ struct LiveCoachView: View {
     @State private var selectedImage: UIImage?
     @State private var audioPlayer: LivePCMPlayer?
     @State private var liveDelegate: LiveCoachDelegate?
+    @State private var isListening = false
+    @State private var audioCapture: LiveAudioCapture?
+    @State private var coachTextBuffer = ""
+    @State private var waitingForCoachResponse = false
 
     var body: some View {
         NavigationStack {
@@ -57,12 +62,13 @@ struct LiveCoachView: View {
             }
         }
         .onDisappear {
+            audioCapture?.stop()
             client?.disconnect()
         }
     }
 
     private var statusCard: some View {
-        VStack(spacing: 12) {
+        VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Circle()
                     .fill(isConnected ? Color.green : Color.gray)
@@ -81,6 +87,9 @@ struct LiveCoachView: View {
                 }
                 .buttonStyle(.borderedProminent)
             }
+            Text("Backend: \(HappyDietConfig.backendURL.absoluteString)")
+                .font(.caption2)
+                .foregroundStyle(.secondary)
         }
         .padding()
         .background(Color(.secondarySystemBackground))
@@ -108,7 +117,17 @@ struct LiveCoachView: View {
         VStack(alignment: .leading, spacing: 8) {
             Text("Send message")
                 .font(.headline)
-            HStack {
+            HStack(spacing: 8) {
+                Button {
+                    toggleVoice()
+                } label: {
+                    Image(systemName: isListening ? "stop.circle.fill" : "mic.fill")
+                        .font(.title2)
+                        .foregroundStyle(isListening ? .red : Theme.accent)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(isListening ? .red.opacity(0.3) : Theme.accent)
+                .disabled(!isConnected)
                 TextField("Type a message…", text: $inputText)
                     .textFieldStyle(.roundedBorder)
                 Button("Send") {
@@ -134,7 +153,7 @@ struct LiveCoachView: View {
                 Button {
                     showHeyCyanSheet = true
                 } label: {
-                    Label("HeyCyan", systemImage: "eyeglasses")
+                    Label("Lenses", systemImage: "eyeglasses")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
@@ -184,16 +203,27 @@ struct LiveCoachView: View {
             if let img = appState.consumePendingImageForCoach(), let b64 = img.toJPEGBase64() {
                 client?.sendImage(base64: b64)
                 transcript += (transcript.isEmpty ? "" : "\n") + "You: [sent meal photo]"
+                waitingForCoachResponse = true
             }
         case .text(let s):
+            waitingForCoachResponse = false
             transcript += (transcript.isEmpty ? "" : "\n") + s
-        case .audio(let data):
-            playPCM(data)
+            coachTextBuffer += s
         case .turnComplete:
-            break
+            waitingForCoachResponse = false
+            if !coachTextBuffer.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                dataStore.addJournalEntry(text: coachTextBuffer.trimmingCharacters(in: .whitespacesAndNewlines))
+            }
+            coachTextBuffer = ""
+        case .audio(let data):
+            waitingForCoachResponse = false
+            playPCM(data)
         case .interrupted:
+            waitingForCoachResponse = false
             transcript += " [interrupted]"
+            coachTextBuffer = ""
         case .error(let msg):
+            waitingForCoachResponse = false
             statusText = "Error: \(msg)"
         }
     }
@@ -203,12 +233,40 @@ struct LiveCoachView: View {
         client?.sendText(inputText)
         transcript += (transcript.isEmpty ? "" : "\n") + "You: \(inputText)"
         inputText = ""
+        waitingForCoachResponse = true
     }
 
     private func handleImagePicked(_ image: UIImage) {
         guard let base64 = image.toJPEGBase64() else { return }
         client?.sendImage(base64: base64)
         transcript += (transcript.isEmpty ? "" : "\n") + "You: [sent meal photo]"
+        waitingForCoachResponse = true
+    }
+
+    private func toggleVoice() {
+        if isListening {
+            audioCapture?.stop()
+            client?.sendAudioStreamEnd()
+            isListening = false
+            statusText = "Ready — say hi or share a photo!"
+        } else {
+            guard isConnected, let c = client else { return }
+            let capture = LiveAudioCapture()
+            capture.onChunk = { data in
+                let b64 = data.base64EncodedString()
+                c.sendAudioChunk(base64PCM: b64)
+            }
+            capture.onError = { msg in
+                Task { @MainActor in
+                    statusText = msg
+                    isListening = false
+                }
+            }
+            capture.start()
+            audioCapture = capture
+            isListening = true
+            statusText = "Listening… speak now, then tap mic to stop"
+        }
     }
 
     private func playPCM(_ data: Data) {

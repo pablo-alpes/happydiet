@@ -2,25 +2,20 @@
 //  ImagePicker.swift
 //  HappyDiet
 //
-//  UIImagePickerController wrapper for camera and photo library.
+//  UIKit-based image picker for camera and photo library.
 //
 
 import SwiftUI
 import UIKit
 
 struct ImagePicker: UIViewControllerRepresentable {
-    enum SourceType {
-        case camera
-        case photoLibrary
-    }
-
-    let sourceType: SourceType
+    let sourceType: UIImagePickerController.SourceType
     let onImagePicked: (UIImage) -> Void
     let onCancel: () -> Void
 
     func makeUIViewController(context: Context) -> UIImagePickerController {
         let picker = UIImagePickerController()
-        picker.sourceType = sourceType == .camera ? .camera : .photoLibrary
+        picker.sourceType = sourceType
         picker.delegate = context.coordinator
         picker.allowsEditing = false
         return picker
@@ -53,10 +48,10 @@ struct ImagePicker: UIViewControllerRepresentable {
     }
 }
 
-// MARK: - Base64 conversion
+// MARK: - UIImage Base64 Extension
 
 extension UIImage {
-    func toJPEGBase64(quality: CGFloat = 0.8) -> String? {
+    func toJPEGBase64(quality: CGFloat = 0.9) -> String? {
         guard let data = jpegData(compressionQuality: quality) else { return nil }
         return data.base64EncodedString()
     }

@@ -62,9 +62,7 @@ final class HeyCyanSDKBridge: NSObject {
     }
 
     private func runCaptureFlow(completion: @escaping (Result<UIImage, HeyCyanError>) -> Void) {
-        // 1. Take photo via BLE
-        QCSDKCmdCreator.setDeviceMode(QCOperatorDeviceModePhoto, success: { [weak self] in
-            // 2. Wait for photo to save, then switch to transfer mode
+        QCSDKCmdCreator.setDeviceMode(.photo, success: { [weak self] in
             DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
                 self?.switchToTransferAndDownload(completion: completion)
             }
@@ -76,7 +74,7 @@ final class HeyCyanSDKBridge: NSObject {
     }
 
     private func switchToTransferAndDownload(completion: @escaping (Result<UIImage, HeyCyanError>) -> Void) {
-        QCSDKCmdCreator.openWifi(with: QCOperatorDeviceModeTransfer, success: { [weak self] ssid, password in
+        QCSDKCmdCreator.openWifi(withMode: .transfer, success: { [weak self] ssid, password in
             let ss = ssid ?? ""
             let pw = password ?? "123456789"
             if ss.isEmpty {

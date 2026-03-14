@@ -73,25 +73,35 @@ final class LiveAPIClient {
         sendJSON(msg)
     }
 
-    func sendImage(base64: String, mimeType: String = "image/jpeg") {
-        let realtimeMsg: [String: Any] = [
+    func sendAudioChunk(base64PCM: String) {
+        let msg: [String: Any] = [
             "realtimeInput": [
-                "mediaChunks": [
-                    ["data": base64, "mimeType": mimeType],
-                ],
+                "audio": ["data": base64PCM, "mimeType": "audio/pcm;rate=16000"],
             ],
         ]
-        sendJSON(realtimeMsg)
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { [weak self] in
-            guard let self else { return }
-            let textMsg: [String: Any] = [
-                "clientContent": [
-                    "turns": [["role": "user", "parts": [["text": "What do you see in this meal? Analyze it for my diet."]]]],
-                    "turnComplete": true,
-                ],
-            ]
-            self.sendJSON(textMsg)
-        }
+        sendJSON(msg)
+    }
+
+    func sendAudioStreamEnd() {
+        let msg: [String: Any] = ["realtimeInput": ["audioStreamEnd": true]]
+        sendJSON(msg)
+    }
+
+    func sendImage(base64: String, mimeType: String = "image/jpeg") {
+        // Send image + text in one clientContent turn so the agent receives both together
+        let msg: [String: Any] = [
+            "clientContent": [
+                "turns": [[
+                    "role": "user",
+                    "parts": [
+                        ["inlineData": ["mimeType": mimeType, "data": base64]],
+                        ["text": "What do you see in this meal? Analyze it for my diet."],
+                    ],
+                ]],
+                "turnComplete": true,
+            ],
+        ]
+        sendJSON(msg)
     }
 
     private func sendJSON(_ obj: [String: Any]) {
@@ -118,7 +128,9 @@ final class LiveAPIClient {
                     break
                 }
             case .failure(let err):
-                self.delegate?.liveClient(self, didReceive: .error(err.localizedDescription))
+                let msg = err.localizedDescription
+                let hint = "Check Settings → Backend URL. On device use Mac IP (e.g. http://192.168.1.5:8080)."
+                self.delegate?.liveClient(self, didReceive: .error("\(msg). \(hint)"))
                 self.task = nil
                 return
             }
@@ -129,6 +141,12 @@ final class LiveAPIClient {
     private func handleMessage(_ raw: String) {
         guard let data = raw.data(using: .utf8),
               let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else { return }
+
+        if let type = json["type"] as? String, type == "error",
+           let msg = json["message"] as? String {
+            delegate?.liveClient(self, didReceive: .error(msg))
+            return
+        }
 
         if json["setup_complete"] != nil {
             delegate?.liveClient(self, didReceive: .setupComplete)

@@ -2,40 +2,44 @@
 //  Config.swift
 //  HappyDiet
 //
-//  Backend URL and API key configuration.
-//  Edit HappyDietConfig.plist or use .xcconfig for Cloud Run URL.
+//  Reads BACKEND_URL from UserDefaults (override) or HappyDietConfig.plist.
+//  On device: set override in More → Settings to your Mac IP (e.g. http://192.168.1.5:8080).
 //
 
 import Foundation
 
 enum HappyDietConfig {
-    private static let configPlistName = "HappyDietConfig"
-    private static let backendURLKey = "BACKEND_URL"
-    private static let apiKeyKey = "API_KEY"
+    private static let backendURLOverrideKey = "happydiet_backend_url_override"
 
-    /// Base URL for the HappyDiet backend (default: http://localhost:8080 for dev)
+    /// User-configurable override (e.g. for device: http://YOUR_MAC_IP:8080)
+    static var backendURLOverride: String? {
+        get { UserDefaults.standard.string(forKey: backendURLOverrideKey) }
+        set { UserDefaults.standard.set(newValue, forKey: backendURLOverrideKey) }
+    }
+
     static var backendURL: URL {
-        if let urlString = value(for: backendURLKey), !urlString.isEmpty,
-           let url = URL(string: urlString.trimmingCharacters(in: .whitespacesAndNewlines)) {
+        if let override = backendURLOverride, !override.isEmpty,
+           let url = URL(string: override.trimmingCharacters(in: .whitespaces)),
+           url.scheme != nil, url.host != nil {
             return url
         }
-        return URL(string: "http://localhost:8080")!
-    }
-
-    /// Optional API key for X-API-Key header
-    static var apiKey: String? {
-        value(for: apiKeyKey).flatMap { $0.isEmpty ? nil : $0 }
-    }
-
-    /// User ID for API calls (default: demo)
-    static var defaultUserId: String { "demo" }
-
-    private static func value(for key: String) -> String? {
-        guard let path = Bundle.main.path(forResource: configPlistName, ofType: "plist"),
+        guard let path = Bundle.main.path(forResource: "HappyDietConfig", ofType: "plist"),
               let dict = NSDictionary(contentsOfFile: path) as? [String: Any],
-              let value = dict[key] as? String else {
+              let urlString = dict["BACKEND_URL"] as? String, !urlString.isEmpty,
+              let url = URL(string: urlString) else {
+            return URL(string: "http://localhost:8080")!
+        }
+        return url
+    }
+
+    static var apiKey: String? {
+        guard let path = Bundle.main.path(forResource: "HappyDietConfig", ofType: "plist"),
+              let dict = NSDictionary(contentsOfFile: path) as? [String: Any],
+              let key = dict["API_KEY"] as? String, !key.isEmpty else {
             return nil
         }
-        return value
+        return key
     }
+
+    static let defaultUserId = "demo"
 }

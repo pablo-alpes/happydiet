@@ -2,6 +2,10 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
+	<key>CFBundleName</key>
+	<string>HappyDiet</string>
+	<key>CFBundleDisplayName</key>
+	<string>HappyDiet</string>
 	<key>CFBundleExecutable</key>
 	<string>HappyDiet</string>
 	<key>CFBundleIdentifier</key>
@@ -17,26 +21,13 @@
 	<key>NSBluetoothPeripheralUsageDescription</key>
 	<string>HappyDiet needs Bluetooth to communicate with HeyCyan glasses.</string>
 	<key>NSLocalNetworkUsageDescription</key>
-	<string>HappyDiet connects to HeyCyan glasses via WiFi to transfer meal photos.</string>
+	<string>HappyDiet connects to your backend server and HeyCyan glasses on the local network for the Live Coach and meal capture.</string>
 	<key>NSAppTransportSecurity</key>
 	<dict>
 		<key>NSAllowsArbitraryLoads</key>
 		<false/>
 		<key>NSAllowsLocalNetworking</key>
 		<true/>
-		<key>NSExceptionDomains</key>
-		<dict>
-			<key>localhost</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
-			<key>127.0.0.1</key>
-			<dict>
-				<key>NSExceptionAllowsInsecureHTTPLoads</key>
-				<true/>
-			</dict>
-		</dict>
 	</dict>
 	<key>UILaunchScreen</key>
 	<dict/>
