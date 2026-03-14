@@ -391,7 +391,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "PLIST=\"$SRCROOT/HappyDiet/HappyDietConfig.plist\"\nPORT=8080\nif [ \"$PLATFORM_NAME\" = \"iphonesimulator\" ]; then\n  URL=\"http://localhost:$PORT\"\nelse\n  IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null)\n  if [ -z \"$IP\" ]; then\n    echo \"warning: Could not detect Mac IP — using localhost\"\n    URL=\"http://localhost:$PORT\"\n  else\n    URL=\"http://$IP:$PORT\"\n  fi\nfi\n/usr/libexec/PlistBuddy -c \"Set :BACKEND_URL $URL\" \"$PLIST\" 2>/dev/null || \\\n  /usr/libexec/PlistBuddy -c \"Add :BACKEND_URL string $URL\" \"$PLIST\"\necho \"Backend URL set to $URL (platform: $PLATFORM_NAME)\"\n";
+			shellScript = "PLIST=\"$SRCROOT/HappyDiet/HappyDietConfig.plist\"\nCURRENT=$(/usr/libexec/PlistBuddy -c \"Print :BACKEND_URL\" \"$PLIST\" 2>/dev/null || echo \"\")\nif echo \"$CURRENT\" | grep -q \"run\\.app\"; then\n  echo \"Backend URL preserved (Cloud Run): $CURRENT\"\n  exit 0\nfi\nPORT=8080\nif [ \"$PLATFORM_NAME\" = \"iphonesimulator\" ]; then\n  URL=\"http://localhost:$PORT\"\nelse\n  IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null)\n  if [ -z \"$IP\" ]; then\n    echo \"warning: Could not detect Mac IP — using localhost\"\n    URL=\"http://localhost:$PORT\"\n  else\n    URL=\"http://$IP:$PORT\"\n  fi\nfi\n/usr/libexec/PlistBuddy -c \"Set :BACKEND_URL $URL\" \"$PLIST\" 2>/dev/null || \\\n  /usr/libexec/PlistBuddy -c \"Add :BACKEND_URL string $URL\" \"$PLIST\"\necho \"Backend URL set to $URL (platform: $PLATFORM_NAME)\"\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

@@ -61,6 +61,11 @@ targets:
     preBuildScripts:
       - script: |
           PLIST="$SRCROOT/HappyDiet/HappyDietConfig.plist"
+          CURRENT=$(/usr/libexec/PlistBuddy -c "Print :BACKEND_URL" "$PLIST" 2>/dev/null || echo "")
+          if echo "$CURRENT" | grep -q "run\.app"; then
+            echo "Backend URL preserved (Cloud Run): $CURRENT"
+            exit 0
+          fi
           PORT=8080
           if [ "$PLATFORM_NAME" = "iphonesimulator" ]; then
             URL="http://localhost:$PORT"

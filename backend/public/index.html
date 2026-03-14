@@ -103,7 +103,7 @@
     .camera-modal .btn { margin: 0.5rem; }
     .chat-container { display: flex; flex-direction: column; height: 420px; }
     .chat-messages { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
-    .chat-msg { max-width: 85%; padding: 0.75rem 1rem; border-radius: 14px; font-size: 0.95rem; line-height: 1.4; }
+    .chat-msg { max-width: 85%; padding: 0.75rem 1rem; border-radius: 14px; font-size: 0.95rem; line-height: 1.4; word-break: break-word; overflow-wrap: break-word; min-width: 0; }
     .chat-msg.user { align-self: flex-end; background: var(--accent); color: white; }
     .chat-msg.coach { align-self: flex-start; background: #f1f3f4; color: var(--text); }
     .chat-input-row { display: flex; gap: 0.5rem; padding: 0.75rem; border-top: 1px solid #eee; }
@@ -146,14 +146,14 @@
     .coach-float { position: fixed; top: 0; right: 0; bottom: 0; z-index: 100; display: flex; flex-direction: row-reverse; align-items: stretch; }
     .coach-float-btn { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%); color: white; border: none; box-shadow: 0 4px 20px rgba(45,106,79,0.4); font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; align-self: flex-end; margin: 1rem; flex-shrink: 0; }
     .coach-float-btn:hover { transform: scale(1.05); }
-    .coach-float-panel { width: 400px; max-width: 100vw; height: 100vh; background: var(--card); box-shadow: -4px 0 24px rgba(0,0,0,0.12); border-left: 1px solid #eee; overflow: hidden; flex-direction: column; display: flex; flex-shrink: 0; }
+    .coach-float-panel { width: 400px; max-width: min(400px, 100vw); min-width: 0; height: 100vh; background: var(--card); box-shadow: -4px 0 24px rgba(0,0,0,0.12); border-left: 1px solid #eee; overflow: hidden; flex-direction: column; display: flex; flex-shrink: 0; }
     .coach-float-panel.collapsed { display: none; }
     .coach-float-header { padding: 0.75rem 1rem; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%); color: white; display: flex; justify-content: space-between; align-items: center; }
     .coach-float-header h4 { margin: 0; font-size: 1rem; }
     .coach-float-close { background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; padding: 0.25rem; opacity: 0.9; }
     .coach-float-close:hover { opacity: 1; }
-    .coach-float-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 0.75rem; min-height: 0; }
-    .coach-float .chat-messages { flex: 1; min-height: 180px; overflow-y: auto; }
+    .coach-float-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 0.75rem; min-height: 0; min-width: 0; }
+    .coach-float .chat-messages { flex: 1; min-height: 180px; min-width: 0; overflow-y: auto; overflow-x: hidden; padding: 0.75rem; }
     .chat-status-bar { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: #f8f9fa; border-radius: 10px; margin-bottom: 0.5rem; font-size: 0.85rem; flex-wrap: wrap; }
     .chat-status-bar .status-item { display: flex; align-items: center; gap: 0.35rem; }
     .chat-status-bar .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gray-light); }
@@ -170,6 +170,12 @@
     @keyframes pulse-mic { 0%, 100% { box-shadow: 0 0 0 2px rgba(214,40,40,0.4); } 50% { box-shadow: 0 0 0 6px rgba(214,40,40,0.2); } }
     .coach-float .prompt-btn { display: block; width: 100%; text-align: left; padding: 0.4rem 0.6rem; margin: 0.2rem 0; border-radius: 8px; border: 1px solid #eee; background: #fafafa; font-size: 0.8rem; cursor: pointer; color: var(--text); transition: all 0.2s; }
     .coach-float .prompt-btn:hover { background: var(--accent-muted); border-color: var(--accent); color: var(--accent); }
+    @media (max-width: 500px) {
+      .coach-float-body { padding: 0.5rem; }
+      .coach-float .chat-messages { padding: 0.5rem; }
+      .chat-status-bar { padding: 0.4rem 0.5rem; }
+      .coach-float .chat-msg { padding: 0.6rem 0.75rem; }
+    }
     .predefined-tasks { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.25rem; }
     .predefined-tasks .task-chip { padding: 0.35rem 0.6rem; border-radius: 8px; font-size: 0.78rem; background: #f0f4f0; border: 1px solid rgba(45,106,79,0.2); color: var(--accent); cursor: pointer; transition: all 0.2s; }
     .predefined-tasks .task-chip:hover { background: var(--accent-muted); }
@@ -351,7 +357,7 @@
     .sc-gcp-badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.35rem 0.7rem; background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; font-size: 0.75rem; font-weight: 600; }
     .app-wrap { display: none; }
     .app-wrap.visible { display: block; }
-    body.coach-open .app-wrap { margin-right: 400px; transition: margin-right 0.2s ease; }
+    body.coach-open .app-wrap { margin-right: min(400px, 90vw); transition: margin-right 0.2s ease; }
     .target-row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-top: 0.5rem; }
     .target-row input, .target-row select { padding: 0.5rem; border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.9rem; }
     .target-row input[type="number"] { width: 80px; }
@@ -431,7 +437,7 @@
     <section class="sc-section">
       <div class="sc-divider"></div>
       <h2 class="sc-heading">Architecture</h2>
-      <p class="sc-subhead">Entire stack runs on Google Cloud. The Gemini Live API is the conversational agent; the backend is the tool it calls. Every layer is enclosed — nothing floats.</p>
+      <p class="sc-subhead">Entire stack runs on Google Cloud. The Gemini Live API is the conversational agent; the backend is the tool it calls. CI/CD: push to main → tests → prod deploy; push to dev → tests → dev deploy. Every layer is enclosed — nothing floats.</p>
 
       <div class="sc-arch-wrap">
 
@@ -582,8 +588,8 @@
             <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">Cloud Run</span><span class="chip-use">→ Backend hosting (serverless, scales to zero)</span></div>
             <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">Firestore</span><span class="chip-use">→ meals collection (Processor) + diet_rules (Rule Engine)</span></div>
             <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">Cloud TTS</span><span class="chip-use">→ Reporter → /speak endpoint → natural voice</span></div>
-            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">Cloud Build</span><span class="chip-use">→ CI/CD pipeline, tests before deploy</span></div>
-            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">100+ Tests</span><span class="chip-use">→ Unit, integration, E2E, UAT (vitest)</span></div>
+            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">CI/CD</span><span class="chip-use">→ GitHub Actions: dev + prod, tests before deploy</span></div>
+            <div class="sc-comp-chip"><span class="ck">✓</span><span class="chip-svc">100+ Tests</span><span class="chip-use">→ Unit, integration, E2E, UAT (vitest) — must pass before deploy</span></div>
           </div>
         </div>
 
@@ -638,6 +644,7 @@
         <span class="sc-gcp-badge">✓ Firestore</span>
         <span class="sc-gcp-badge">✓ GenAI SDK</span>
         <span class="sc-gcp-badge">✓ Cloud TTS</span>
+        <span class="sc-gcp-badge">✓ CI/CD (dev + prod)</span>
       </div>
     </section>
 
