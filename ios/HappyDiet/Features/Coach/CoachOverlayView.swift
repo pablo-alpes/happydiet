@@ -298,6 +298,7 @@ struct CoachPanelView: View {
             Task { @MainActor in handleEvent(event) }
         })
         liveDelegate = delegate
+        c.delegate = liveDelegate
         client = c
         let ctx = buildCoachContext()
         c.connect(context: ctx)

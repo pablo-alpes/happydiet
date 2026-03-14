@@ -27,7 +27,7 @@ final class HeyCyanSDKBridge: NSObject {
         captureOnCancel = onCancel
 
         let qc = QCCentralManager.shared()
-        if qc.deviceState == QCStateConnected {
+        if qc.deviceState == .connected {
             runCaptureFlow(completion: completion)
         } else {
             showDevicePicker(completion: completion, onCancel: onCancel)
@@ -74,7 +74,7 @@ final class HeyCyanSDKBridge: NSObject {
     }
 
     private func switchToTransferAndDownload(completion: @escaping (Result<UIImage, HeyCyanError>) -> Void) {
-        QCSDKCmdCreator.openWifi(withMode: .transfer, success: { [weak self] ssid, password in
+        QCSDKCmdCreator.openWifi(with: .transfer, success: { [weak self] ssid, password in
             let ss = ssid ?? ""
             let pw = password ?? "123456789"
             if ss.isEmpty {

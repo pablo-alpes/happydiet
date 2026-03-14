@@ -63,7 +63,7 @@
 		ACA59CEB6AE9E985CB11BF80 /* QCScanViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QCScanViewController.h; sourceTree = "<group>"; };
 		AFFB96ACBCAC9646FF85FD54 /* BackendClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendClient.swift; sourceTree = "<group>"; };
 		D5FBDCF421645B6AC2FBE026 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
-		D8562750923012F3F2A8F970 /* HappyDiet.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HappyDiet.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		D8562750923012F3F2A8F970 /* HappyDiet.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HappyDiet.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		DDA101703CE87D2AFC7DDE99 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
 		E72BBDDEE42D601D12AD1E6F /* CaptureSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSource.swift; sourceTree = "<group>"; };
 		FBF8855044CED2641B77E8E7 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
@@ -243,7 +243,6 @@
 			buildConfigurationList = 69F9B47D3239F51C0FD67B38 /* Build configuration list for PBXNativeTarget "HappyDiet" */;
 			buildPhases = (
 				412344A9FD81A7A3FC310BA6 /* Sources */,
-				BD1934530B987AEEC622B640 /* Embed QCSDK (device only) */,
 			);
 			buildRules = (
 			);
@@ -289,28 +288,6 @@
 		};
 /* End PBXProject section */
 
-/* Begin PBXShellScriptBuildPhase section */
-		BD1934530B987AEEC622B640 /* Embed QCSDK (device only) */ = {
-			isa = PBXShellScriptBuildPhase;
-			alwaysOutOfDate = 1;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			inputFileListPaths = (
-			);
-			inputPaths = (
-			);
-			name = "Embed QCSDK (device only)";
-			outputFileListPaths = (
-			);
-			outputPaths = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-			shellPath = /bin/sh;
-			shellScript = "if [ \"$PLATFORM_NAME\" = \"iphoneos\" ]; then\n  DEST=\"$BUILT_PRODUCTS_DIR/$FRAMEWORKS_FOLDER_PATH\"\n  mkdir -p \"$DEST\"\n  cp -R \"$SRCROOT/Frameworks/QCSDK.framework\" \"$DEST/\"\n  if [ -n \"$EXPANDED_CODE_SIGN_IDENTITY\" ]; then\n    codesign --force --sign \"$EXPANDED_CODE_SIGN_IDENTITY\" \"$DEST/QCSDK.framework\"\n  fi\nfi\n";
-		};
-/* End PBXShellScriptBuildPhase section */
-
 /* Begin PBXSourcesBuildPhase section */
 		412344A9FD81A7A3FC310BA6 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
@@ -354,13 +331,24 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = M7W9HYCCHN;
 				ENABLE_PREVIEWS = YES;
-				"EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = "QCCentralManager.m QCScanViewController.m QCScanView.m";
+				"EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = (
+					QCCentralManager.m,
+					QCScanViewController.m,
+					QCScanView.m,
+				);
 				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/Frameworks";
-				"GCC_PREPROCESSOR_DEFINITIONS[sdk=iphoneos*]" = "$(inherited) HEYCYAN_SDK_LINKED=1";
+				"GCC_PREPROCESSOR_DEFINITIONS[sdk=iphoneos*]" = (
+					"$(inherited)",
+					"HEYCYAN_SDK_LINKED=1",
+				);
 				INFOPLIST_FILE = HappyDiet/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"-framework",
 					QCSDK,
@@ -373,17 +361,8 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "HappyDiet/HappyDiet-Bridging-Header.h";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				UILaunchScreen = "[:]";
-				UISupportedInterfaceOrientations = (
-					UIInterfaceOrientationPortrait,
-					UIInterfaceOrientationLandscapeLeft,
-					UIInterfaceOrientationLandscapeRight,
-				);
-				"UISupportedInterfaceOrientations~ipad" = (
-					UIInterfaceOrientationPortrait,
-					UIInterfaceOrientationPortraitUpsideDown,
-					UIInterfaceOrientationLandscapeLeft,
-					UIInterfaceOrientationLandscapeRight,
-				);
+				UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				"UISupportedInterfaceOrientations~ipad" = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 			};
 			name = Release;
 		};
@@ -456,13 +435,24 @@
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = M7W9HYCCHN;
 				ENABLE_PREVIEWS = YES;
-				"EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = "QCCentralManager.m QCScanViewController.m QCScanView.m";
+				"EXCLUDED_SOURCE_FILE_NAMES[sdk=iphonesimulator*]" = (
+					QCCentralManager.m,
+					QCScanViewController.m,
+					QCScanView.m,
+				);
 				FRAMEWORK_SEARCH_PATHS = "$(SRCROOT)/Frameworks";
-				"GCC_PREPROCESSOR_DEFINITIONS[sdk=iphoneos*]" = "$(inherited) HEYCYAN_SDK_LINKED=1";
+				"GCC_PREPROCESSOR_DEFINITIONS[sdk=iphoneos*]" = (
+					"$(inherited)",
+					"HEYCYAN_SDK_LINKED=1",
+				);
 				INFOPLIST_FILE = HappyDiet/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
 				"OTHER_LDFLAGS[sdk=iphoneos*]" = (
 					"-framework",
 					QCSDK,
@@ -475,17 +465,8 @@
 				SWIFT_OBJC_BRIDGING_HEADER = "HappyDiet/HappyDiet-Bridging-Header.h";
 				TARGETED_DEVICE_FAMILY = "1,2";
 				UILaunchScreen = "[:]";
-				UISupportedInterfaceOrientations = (
-					UIInterfaceOrientationPortrait,
-					UIInterfaceOrientationLandscapeLeft,
-					UIInterfaceOrientationLandscapeRight,
-				);
-				"UISupportedInterfaceOrientations~ipad" = (
-					UIInterfaceOrientationPortrait,
-					UIInterfaceOrientationPortraitUpsideDown,
-					UIInterfaceOrientationLandscapeLeft,
-					UIInterfaceOrientationLandscapeRight,
-				);
+				UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				"UISupportedInterfaceOrientations~ipad" = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 			};
 			name = Debug;
 		};

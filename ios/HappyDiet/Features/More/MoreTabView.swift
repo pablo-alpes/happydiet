@@ -184,6 +184,8 @@ struct MealSuggestionsView: View {
 struct SettingsView: View {
     @State private var backendURLText: String = ""
     @State private var savedMessage: String?
+    @State private var testResult: String?
+    @State private var isTesting = false
 
     var body: some View {
         Form {
@@ -195,20 +197,36 @@ struct SettingsView: View {
                 Text("On device: use your Mac's IP. Simulator: leave empty for localhost.")
                     .font(.caption)
                     .foregroundStyle(Theme.textMuted)
-                Button("Save") {
-                    let trimmed = backendURLText.trimmingCharacters(in: .whitespaces)
-                    if trimmed.isEmpty {
-                        HappyDietConfig.backendURLOverride = nil
-                        savedMessage = "Using default from plist"
-                    } else {
-                        HappyDietConfig.backendURLOverride = trimmed
-                        savedMessage = "Saved. Reconnect Coach to use new URL."
+                HStack {
+                    Button("Save") {
+                        let trimmed = backendURLText.trimmingCharacters(in: .whitespaces)
+                        if trimmed.isEmpty {
+                            HappyDietConfig.backendURLOverride = nil
+                            savedMessage = "Using default from plist"
+                        } else {
+                            HappyDietConfig.backendURLOverride = trimmed
+                            savedMessage = "Saved. Reconnect Coach to use new URL."
+                        }
                     }
+                    Spacer()
+                    Button("Test Connection") {
+                        testConnection()
+                    }
+                    .disabled(isTesting)
                 }
                 if let msg = savedMessage {
                     Text(msg)
                         .font(.caption)
                         .foregroundStyle(Theme.accent)
+                }
+                if isTesting {
+                    ProgressView("Testing…")
+                        .font(.caption)
+                }
+                if let result = testResult {
+                    Text(result)
+                        .font(.caption)
+                        .foregroundStyle(result.hasPrefix("OK") ? Theme.accent : Theme.red)
                 }
             } header: {
                 Text("Backend URL")
@@ -220,6 +238,30 @@ struct SettingsView: View {
         .onAppear {
             backendURLText = HappyDietConfig.backendURLOverride ?? ""
         }
+    }
+
+    private func testConnection() {
+        isTesting = true
+        testResult = nil
+        let url = HappyDietConfig.backendURL
+        var request = URLRequest(url: url)
+        request.timeoutInterval = 5
+        URLSession.shared.dataTask(with: request) { _, response, error in
+            DispatchQueue.main.async {
+                isTesting = false
+                if let error {
+                    testResult = "FAIL: \(error.localizedDescription)"
+                } else if let http = response as? HTTPURLResponse {
+                    if (200...299).contains(http.statusCode) {
+                        testResult = "OK — Backend reachable (\(http.statusCode))"
+                    } else {
+                        testResult = "FAIL: HTTP \(http.statusCode)"
+                    }
+                } else {
+                    testResult = "FAIL: No response"
+                }
+            }
+        }.resume()
     }
 }
 

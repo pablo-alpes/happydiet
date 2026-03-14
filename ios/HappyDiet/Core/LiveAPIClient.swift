@@ -23,15 +23,17 @@ protocol LiveAPIClientDelegate: AnyObject {
     func liveClient(_ client: LiveAPIClient, didReceive event: LiveAPIEvent)
 }
 
-final class LiveAPIClient {
+final class LiveAPIClient: NSObject, URLSessionWebSocketDelegate {
     weak var delegate: LiveAPIClientDelegate?
     private var task: URLSessionWebSocketTask?
     private let baseURL: URL
-    private let session: URLSession
+    private var session: URLSession!
+    private var pendingContext: [String: Any]?
 
     init(baseURL: URL = HappyDietConfig.backendURL) {
         self.baseURL = baseURL
-        self.session = URLSession.shared
+        super.init()
+        self.session = URLSession(configuration: .default, delegate: self, delegateQueue: .main)
     }
 
     private var liveURL: URL? {
@@ -46,16 +48,40 @@ final class LiveAPIClient {
 
     func connect(context: [String: Any]? = nil) {
         guard let url = liveURL else {
-            delegate?.liveClient(self, didReceive: .error("Invalid Live API URL"))
+            delegate?.liveClient(self, didReceive: .error("Invalid Live API URL from \(baseURL.absoluteString)"))
             return
         }
-        task = session.webSocketTask(with: url)
-        task?.resume()
-        if let ctx = context, !ctx.isEmpty {
+        pendingContext = context
+        let t = session.webSocketTask(with: url)
+        task = t
+        t.resume()
+    }
+
+    // MARK: - URLSessionWebSocketDelegate
+
+    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
+        delegate?.liveClient(self, didReceive: .connected)
+        if let ctx = pendingContext, !ctx.isEmpty {
             let msg: [String: Any] = ["type": "context", "payload": ctx]
             sendJSON(msg)
         }
+        pendingContext = nil
         receiveLoop()
+    }
+
+    func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+        let reasonStr = reason.flatMap { String(data: $0, encoding: .utf8) }
+        delegate?.liveClient(self, didReceive: .disconnected(reasonStr ?? "Connection closed"))
+        task = nil
+    }
+
+    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
+        guard let error else { return }
+        let url = liveURL?.absoluteString ?? baseURL.absoluteString
+        let msg = error.localizedDescription
+        let hint = "Backend URL: \(url). On device, use Mac IP (e.g. http://192.168.x.x:8080). Check More → Settings."
+        delegate?.liveClient(self, didReceive: .error("\(msg). \(hint)"))
+        self.task = nil
     }
 
     func disconnect() {
@@ -88,7 +114,6 @@ final class LiveAPIClient {
     }
 
     func sendImage(base64: String, mimeType: String = "image/jpeg") {
-        // Send image + text in one clientContent turn so the agent receives both together
         let msg: [String: Any] = [
             "clientContent": [
                 "turns": [[
@@ -108,8 +133,8 @@ final class LiveAPIClient {
         guard let data = try? JSONSerialization.data(withJSONObject: obj),
               let str = String(data: data, encoding: .utf8) else { return }
         task?.send(.string(str)) { [weak self] err in
-            if let e = err {
-                self?.delegate?.liveClient(self!, didReceive: .error("Send failed: \(e.localizedDescription)"))
+            if let e = err, let self {
+                self.delegate?.liveClient(self, didReceive: .error("Send failed: \(e.localizedDescription)"))
             }
         }
     }
@@ -128,9 +153,8 @@ final class LiveAPIClient {
                     break
                 }
             case .failure(let err):
-                let msg = err.localizedDescription
-                let hint = "Check Settings → Backend URL. On device use Mac IP (e.g. http://192.168.1.5:8080)."
-                self.delegate?.liveClient(self, didReceive: .error("\(msg). \(hint)"))
+                let url = self.liveURL?.absoluteString ?? self.baseURL.absoluteString
+                self.delegate?.liveClient(self, didReceive: .error("Connection lost: \(err.localizedDescription). URL: \(url)"))
                 self.task = nil
                 return
             }
@@ -148,29 +172,31 @@ final class LiveAPIClient {
             return
         }
 
-        if json["setup_complete"] != nil {
+        if json["setup_complete"] != nil || json["setupComplete"] != nil {
             delegate?.liveClient(self, didReceive: .setupComplete)
             return
         }
 
-        if let turnComplete = json["server_content"] as? [String: Any], turnComplete["turn_complete"] as? Bool == true {
+        let sc = json["server_content"] as? [String: Any] ?? json["serverContent"] as? [String: Any]
+
+        if sc?["turn_complete"] as? Bool == true || sc?["turnComplete"] as? Bool == true {
             delegate?.liveClient(self, didReceive: .turnComplete)
             return
         }
 
-        if let interrupted = json["server_content"] as? [String: Any], interrupted["interrupted"] != nil {
+        if sc?["interrupted"] != nil {
             delegate?.liveClient(self, didReceive: .interrupted)
             return
         }
 
-        if let parts = (json["server_content"] as? [String: Any])?["model_turn"] as? [String: Any],
-           let partList = parts["parts"] as? [[String: Any]] {
+        let modelTurn = sc?["model_turn"] as? [String: Any] ?? sc?["modelTurn"] as? [String: Any]
+        if let partList = modelTurn?["parts"] as? [[String: Any]] {
             for part in partList {
                 if let text = part["text"] as? String, !text.isEmpty {
                     delegate?.liveClient(self, didReceive: .text(text))
                 }
-                if let inline = part["inline_data"] as? [String: Any],
-                   let b64 = inline["data"] as? String,
+                let inline = part["inline_data"] as? [String: Any] ?? part["inlineData"] as? [String: Any]
+                if let b64 = inline?["data"] as? String,
                    let audioData = Data(base64Encoded: b64) {
                     delegate?.liveClient(self, didReceive: .audio(audioData))
                 }
