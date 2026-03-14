@@ -1,0 +1,3 @@
+[submodule "HeyCyanSDK"]
+	path = HeyCyanSDK
+	url = https://github.com/ebowwa/HeyCyanSmartGlassesSDK.git
