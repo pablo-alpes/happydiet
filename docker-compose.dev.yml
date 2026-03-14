@@ -1,0 +1,24 @@
+# HappyDiet - dev mode (hot reload, no build)
+# Run: docker compose -f docker-compose.dev.yml up
+
+services:
+  backend:
+    image: node:20-alpine
+    working_dir: /app
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./backend:/app
+      - backend_node_modules:/app/node_modules
+    environment:
+      - PORT=8080
+      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
+      - GOOGLE_CLOUD_LOCATION=${GOOGLE_CLOUD_LOCATION:-us-central1}
+      - API_KEY=${API_KEY}
+    env_file:
+      - .env
+    command: sh -c "npm install && npx tsx watch src/main.ts"
+    restart: unless-stopped
+
+volumes:
+  backend_node_modules:

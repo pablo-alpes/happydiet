@@ -1,0 +1,38 @@
+﻿Date;Meal;Items;Compliance;Detalle;Peso (kg);Kcal estimadas
+26/09/2025;Almuerzo;Ensalada de espinacas con tomate, cuscús con verduras, lentejas, tempeh, aceitunas, zumo de tomate;Sí;;;246
+26/09/2025;Cena;Ensalada de espinacas con tomate, brócoli al vapor, restos de cuscús/lentejas/tempeh;Sí;;;281
+27/09/2025;Desayuno;Café, pan de molde con fiambre de pavo, kéfir, fresas, arándanos, uvas;No;Excluidos detectados: pan (no integral);74.3;350
+27/09/2025;Ejercicio;Caminata 1h;;;74.3;0
+27/09/2025;Merienda;Arándanos, uvas;Sí;;74.3;110
+27/09/2025;Cena;Pollo, tabbouleh (perejil, tomate, bulgur), falafel frito, hummus, pan pita (no integral);No;Excluidos detectados: frito;74.3;705
+27/09/2025;Post-cena;Cerveza;No;Excluidos detectados: cerveza;74.3;150
+27/09/2025;Post-cena;4 chicken fingers (rebozados y fritos);No;Excluidos detectados: frito, rebozado;74.3;700
+27/09/2025;Almuerzo;Arroz basmati con guisantes y calabacín, pollo a la plancha, aceitunas, zumo de tomate;Sí;;74.3;325
+27/09/2025;Merienda;Plátano, uvas verdes;Sí;;74.3;150
+28/09/2025;Desayuno;Fresas, moras, arándanos, galleta tipo Digestive, pan con jamón york, café, bebida probiótica;Sí;;73.3;490
+28/09/2025;Desayuno;Yogur, té, tostada con palta, tostada con miel;No;Incluye miel (dulce no permitido);74.3;450
+28/09/2025;Almuerzo;Pollo con arroz y papas;Sí;;74.3;650
+28/09/2025;Almuerzo;Pescado blanco al horno, patatas cocidas con aceite y perejil, ensalada de lechuga, zumo de naranja;Sí;;73.3;500
+28/09/2025;Merienda;Helado de leche, uvas rojas y verdes, arándanos, café;No;Incluye helado de leche (dulce/procesado);74.3;400
+28/09/2025;Ejercicio;Caminar 45 minutos;;;73.3;-220
+28/09/2025;Cena;Arroz con zanahoria, champiñón y pollo;Sí;;74.3;600
+29/09/2025;Desayuno;Pan integral con palta y queso fresco, moras, café, yogur bebible;Sí;;73.3;350
+29/09/2025;Almuerzo;Pollo a la plancha con verduras (calabacín, tomate, alcachofa) y papas cocidas;Sí;;73.3;500
+29/09/2025;Cena;Pasta con salsa cremosa y salchicha;No;Incluye salchicha procesada y salsa comercial;73.3;650
+30/09/2025;Desayuno;Pan integral con palta y queso fresco, miel, café/té;Sí;;73.3;320
+30/09/2025;Almuerzo;Sopa de pollo con fideos y perejil, lentejas con bulgur y verduras;Sí;;73.3;550
+30/09/2025;Merienda;Alfajor y café;No;Incluye alfajor (dulce/ultraprocesado);73.3;250
+30/09/2025;Cena;Tabulé (bulgur, verduras, perejil), sopa de pollo, frutillas, ensalada de tomate, pasta (150g);Sí;;73.3;700
+01/10/2025;Almuerzo;Arroz con carne de vacuno, zanahoria y puerro;Sí;;73.3;400
+01/10/2025;Cena;Ensalada rusa y pasta;No;Mayonesa industrial;73.3;480
+02/10/2025;Desayuno;Tostada con aguacate, té y banana;Sí;;73.3;280
+03/10/2025;Desayuno;Té, kéfir, aguacate, uvas y tostada;Sí;;73.3;280
+03/10/2025;Cena;Tallarines con salsa, aguacate y pollo;No;Salsa comercial;73.3;520
+04/10/2025;Desayuno;Pan con aguacate, uvas, arándanos y café;Sí;;73.3;260
+05/10/2025;Desayuno;Manzanilla y yogur kéfir;Sí;;73.3;120
+05/10/2025;Merienda;Pan con aguacate y queso fresco, manzanilla;Sí;;73.3;250
+05/10/2025;Cena;Pasta con carne y salsa boloñesa;No;Salsa comercial;73.3;550
+05/10/2025;Post-cena;Cerveza, aceitunas y papas fritas;No;Alcohol y fritos;73.3;400
+06/10/2025;Desayuno;Infusión de hinojo y manzanilla, 1 galleta de fibra;Sí;;73.8;40
+06/10/2025;Almuerzo;Sopa de pollo;Sí;;73.8;180
+06/10/2025;Merienda;Infusión hinojo y manzanilla, 2 galletas de fibra Digestive;No;Galletas tipo Digestive no integrales;73.8;120

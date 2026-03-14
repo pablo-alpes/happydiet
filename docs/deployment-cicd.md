@@ -1,0 +1,258 @@
+# HappyDiet — Deployment & CI/CD
+
+**Objective:** Deploy the backend to Google Cloud Run and ensure it runs correctly. Step-by-step instructions.
+
+---
+
+## Deployment Overview
+
+```
+┌─────────────────┐     push/PR      ┌──────────────────┐     deploy      ┌─────────────────┐
+│  GitHub         │ ───────────────► │  Cloud Build     │ ──────────────► │  Cloud Run      │
+│  (source)       │                  │  (test + build)  │                 │  (backend)       │
+└─────────────────┘                  └──────────────────┘                 └─────────────────┘
+                                                                                   │
+                                                                                   ▼
+┌─────────────────┐     ADC           ┌──────────────────┐
+│  Vertex AI      │ ◄──────────────── │  Cloud Run       │
+│  Firestore      │                  │  (same project)   │
+└─────────────────┘                  └──────────────────┘
+```
+
+---
+
+## 1. Prerequisites
+
+| Item | Status |
+|------|--------|
+| GCP project | Create with `gcloud projects create` or use existing |
+| Billing enabled | [Console → Billing](https://console.cloud.google.com/billing) |
+| gcloud CLI | [Install](https://cloud.google.com/sdk/docs/install) |
+| APIs enabled | See §2 below |
+
+---
+
+## 2. Enable APIs (One-Time)
+
+```bash
+# Set your project
+gcloud config set project YOUR_PROJECT_ID
+
+# Enable required APIs
+gcloud services enable \
+  aiplatform.googleapis.com \
+  firestore.googleapis.com \
+  run.googleapis.com \
+  cloudbuild.googleapis.com \
+  artifactregistry.googleapis.com
+```
+
+### Create Firestore Database
+
+1. [Console → Firestore](https://console.cloud.google.com/firestore)
+2. **Create database** → Native mode → Region (e.g. `us-central1`)
+
+---
+
+## 3. Authenticate
+
+```bash
+gcloud auth login
+gcloud auth application-default login
+```
+
+---
+
+## 4. Deploy Backend to Cloud Run
+
+### Option A: Programmatic (Scripts) — Recommended
+
+```bash
+# From repo root
+chmod +x scripts/*.sh
+./scripts/setup-gcp.sh              # Enable APIs (one-time)
+./scripts/deploy.sh                 # Tests + deploy
+./scripts/verify.sh                 # Health check
+```
+
+See [scripts/README.md](../scripts/README.md). **Bonus:** Automated deployment qualifies for challenge bonus points.
+
+### Option B: Manual Deploy
+
+```bash
+# From project root
+cd backend
+
+# Deploy with Cloud Build (builds + test + deploy)
+gcloud run deploy happydiet-backend \
+  --source . \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars "GOOGLE_CLOUD_PROJECT=$(gcloud config get-value project)"
+```
+
+**Important:** `GOOGLE_CLOUD_PROJECT` is required for Vertex AI and Firestore. Without it, `/analyze-meal` returns 503.
+
+### Option B: With Additional Env Vars
+
+```bash
+gcloud run deploy happydiet-backend \
+  --source . \
+  --region us-central1 \
+  --allow-unauthenticated \
+  --set-env-vars "GOOGLE_CLOUD_PROJECT=$(gcloud config get-value project),GOOGLE_CLOUD_LOCATION=us-central1"
+```
+
+### Option C: Cloud Build (CI/CD)
+
+```bash
+# From project root (happydiet/)
+gcloud builds submit --config cloudbuild.yaml backend
+```
+
+**Note:** This runs tests and deploys. The `cloudbuild.yaml` must pass `GOOGLE_CLOUD_PROJECT` to Cloud Run. See §7.
+
+---
+
+## 5. Verify Deployment
+
+### Smoke Test (Recommended)
+
+```bash
+./scripts/smoke-test.sh https://YOUR-Cloud-Run-URL
+# Or: ./scripts/smoke-test.sh  (fetches URL from gcloud)
+```
+
+Tests: GET /health (200), GET /meals (200).
+
+### Manual Check
+
+After deploy, Cloud Run returns the service URL:
+
+```
+Service [happydiet-backend] revision [...] has been deployed and is serving 100 percent of traffic.
+Service URL: https://happydiet-backend-XXXXX-uc.a.run.app
+```
+
+### Health Check
+
+```bash
+curl https://YOUR-Cloud-Run-URL/health
+# Expected: {"status":"ok","service":"happydiet-backend"}
+```
+
+### Analyze Meal (Requires Image)
+
+```bash
+# Base64-encode a small test image first
+curl -X POST https://YOUR-Cloud-Run-URL/analyze-meal \
+  -H "Content-Type: application/json" \
+  -d '{"image_base64":"BASE64_STRING","user_id":"demo"}'
+```
+
+---
+
+## 6. Update iOS App
+
+Edit `ios/HappyDiet/HappyDietConfig.plist`:
+
+- Set `BACKEND_URL` to your Cloud Run URL (e.g. `https://happydiet-backend-xxxxx-uc.a.run.app`)
+
+---
+
+## 7. CI/CD with Cloud Build
+
+### 7.1 cloudbuild.yaml Location
+
+The config is at **repo root**: `cloudbuild.yaml`
+
+It runs tests in `backend/` and deploys from `backend/`. To pass env vars:
+
+```yaml
+# cloudbuild.yaml (add substitutions)
+substitutions:
+  _PROJECT_ID: '${PROJECT_ID}'  # Cloud Build provides this
+
+steps:
+  # ... existing steps ...
+  - name: 'gcr.io/cloud-builders/gcloud'
+    waitFor: ['test']
+    args:
+      - 'run'
+      - 'deploy'
+      - 'happydiet-backend'
+      - '--source'
+      - '.'
+      - '--region'
+      - 'us-central1'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'GOOGLE_CLOUD_PROJECT=${_PROJECT_ID}'
+    dir: 'backend'
+```
+
+### 7.2 Connect GitHub to Cloud Build
+
+1. [Cloud Build → Repositories](https://console.cloud.google.com/cloud-build/repositories)
+2. **Connect repository** → GitHub (Cloud Build GitHub App)
+3. Select org/repo and `happydiet`
+
+### 7.3 Create Trigger
+
+1. [Cloud Build → Triggers](https://console.cloud.google.com/cloud-build/triggers)
+2. **Create trigger**
+3. **Event:** Push to branch `main`
+4. **Source:** Connected repo
+5. **Config:** Cloud Build configuration file
+6. **Config path:** `cloudbuild.yaml` (at repo root)
+
+**Important:** Cloud Build runs from the repo root. The config uses `dir: backend` so steps run in the backend folder. The `--source .` in the deploy step deploys the backend directory.
+
+---
+
+## 8. CI Test Simulation (Pre-Deploy)
+
+To verify the same steps Cloud Build runs:
+
+```bash
+./scripts/test-ci.sh
+```
+
+Runs: `npm ci` → `npm run test:ci` → `npm run build`. See [testing.md](./testing.md).
+
+---
+
+## 9. Checklist: Ensure Deployment Works
+
+| Step | Action |
+|------|--------|
+| 1 | `gcloud config set project YOUR_PROJECT_ID` |
+| 2 | Enable APIs (§2) |
+| 3 | Create Firestore database |
+| 4 | `gcloud auth application-default login` |
+| 5 | Deploy: `gcloud run deploy happydiet-backend --source backend --region us-central1 --allow-unauthenticated --set-env-vars GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID` |
+| 6 | Verify: `curl https://YOUR-URL/health` |
+| 7 | Update iOS `BACKEND_URL` to Cloud Run URL |
+| 8 | (Optional) Connect GitHub + create trigger |
+
+---
+
+## 10. Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| 503 from `/analyze-meal` | Set `GOOGLE_CLOUD_PROJECT` on Cloud Run |
+| Permission denied | Ensure Cloud Run service account has `roles/aiplatform.user` and Firestore access |
+| Build fails | Check `npm run test:ci` passes locally |
+| Deploy from wrong dir | Use `--source backend` when running from repo root |
+
+---
+
+## 11. Summary
+
+| Question | Answer |
+|----------|--------|
+| **How to deploy?** | `gcloud run deploy happydiet-backend --source backend --region us-central1 --allow-unauthenticated --set-env-vars GOOGLE_CLOUD_PROJECT=YOUR_PROJECT_ID` |
+| **Required env vars?** | `GOOGLE_CLOUD_PROJECT` (required); `GOOGLE_CLOUD_LOCATION` (optional, default us-central1) |
+| **Where is cloudbuild.yaml?** | Repo root; steps run in `backend/` |
+| **How to verify?** | `curl https://YOUR-URL/health` |

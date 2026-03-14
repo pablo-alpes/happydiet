@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HappyDiet — GCP Integration Test</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; max-width: 600px; margin: 2rem auto; padding: 0 1rem; }
+    h1 { font-size: 1.25rem; }
+    input, button { font-size: 1rem; padding: 0.5rem; margin: 0.25rem 0; }
+    button { background: #1a73e8; color: white; border: none; cursor: pointer; border-radius: 4px; }
+    button:hover { background: #1557b0; }
+    #result { white-space: pre-wrap; background: #f5f5f5; padding: 1rem; border-radius: 4px; margin-top: 1rem; font-size: 0.9rem; }
+    .error { color: #c5221f; }
+    label { display: block; margin-top: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>HappyDiet — GCP Integration Test</h1>
+  <p>Test backend ↔ Vertex AI + Firestore. Set <code>BACKEND_URL</code> and <code>API_KEY</code> below.</p>
+
+  <label>Backend URL</label>
+  <input type="url" id="url" placeholder="https://YOUR-URL.run.app" style="width:100%">
+
+  <label>API Key (optional)</label>
+  <input type="password" id="apiKey" placeholder="Leave empty if not required">
+
+  <label>Image (file or paste base64)</label>
+  <input type="file" id="file" accept="image/*">
+
+  <button id="health">Health Check</button>
+  <button id="analyze">Analyze Meal</button>
+  <button id="meals">Get Meals</button>
+
+  <pre id="result"></pre>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const result = $('result');
+
+    function log(msg, isError) {
+      result.textContent = msg;
+      result.className = isError ? 'error' : '';
+    }
+
+    async function req(method, path, body) {
+      const url = ($('url').value || 'http://localhost:8080').replace(/\/$/, '');
+      const headers = { 'Content-Type': 'application/json' };
+      const apiKey = $('apiKey').value;
+      if (apiKey) headers['X-API-Key'] = apiKey;
+
+      const res = await fetch(url + path, { method, headers, body: body ? JSON.stringify(body) : undefined });
+      const data = await res.json().catch(() => ({}));
+      return { ok: res.ok, status: res.status, data };
+    }
+
+    $('health').onclick = async () => {
+      try {
+        const { ok, status, data } = await req('GET', '/health');
+        log(ok ? `OK ${status}\n${JSON.stringify(data, null, 2)}` : `Error ${status}\n${JSON.stringify(data, null, 2)}`, !ok);
+      } catch (e) {
+        log('Error: ' + e.message, true);
+      }
+    };
+
+    async function getImageBase64() {
+      const file = $('file').files[0];
+      if (!file) {
+        log('Select an image file first', true);
+        return null;
+      }
+      return new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result.split(',')[1] || r.result);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+    }
+
+    $('analyze').onclick = async () => {
+      try {
+        const base64 = await getImageBase64();
+        if (!base64) return;
+        const { ok, status, data } = await req('POST', '/analyze-meal', { image_base64: base64, user_id: 'demo' });
+        log(ok ? `OK ${status}\n${JSON.stringify(data, null, 2)}` : `Error ${status}\n${JSON.stringify(data, null, 2)}`, !ok);
+      } catch (e) {
+        log('Error: ' + e.message, true);
+      }
+    };
+
+    $('meals').onclick = async () => {
+      try {
+        const url = ($('url').value || 'http://localhost:8080').replace(/\/$/, '');
+        const apiKey = $('apiKey').value;
+        const headers = {};
+        if (apiKey) headers['X-API-Key'] = apiKey;
+        const res = await fetch(url + '/meals?user_id=demo', { headers });
+        const data = await res.json().catch(() => ({}));
+        log(res.ok ? `OK\n${JSON.stringify(data, null, 2)}` : `Error ${res.status}\n${JSON.stringify(data, null, 2)}`, !res.ok);
+      } catch (e) {
+        log('Error: ' + e.message, true);
+      }
+    };
+  </script>
+</body>
+</html>

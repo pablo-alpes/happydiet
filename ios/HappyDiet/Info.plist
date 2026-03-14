@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>CFBundleExecutable</key>
+	<string>HappyDiet</string>
+	<key>CFBundleIdentifier</key>
+	<string>$(PRODUCT_BUNDLE_IDENTIFIER)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>HappyDiet needs camera access to capture meal photos for diet compliance analysis.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>HappyDiet needs photo library access to select meal images for analysis.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>HappyDiet may use the microphone for voice feedback when the Live API is available.</string>
+	<key>NSBluetoothAlwaysUsageDescription</key>
+	<string>HappyDiet needs Bluetooth to connect to HeyCyan glasses for meal capture.</string>
+	<key>NSBluetoothPeripheralUsageDescription</key>
+	<string>HappyDiet needs Bluetooth to communicate with HeyCyan glasses.</string>
+	<key>NSLocalNetworkUsageDescription</key>
+	<string>HappyDiet connects to HeyCyan glasses via WiFi to transfer meal photos.</string>
+	<key>NSAppTransportSecurity</key>
+	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<false/>
+		<key>NSAllowsLocalNetworking</key>
+		<true/>
+		<key>NSExceptionDomains</key>
+		<dict>
+			<key>localhost</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+			<key>127.0.0.1</key>
+			<dict>
+				<key>NSExceptionAllowsInsecureHTTPLoads</key>
+				<true/>
+			</dict>
+		</dict>
+	</dict>
+	<key>UILaunchScreen</key>
+	<dict/>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+</dict>
+</plist>

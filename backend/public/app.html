@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HappyDiet</title>
+  <style>
+    :root {
+      --bg: #f2f2f7;
+      --card: #ffffff;
+      --primary: #007AFF;
+      --primary-hover: #0056b3;
+      --green: #34C759;
+      --red: #FF3B30;
+      --orange: #FF9500;
+      --gray: #8e8e93;
+      --gray-light: #c7c7cc;
+    }
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'Segoe UI', Roboto, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      min-height: 100vh;
+      padding-bottom: 80px;
+    }
+    .app-header {
+      padding: 1rem 1.25rem;
+      background: var(--card);
+      border-bottom: 1px solid rgba(0,0,0,0.06);
+      font-size: 1.25rem;
+      font-weight: 600;
+    }
+    .tab-bar {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card);
+      border-top: 1px solid rgba(0,0,0,0.06);
+      display: flex;
+      justify-content: space-around;
+      padding: 0.5rem 0;
+      z-index: 100;
+    }
+    .tab-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.25rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      background: none;
+      color: var(--gray);
+      font-size: 0.7rem;
+      cursor: pointer;
+      border-radius: 8px;
+    }
+    .tab-btn:hover { color: var(--primary); }
+    .tab-btn.active { color: var(--primary); font-weight: 600; }
+    .tab-btn svg { width: 24px; height: 24px; }
+    .panel { display: none; padding: 1.25rem; }
+    .panel.active { display: block; }
+    .card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.06);
+    }
+    .card h2 { font-size: 1rem; margin: 0 0 0.75rem 0; font-weight: 600; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 0.35rem;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-primary:disabled { background: var(--gray-light); cursor: not-allowed; }
+    .btn-secondary { background: #e5e5ea; color: #1c1c1e; }
+    .btn-secondary:hover { background: #d1d1d6; }
+    .upload-zone {
+      border: 2px dashed var(--gray-light);
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s, background 0.2s;
+    }
+    .upload-zone:hover, .upload-zone.dragover { border-color: var(--primary); background: rgba(0,122,255,0.05); }
+    .upload-zone input { display: none; }
+    .preview { max-width: 100%; max-height: 200px; border-radius: 10px; margin-top: 0.5rem; }
+    textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 0.6rem;
+      border: 1px solid var(--gray-light);
+      border-radius: 10px;
+      font-size: 0.95rem;
+      resize: vertical;
+    }
+    .score-badge {
+      display: inline-block;
+      padding: 0.3rem 0.9rem;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .score-high { background: rgba(52,199,89,0.2); color: #248a3d; }
+    .score-mid { background: rgba(255,149,0,0.2); color: #c93400; }
+    .score-low { background: rgba(255,59,48,0.2); color: #d70015; }
+    .compliance-card {
+      background: #f2f2f7;
+      border-radius: 12px;
+      padding: 1rem;
+      margin-top: 1rem;
+    }
+    .compliance-card .score-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.75rem; }
+    .speak-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0.25rem;
+      color: var(--primary);
+    }
+    .compliant { color: var(--green); }
+    .noncompliant { color: var(--red); }
+    .meal-row {
+      padding: 0.75rem;
+      border-bottom: 1px solid #eee;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .meal-row:last-child { border-bottom: none; }
+    .status { padding: 0.25rem 0.5rem; font-size: 0.8rem; border-radius: 6px; }
+    .status.ok { background: rgba(52,199,89,0.2); color: #248a3d; }
+    .status.err { background: rgba(255,59,48,0.2); color: #d70015; }
+    .config { font-size: 0.85rem; color: var(--gray); margin-bottom: 0.5rem; }
+    .config input { width: 100%; padding: 0.4rem; margin-top: 0.25rem; border-radius: 8px; border: 1px solid var(--gray-light); }
+    .camera-modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 200;
+      display: none; align-items: center; justify-content: center; flex-direction: column;
+    }
+    .camera-modal.active { display: flex; }
+    .camera-modal video { max-width: 100%; max-height: 70vh; border-radius: 10px; }
+    .camera-modal .btn { margin: 0.5rem; }
+    .rule-section { padding: 0.75rem 1rem; border-radius: 10px; margin-top: 0.5rem; }
+    .rule-section h3 { margin: 0 0 0.5rem 0; font-size: 0.95rem; }
+    .rule-items { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .rule-items span { padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.9rem; }
+    .not-allowed-section { background: rgba(255,59,48,0.1); }
+    .allowed-section { background: rgba(52,199,89,0.1); }
+    .limit-section { background: rgba(255,149,0,0.1); }
+    .note-section { background: rgba(0,122,255,0.08); }
+  </style>
+</head>
+<body>
+  <header class="app-header">HappyDiet</header>
+
+  <div class="config card" style="margin: 1rem 1.25rem;">
+    <strong>Backend URL</strong>
+    <input type="url" id="url" placeholder="Leave empty for same origin" value="">
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-btn active" data-tab="analyze">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 13v4a2 2 0 01-2 2H7a2 2 0 01-2-2v-4"/></svg>
+      Analyze
+    </button>
+    <button class="tab-btn" data-tab="diet">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+      Diet
+    </button>
+    <button class="tab-btn" data-tab="dashboard">
+      <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+      Dashboard
+    </button>
+  </div>
+
+  <div id="panel-analyze" class="panel active">
+    <div class="card">
+      <h2>Capture or select a meal photo</h2>
+      <div class="btn-row">
+        <button class="btn btn-primary" id="takePhotoBtn">Take photo</button>
+        <button class="btn btn-secondary" id="uploadBtn">Upload file</button>
+      </div>
+      <input type="file" id="file" accept="image/*" style="display:none">
+      <input type="file" id="fileCapture" accept="image/*" capture="environment" style="display:none">
+      <div class="upload-zone" id="uploadZone" style="margin-top:0.75rem">
+        <p style="margin:0;color:var(--gray)">Drop image here or use buttons above</p>
+      </div>
+      <img id="preview" class="preview" style="display:none;">
+      <button class="btn btn-primary" id="analyzeBtn" disabled style="margin-top:0.75rem">Analyze Meal</button>
+    </div>
+    <div class="card" id="resultCard" style="display:none;">
+      <h2>Result</h2>
+      <div id="result"></div>
+      <div style="display:flex;align-items:center;gap:0.5rem;margin-top:0.75rem">
+        <button class="btn btn-secondary" id="speakBtn">Speak</button>
+        <span id="ttsStatus" style="font-size:0.85rem;color:var(--gray)"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel-diet" class="panel">
+    <div class="card">
+      <h2>Diet rules</h2>
+      <p style="font-size:0.9rem;color:var(--gray);margin-bottom:0.5rem">From text or image (printed plan, handwritten notes)</p>
+      <textarea id="dietText" placeholder="e.g. No sugar, no soda, avoid bread"></textarea>
+      <div class="btn-row">
+        <button class="btn btn-secondary" id="parseBtn">Parse</button>
+        <button class="btn btn-primary" id="saveBtn">Parse & Save</button>
+        <button class="btn btn-secondary" id="dietFromImageBtn">From image</button>
+        <button class="btn btn-secondary" id="dietTakePhotoBtn">Take photo</button>
+        <button class="btn btn-secondary" id="loadRulesBtn">Load saved</button>
+      </div>
+      <input type="file" id="dietFile" accept="image/*" style="display:none">
+      <input type="file" id="dietFileCapture" accept="image/*" capture="environment" style="display:none">
+      <div id="dietImagePreview" style="display:none;margin-top:0.5rem">
+        <img id="dietPreviewImg" class="preview" style="max-height:120px">
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="parseDietImageBtn">Parse image</button>
+          <button class="btn btn-primary" id="saveDietImageBtn">Parse & Save</button>
+        </div>
+      </div>
+      <div id="rulesPreview" style="font-size:0.85rem;color:var(--gray);margin-top:0.5rem"></div>
+    </div>
+    <div id="rulesList" class="card" style="display:none"></div>
+  </div>
+
+  <div id="panel-dashboard" class="panel">
+    <div class="card">
+      <button class="btn btn-primary" id="refreshMeals">Refresh Meals</button>
+      <div id="mealsList" style="margin-top:1rem"></div>
+    </div>
+  </div>
+
+  <div id="cameraModal" class="camera-modal">
+    <video id="cameraVideo" autoplay playsinline muted></video>
+    <div>
+      <button class="btn btn-primary" id="captureBtn">Capture</button>
+      <button class="btn btn-secondary" id="cancelCameraBtn">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const url = () => ($('url').value || window.location.origin).replace(/\/$/, '');
+
+    document.querySelectorAll('.tab-btn').forEach(t => {
+      t.onclick = () => {
+        document.querySelectorAll('.tab-btn').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        $(`panel-${t.dataset.tab}`).classList.add('active');
+        if (t.dataset.tab === 'dashboard') loadMeals();
+        if (t.dataset.tab === 'diet') loadRules();
+      };
+    });
+
+    let currentBase64 = null;
+    let dietImageBase64 = null;
+    let cameraStream = null;
+    let cameraForDiet = false;
+
+    $('uploadBtn').onclick = () => $('file').click();
+    $('uploadZone').onclick = () => $('file').click();
+    $('uploadZone').ondragover = e => { e.preventDefault(); $('uploadZone').classList.add('dragover'); };
+    $('uploadZone').ondragleave = () => $('uploadZone').classList.remove('dragover');
+    $('uploadZone').ondrop = e => {
+      e.preventDefault();
+      $('uploadZone').classList.remove('dragover');
+      const f = e.dataTransfer.files[0];
+      if (f && f.type.startsWith('image/')) handleFile(f);
+    };
+
+    $('file').onchange = e => { const f = e.target.files[0]; if (f) handleFile(f); e.target.value = ''; };
+    $('fileCapture').onchange = e => { const f = e.target.files[0]; if (f) handleFile(f); e.target.value = ''; };
+
+    function setImageFromDataUrl(dataUrl) {
+      currentBase64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+      $('preview').src = dataUrl;
+      $('preview').style.display = 'block';
+      $('analyzeBtn').disabled = false;
+    }
+
+    function handleFile(file) {
+      const r = new FileReader();
+      r.onload = () => setImageFromDataUrl(r.result);
+      r.readAsDataURL(file);
+    }
+
+    async function openCamera() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        $('fileCapture').click();
+        return;
+      }
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        $('cameraVideo').srcObject = cameraStream;
+        $('cameraModal').classList.add('active');
+      } catch (e) {
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          $('cameraVideo').srcObject = cameraStream;
+          $('cameraModal').classList.add('active');
+        } catch (e2) {
+          $('fileCapture').click();
+        }
+      }
+    }
+
+    function closeCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+      }
+      $('cameraModal').classList.remove('active');
+    }
+
+    $('takePhotoBtn').onclick = () => { cameraForDiet = false; openCamera(); };
+    $('dietTakePhotoBtn').onclick = () => { cameraForDiet = true; openCamera(); };
+    $('cancelCameraBtn').onclick = closeCamera;
+
+    $('captureBtn').onclick = () => {
+      const video = $('cameraVideo');
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      if (cameraForDiet) {
+        dietImageBase64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+        $('dietPreviewImg').src = dataUrl;
+        $('dietImagePreview').style.display = 'block';
+      } else {
+        setImageFromDataUrl(dataUrl);
+      }
+      closeCamera();
+    };
+
+    function renderResult(data) {
+      const score = data.score ?? 0;
+      const scoreClass = score >= 80 ? 'score-high' : score >= 50 ? 'score-mid' : 'score-low';
+      let html = `<div class="compliance-card"><div class="score-row"><span class="score-badge ${scoreClass}">${Math.round(score)}/100</span><button class="speak-btn" title="Speak">🔊</button></div>`;
+      if (data.message) html += `<div style="margin-bottom:0.5rem">${data.message}</div>`;
+      if (data.compliantItems?.length) html += `<div class="compliant" style="font-size:0.9rem">✓ ${data.compliantItems.join(', ')}</div>`;
+      if (data.nonCompliantItems?.length) html += `<div class="noncompliant" style="font-size:0.9rem">✗ ${data.nonCompliantItems.join(', ')}</div>`;
+      if (data.suggestions?.length && data.suggestions[0] !== 'Keep up the good choices!') html += `<div style="margin-top:0.5rem;font-size:0.9rem">Suggestions: ${data.suggestions.join(' ')}</div>`;
+      if (data.estimatedKcal) html += `<div style="font-size:0.85rem;color:var(--gray);margin-top:0.5rem">Est. ${data.estimatedKcal} kcal</div>`;
+      html += '</div>';
+      $('result').innerHTML = html;
+      $('resultCard').style.display = 'block';
+      window._lastResult = data;
+      $('result').querySelector('.speak-btn')?.addEventListener('click', () => speak());
+    }
+
+    async function analyze() {
+      if (!currentBase64) return;
+      $('analyzeBtn').disabled = true;
+      $('result').innerHTML = '<p>Analyzing…</p>';
+      $('resultCard').style.display = 'block';
+
+      try {
+        const body = { image_base64: currentBase64, user_id: 'demo' };
+        const dietText = $('dietText').value.trim();
+        if (dietText) body.diet_text = dietText;
+
+        const res = await fetch(url() + '/analyze-meal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+
+        if (res.status === 503) {
+          $('result').innerHTML = '<p class="status err">Backend not configured. Set GOOGLE_CLOUD_PROJECT in .env</p>';
+        } else if (res.ok) {
+          renderResult(data);
+        } else {
+          $('result').innerHTML = `<p class="status err">Error ${res.status}: ${data.error || JSON.stringify(data)}</p>`;
+        }
+      } catch (e) {
+        $('result').innerHTML = `<p class="status err">Network error: ${e.message}</p>`;
+      }
+      $('analyzeBtn').disabled = false;
+    }
+
+    $('analyzeBtn').onclick = analyze;
+
+    async function speak() {
+      const data = window._lastResult;
+      if (!data?.message) {
+        $('ttsStatus').textContent = 'Analyze a meal first.';
+        return;
+      }
+      $('ttsStatus').textContent = 'Speaking…';
+      try {
+        const res = await fetch(url() + '/speak', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: data.message }),
+        });
+        if (res.ok) {
+          const blob = await res.blob();
+          const audio = new Audio(URL.createObjectURL(blob));
+          audio.onended = () => { $('ttsStatus').textContent = ''; URL.revokeObjectURL(audio.src); };
+          audio.onerror = () => { $('ttsStatus').textContent = 'Playback failed'; };
+          await audio.play();
+        } else if ('speechSynthesis' in window) {
+          speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(data.message);
+          u.rate = 0.95;
+          speechSynthesis.speak(u);
+          $('ttsStatus').textContent = '';
+        } else {
+          $('ttsStatus').textContent = 'TTS unavailable';
+        }
+      } catch (e) {
+        if ('speechSynthesis' in window) {
+          speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(data.message);
+          speechSynthesis.speak(u);
+        }
+        $('ttsStatus').textContent = '';
+      }
+    }
+
+    $('speakBtn').onclick = speak;
+
+    async function parseDiet(save) {
+      const text = $('dietText').value.trim();
+      if (!text) {
+        $('rulesPreview').textContent = 'Enter diet description first.';
+        return;
+      }
+      try {
+        const res = await fetch(url() + '/parse-diet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ diet_text: text, user_id: 'demo', save }),
+        });
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.rules) && data.rules.length) {
+          window._lastParsedRules = data.rules;
+          const f = data.rules.filter(r => r?.type === 'forbidden').flatMap(r => r.items || []);
+          const a = data.rules.filter(r => r?.type === 'allowed').flatMap(r => r.items || []);
+          let txt = `Parsed ${data.rules.length} rule(s). Not allowed: ${f.length ? f.join(', ') : '—'}`;
+          if (a.length) txt += `. Allowed: ${a.join(', ')}`;
+          if (data.saved) txt += ' (saved)';
+          $('rulesPreview').textContent = txt;
+          $('rulesList').style.display = 'block';
+          renderRulesList(data.rules);
+        } else {
+          $('rulesPreview').textContent = data.error || data.detail || 'Parse failed';
+        }
+      } catch (e) {
+        $('rulesPreview').textContent = 'Error: ' + e.message;
+      }
+    }
+
+    function handleDietImage(file) {
+      const r = new FileReader();
+      r.onload = () => {
+        const data = r.result;
+        dietImageBase64 = data.includes(',') ? data.split(',')[1] : data;
+        $('dietPreviewImg').src = data;
+        $('dietImagePreview').style.display = 'block';
+      };
+      r.readAsDataURL(file);
+    }
+
+    async function parseDietFromImage(save) {
+      if (!dietImageBase64) {
+        $('rulesPreview').textContent = 'Add an image first.';
+        return;
+      }
+      $('rulesPreview').textContent = 'Parsing image…';
+      try {
+        const res = await fetch(url() + '/parse-diet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image_base64: dietImageBase64, user_id: 'demo', save }),
+        });
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.rules) && data.rules.length) {
+          window._lastParsedRules = data.rules;
+          $('rulesPreview').textContent = `Parsed ${data.rules.length} rule(s) from image.` + (data.saved ? ' (saved)' : '');
+          $('rulesList').style.display = 'block';
+          renderRulesList(data.rules);
+        } else {
+          $('rulesPreview').textContent = data.error || data.detail || 'Parse failed';
+        }
+      } catch (e) {
+        $('rulesPreview').textContent = 'Error: ' + e.message;
+      }
+    }
+
+    $('dietFromImageBtn').onclick = () => { $('dietFile').click(); };
+    $('dietFile').onchange = e => { const f = e.target.files[0]; if (f) handleDietImage(f); e.target.value = ''; };
+    $('dietFileCapture').onchange = e => { const f = e.target.files[0]; if (f) handleDietImage(f); e.target.value = ''; };
+    $('parseDietImageBtn').onclick = () => parseDietFromImage(false);
+    $('saveDietImageBtn').onclick = () => parseDietFromImage(true);
+    $('parseBtn').onclick = () => parseDiet(false);
+    $('saveBtn').onclick = () => parseDiet(true);
+
+    function renderRulesList(rules) {
+      const el = $('rulesList');
+      const r = rules || window._lastParsedRules;
+      if (!r || !Array.isArray(r) || r.length === 0) {
+        el.innerHTML = '<p style="color:var(--gray)">No rules yet.</p>';
+        return;
+      }
+      const forbidden = r.filter(x => x?.type === 'forbidden').flatMap(x => (x?.items || []).filter(Boolean));
+      const allowed = r.filter(x => x?.type === 'allowed').flatMap(x => (x?.items || []).filter(Boolean));
+      const limits = r.filter(x => x?.type === 'limit');
+      const notes = r.filter(x => x?.type === 'note').map(x => x.text).filter(Boolean);
+      let html = '<h2>Full diet rules</h2>';
+      if (forbidden.length) html += `<div class="rule-section not-allowed-section"><h3>Not allowed</h3><div class="rule-items">${forbidden.map(i => `<span>${i}</span>`).join('')}</div></div>`;
+      if (allowed.length) html += `<div class="rule-section allowed-section"><h3>Allowed</h3><div class="rule-items">${allowed.map(i => `<span>${i}</span>`).join('')}</div></div>`;
+      if (limits.length) html += limits.map(l => `<div class="rule-section limit-section"><h3>Limit</h3><div class="rule-items">${(l.items || []).map(i => `<span>${i}</span>`).join('')}</div><p style="font-size:0.85rem;margin-top:0.25rem">max ${l.maxPerDay} ${l.unit}/day</p></div>`).join('');
+      if (notes.length) html += `<div class="rule-section note-section"><h3>Notes</h3><p>${notes.join(' • ')}</p></div>`;
+      el.innerHTML = html;
+    }
+
+    async function loadRules() {
+      try {
+        const res = await fetch(url() + '/rules?user_id=demo');
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.rules) && data.rules.length) {
+          window._lastParsedRules = data.rules;
+          $('rulesList').style.display = 'block';
+          renderRulesList(data.rules);
+        }
+      } catch (e) { /* ignore */ }
+    }
+
+    $('loadRulesBtn').onclick = loadRules;
+
+    async function loadMeals() {
+      const el = $('mealsList');
+      el.innerHTML = '<p>Loading…</p>';
+      try {
+        const res = await fetch(url() + '/meals?user_id=demo');
+        const data = await res.json();
+        if (res.ok && data.meals?.length) {
+          el.innerHTML = data.meals.map(m => `
+            <div class="meal-row">
+              <div>
+                <strong>${Math.round(m.complianceScore || 0)}%</strong> — ${(m.ingredients || []).slice(0, 3).join(', ')}${(m.ingredients?.length > 3) ? '…' : ''}
+              </div>
+            </div>
+          `).join('');
+        } else {
+          el.innerHTML = '<p style="color:var(--gray)">No meals yet. Analyze a meal first.</p>';
+        }
+      } catch (e) {
+        el.innerHTML = `<p class="status err">Error: ${e.message}</p>`;
+      }
+    }
+
+    $('refreshMeals').onclick = loadMeals;
+  </script>
+</body>
+</html>

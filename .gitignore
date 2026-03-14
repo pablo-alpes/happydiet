@@ -1,0 +1,56 @@
+# Environment & secrets — never commit
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials.json
+service-account*.json
+
+# Dependencies
+node_modules/
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+venv/
+.venv/
+env/
+
+# Build & output
+dist/
+build/
+*.egg-info/
+.eggs/
+*.egg
+
+# IDE & OS
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs & temp
+*.log
+tmp/
+temp/
+.cache/
+
+# iOS (Xcode)
+ios/**/DerivedData/
+ios/**/*.xcuserstate
+ios/**/*.xcworkspace/xcuserdata/
+*.moved-aside
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+test-results/
+coverage/
+
+# GCP / Cloud
+.gcloud/

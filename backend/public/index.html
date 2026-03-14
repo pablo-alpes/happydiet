@@ -1,0 +1,1598 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HappyDiet — AI Diet Coach</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #faf9f6; --card: #fff; --accent: #2d6a4f; --accent-light: #40916c;
+      --accent-muted: rgba(45,106,79,0.12); --green: #2d6a4f; --red: #d62828;
+      --orange: #f77f00; --gray: #6c757d; --gray-light: #adb5bd;
+      --text: #1a1a1a; --text-muted: #495057; --radius: 14px;
+      --shadow: 0 4px 20px rgba(0,0,0,0.06);
+    }
+    * { box-sizing: border-box; }
+    body { font-family: 'DM Sans', sans-serif; margin: 0; padding: 0; background: var(--bg); color: var(--text); min-height: 100vh; }
+    .app-header {
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%);
+      color: white; padding: 1rem 1.5rem; display: flex; align-items: center; justify-content: space-between;
+    }
+    .app-header h1 { font-family: 'Space Grotesk', sans-serif; font-size: 1.4rem; margin: 0; }
+    .app-header .tagline { font-size: 0.8rem; opacity: 0.9; }
+    .nav-tabs { display: flex; gap: 0.25rem; padding: 0.75rem 1rem; background: var(--card); border-bottom: 1px solid #eee; overflow-x: auto; }
+    .nav-tab { padding: 0.5rem 1rem; border: none; background: transparent; color: var(--gray); font-family: inherit; font-size: 0.9rem; font-weight: 500; cursor: pointer; border-radius: 10px; white-space: nowrap; }
+    .nav-tab:hover { color: var(--accent); background: var(--accent-muted); }
+    .nav-tab.active { color: var(--accent); background: var(--accent-muted); }
+    .content { max-width: 900px; margin: 0 auto; padding: 1.25rem; padding-bottom: 5rem; }
+    .panel { display: none; }
+    .panel.active { display: block; animation: fadeIn 0.3s; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .card { background: var(--card); border-radius: var(--radius); padding: 1.25rem; margin-bottom: 1rem; box-shadow: var(--shadow); }
+    .card h2 { font-family: 'Space Grotesk', sans-serif; font-size: 1.1rem; margin: 0 0 0.75rem 0; }
+    .btn { padding: 0.5rem 1rem; border: none; border-radius: 10px; font-family: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer; display: inline-flex; align-items: center; gap: 0.4rem; }
+    .btn-primary { background: var(--accent); color: white; }
+    .btn-primary:hover { background: var(--accent-light); }
+    .btn-primary:disabled { background: var(--gray-light); cursor: not-allowed; }
+    .btn-secondary { background: #e9ecef; color: var(--text); }
+    .btn-secondary:hover { background: #dee2e6; }
+    .btn-row { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    .upload-zone { border: 2px dashed var(--gray-light); border-radius: var(--radius); padding: 1.5rem; text-align: center; cursor: pointer; transition: all 0.2s; margin-top: 0.5rem; }
+    .upload-zone:hover, .upload-zone.dragover { border-color: var(--accent); background: var(--accent-muted); }
+    .upload-zone input { display: none; }
+    .preview { max-width: 100%; max-height: 180px; border-radius: 10px; margin-top: 0.5rem; }
+    textarea { width: 100%; min-height: 90px; padding: 0.6rem; border: 1px solid #dee2e6; border-radius: 10px; font-size: 0.95rem; resize: vertical; }
+    .config { font-size: 0.85rem; color: var(--gray); margin-bottom: 0.5rem; }
+    .config input { width: 100%; padding: 0.5rem; margin-top: 0.25rem; border-radius: 8px; border: 1px solid #dee2e6; }
+    .rules-intro { background: linear-gradient(135deg, rgba(45,106,79,0.08) 0%, rgba(64,145,108,0.04) 100%); border-radius: 14px; padding: 1.5rem; margin-bottom: 1.5rem; border: 1px solid rgba(45,106,79,0.15); }
+    .rules-intro h3 { font-size: 1.05rem; margin: 0 0 0.5rem 0; color: var(--accent); font-weight: 600; }
+    .rules-intro p { margin: 0; font-size: 0.92rem; line-height: 1.6; color: var(--text-muted); }
+    .rules-how { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    @media (max-width: 640px) { .rules-how { grid-template-columns: repeat(2, 1fr); } }
+    .rules-how-item { padding: 1rem; border-radius: 12px; font-size: 0.9rem; text-align: center; box-shadow: 0 1px 3px rgba(0,0,0,0.06); transition: transform 0.15s ease; }
+    .rules-how-item:hover { transform: translateY(-2px); }
+    .rules-how-item.forbidden { background: linear-gradient(135deg, rgba(214,40,40,0.12) 0%, rgba(185,28,28,0.06) 100%); color: #b91c1c; border: 1px solid rgba(214,40,40,0.2); }
+    .rules-how-item.allowed { background: linear-gradient(135deg, rgba(45,106,79,0.12) 0%, rgba(34,139,34,0.06) 100%); color: var(--green); border: 1px solid rgba(45,106,79,0.2); }
+    .rules-how-item.limit { background: linear-gradient(135deg, rgba(247,127,0,0.12) 0%, rgba(194,65,12,0.06) 100%); color: #c2410c; border: 1px solid rgba(247,127,0,0.2); }
+    .rules-how-item.note { background: linear-gradient(135deg, rgba(108,117,125,0.1) 0%, rgba(73,80,87,0.06) 100%); color: var(--gray); border: 1px solid rgba(108,117,125,0.15); }
+    .rules-how-item .icon { font-size: 1.75rem; margin-bottom: 0.35rem; display: block; }
+    .rules-how-item .label { font-weight: 700; display: block; font-size: 0.95rem; letter-spacing: 0.02em; }
+    .rules-how-item .desc { font-size: 0.78rem; opacity: 0.9; margin-top: 0.25rem; line-height: 1.3; }
+    .rules-plan-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 0.5rem; }
+    @media (max-width: 768px) { .rules-plan-grid { grid-template-columns: 1fr; } }
+    .rule-section { padding: 1.25rem 1.5rem; border-radius: 14px; border-left: 5px solid transparent; box-shadow: 0 1px 4px rgba(0,0,0,0.05); transition: box-shadow 0.2s ease; }
+    .rule-section:hover { box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+    .rule-section h3 { font-size: 1rem; margin: 0 0 0.75rem 0; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; letter-spacing: 0.01em; }
+    .rule-section .why { font-size: 0.82rem; color: var(--text-muted); margin-top: 0.6rem; line-height: 1.45; font-style: italic; }
+    .rule-items { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+    .rule-items span { padding: 0.4rem 0.8rem; border-radius: 10px; font-size: 0.9rem; font-weight: 500; }
+    .rule-section.not-allowed { background: linear-gradient(135deg, rgba(214,40,40,0.08) 0%, rgba(185,28,28,0.04) 100%); border-left-color: #d62828; }
+    .rule-section.not-allowed h3 { color: #b91c1c; }
+    .rule-section.not-allowed .rule-items span { background: rgba(214,40,40,0.18); color: #b91c1c; }
+    .rule-section.allowed { background: linear-gradient(135deg, rgba(45,106,79,0.08) 0%, rgba(34,139,34,0.04) 100%); border-left-color: var(--accent); }
+    .rule-section.allowed h3 { color: var(--green); }
+    .rule-section.allowed .rule-items span { background: rgba(45,106,79,0.18); color: var(--green); }
+    .rule-section.limit { background: linear-gradient(135deg, rgba(247,127,0,0.08) 0%, rgba(194,65,12,0.04) 100%); border-left-color: var(--orange); }
+    .rule-section.limit h3 { color: #c2410c; }
+    .rule-section.limit .rule-items span { background: rgba(247,127,0,0.18); color: #c2410c; }
+    .rule-section.limit .limit-max { font-size: 0.9rem; font-weight: 600; margin-top: 0.4rem; color: #c2410c; }
+    .rule-section.note { background: linear-gradient(135deg, rgba(108,117,125,0.08) 0%, rgba(73,80,87,0.04) 100%); border-left-color: var(--gray); }
+    .rule-section.note h3 { color: var(--gray); }
+    .rule-section.note .note-text { font-size: 0.95rem; color: var(--text-muted); margin: 0; line-height: 1.55; }
+    .meal-row { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; border-bottom: 1px solid #eee; }
+    .meal-row:last-child { border-bottom: none; }
+    .meal-score { font-weight: 700; padding: 0.3rem 0.6rem; border-radius: 8px; flex-shrink: 0; }
+    .score-high { background: rgba(45,106,79,0.15); color: var(--green); }
+    .score-mid { background: rgba(247,127,0,0.15); color: var(--orange); }
+    .score-low { background: rgba(214,40,40,0.15); color: var(--red); }
+    .trend-chart { display: flex; align-items: flex-end; gap: 0.4rem; height: 100px; margin-top: 0.75rem; }
+    .trend-bar { flex: 1; background: linear-gradient(180deg, var(--accent-light) 0%, var(--accent) 100%); border-radius: 6px 6px 0 0; min-height: 6px; }
+    .trend-labels { display: flex; justify-content: space-between; margin-top: 0.4rem; font-size: 0.7rem; color: var(--gray); }
+    .camera-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; display: none; align-items: center; justify-content: center; flex-direction: column; }
+    .camera-modal.active { display: flex; }
+    .camera-modal video { max-width: 100%; max-height: 70vh; border-radius: 10px; }
+    .camera-modal .btn { margin: 0.5rem; }
+    .chat-container { display: flex; flex-direction: column; height: 420px; }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+    .chat-msg { max-width: 85%; padding: 0.75rem 1rem; border-radius: 14px; font-size: 0.95rem; line-height: 1.4; }
+    .chat-msg.user { align-self: flex-end; background: var(--accent); color: white; }
+    .chat-msg.coach { align-self: flex-start; background: #f1f3f4; color: var(--text); }
+    .chat-input-row { display: flex; gap: 0.5rem; padding: 0.75rem; border-top: 1px solid #eee; }
+    .chat-input-row input { flex: 1; padding: 0.6rem 1rem; border: 1px solid #dee2e6; border-radius: 10px; font-size: 0.95rem; }
+    .chat-input-row input:focus { outline: none; border-color: var(--accent); }
+    .chat-status { font-size: 0.8rem; color: var(--gray); padding: 0.25rem 0; }
+    .speak-btn { background: none; border: none; cursor: pointer; padding: 0.25rem; font-size: 1.1rem; opacity: 0.8; }
+    .speak-btn:hover { opacity: 1; }
+    .chat-input-row .btn.listening { background: rgba(214,40,40,0.2); color: #b91c1c; }
+    #chatImageBtn.disabled { pointer-events: none; opacity: 0.5; cursor: not-allowed; }
+    .analysis-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem; }
+    @media (max-width: 600px) { .analysis-grid { grid-template-columns: 1fr; } }
+    .analysis-block { padding: 1rem; border-radius: 10px; }
+    .analysis-block.ingredients { background: #f8f9fa; }
+    .analysis-block.compliant { background: rgba(45,106,79,0.1); }
+    .analysis-block.noncompliant { background: rgba(214,40,40,0.1); }
+    .analysis-block.suggestions { background: rgba(247,127,0,0.1); }
+    .analysis-block h4 { margin: 0 0 0.5rem 0; font-size: 0.9rem; }
+    .analysis-block ul { margin: 0; padding-left: 1.2rem; }
+    .analysis-block li { margin: 0.25rem 0; }
+    .compliance-hero { display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--accent-muted); border-radius: var(--radius); margin-bottom: 1rem; }
+    .compliance-hero .score { font-size: 2rem; font-weight: 700; }
+    .compliance-hero .message { font-size: 0.95rem; color: var(--text-muted); margin-top: 0.25rem; }
+    .insight-card { background: linear-gradient(135deg, var(--accent-muted) 0%, rgba(64,145,108,0.08) 100%); border-left: 4px solid var(--accent); padding: 0.9rem 1rem; border-radius: 0 10px 10px 0; margin-bottom: 0.75rem; font-size: 0.9rem; }
+    .insight-card strong { color: var(--accent); }
+    .meal-suggestion { padding: 0.6rem 1rem; background: #f8f9fa; border-radius: 10px; margin-bottom: 0.5rem; font-size: 0.9rem; }
+    .meal-suggestion .meal-type { font-weight: 600; color: var(--accent); margin-right: 0.5rem; }
+    .weight-row { display: flex; justify-content: space-between; align-items: center; padding: 0.6rem 0; border-bottom: 1px solid #eee; }
+    .weight-row:last-child { border-bottom: none; }
+    .weight-input-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; margin-top: 0.5rem; }
+    .weight-input-row input { width: 80px; padding: 0.5rem; border-radius: 8px; border: 1px solid #dee2e6; }
+    .weight-input-row input[type="text"] { flex: 1; min-width: 120px; }
+    .generated-meal-img { max-width: 100%; max-height: 280px; border-radius: 12px; box-shadow: var(--shadow); }
+    .coach-float { position: fixed; top: 0; right: 0; bottom: 0; z-index: 100; display: flex; flex-direction: row-reverse; align-items: stretch; }
+    .coach-float-btn { width: 56px; height: 56px; border-radius: 50%; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%); color: white; border: none; box-shadow: 0 4px 20px rgba(45,106,79,0.4); font-size: 1.5rem; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; align-self: flex-end; margin: 1rem; flex-shrink: 0; }
+    .coach-float-btn:hover { transform: scale(1.05); }
+    .coach-float-panel { width: 400px; max-width: 100vw; height: 100vh; background: var(--card); box-shadow: -4px 0 24px rgba(0,0,0,0.12); border-left: 1px solid #eee; overflow: hidden; flex-direction: column; display: flex; flex-shrink: 0; }
+    .coach-float-panel.collapsed { display: none; }
+    .coach-float-header { padding: 0.75rem 1rem; background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%); color: white; display: flex; justify-content: space-between; align-items: center; }
+    .coach-float-header h4 { margin: 0; font-size: 1rem; }
+    .coach-float-close { background: none; border: none; color: white; font-size: 1.2rem; cursor: pointer; padding: 0.25rem; opacity: 0.9; }
+    .coach-float-close:hover { opacity: 1; }
+    .coach-float-body { flex: 1; overflow: hidden; display: flex; flex-direction: column; padding: 0.75rem; min-height: 0; }
+    .coach-float .chat-messages { flex: 1; min-height: 180px; overflow-y: auto; }
+    .chat-status-bar { display: flex; align-items: center; gap: 0.75rem; padding: 0.5rem 0.75rem; background: #f8f9fa; border-radius: 10px; margin-bottom: 0.5rem; font-size: 0.85rem; flex-wrap: wrap; }
+    .chat-status-bar .status-item { display: flex; align-items: center; gap: 0.35rem; }
+    .chat-status-bar .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--gray-light); }
+    .chat-status-bar .status-dot.connected { background: var(--accent); }
+    .chat-status-bar .status-dot.listening { background: #d62828; animation: pulse-dot 1s ease-in-out infinite; }
+    .chat-status-bar .status-dot.speaking { background: var(--orange); animation: pulse-dot 1s ease-in-out infinite; }
+    @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.6; transform: scale(1.2); } }
+    .chat-status-bar .status-label { color: var(--text-muted); }
+    .chat-status-bar .status-label.active { color: var(--accent); font-weight: 600; }
+    .chat-status-bar .status-label.listening { color: #d62828; font-weight: 600; }
+    .chat-status-bar .status-label.speaking { color: var(--orange); font-weight: 600; }
+    .coach-float .chat-input-row { padding: 0.5rem 0; }
+    .chatMicBtn.listening { background: rgba(214,40,40,0.2) !important; color: #d62828 !important; box-shadow: 0 0 0 2px rgba(214,40,40,0.4); animation: pulse-mic 1.5s ease-in-out infinite; }
+    @keyframes pulse-mic { 0%, 100% { box-shadow: 0 0 0 2px rgba(214,40,40,0.4); } 50% { box-shadow: 0 0 0 6px rgba(214,40,40,0.2); } }
+    .coach-float .prompt-btn { display: block; width: 100%; text-align: left; padding: 0.4rem 0.6rem; margin: 0.2rem 0; border-radius: 8px; border: 1px solid #eee; background: #fafafa; font-size: 0.8rem; cursor: pointer; color: var(--text); transition: all 0.2s; }
+    .coach-float .prompt-btn:hover { background: var(--accent-muted); border-color: var(--accent); color: var(--accent); }
+    .predefined-tasks { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.25rem; }
+    .predefined-tasks .task-chip { padding: 0.35rem 0.6rem; border-radius: 8px; font-size: 0.78rem; background: #f0f4f0; border: 1px solid rgba(45,106,79,0.2); color: var(--accent); cursor: pointer; transition: all 0.2s; }
+    .predefined-tasks .task-chip:hover { background: var(--accent-muted); }
+    .profile-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; margin-bottom: 0.25rem; }
+    .profile-chips .profile-chip { padding: 0.35rem 0.6rem; border-radius: 8px; font-size: 0.78rem; background: #f8f9fa; border: 1px solid #dee2e6; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+    .profile-chips .profile-chip.selected { background: var(--accent-muted); border-color: var(--accent); color: var(--accent); font-weight: 500; }
+    .impact-card { padding: 1rem 1.25rem; border-radius: 12px; margin-bottom: 0.75rem; }
+    .impact-card.good { background: linear-gradient(135deg, rgba(45,106,79,0.12) 0%, rgba(64,145,108,0.06) 100%); border-left: 4px solid var(--accent); }
+    .impact-card.bad { background: linear-gradient(135deg, rgba(214,40,40,0.08) 0%, rgba(214,40,40,0.04) 100%); border-left: 4px solid var(--red); }
+    .impact-card h4 { margin: 0 0 0.4rem 0; font-size: 0.95rem; }
+    .impact-card p { margin: 0; font-size: 0.9rem; line-height: 1.5; color: var(--text-muted); }
+    .dashboard-hero { background: linear-gradient(135deg, var(--accent) 0%, var(--accent-light) 100%); color: white; padding: 1.5rem; border-radius: var(--radius); margin-bottom: 1.25rem; }
+    .dashboard-hero h2 { margin: 0 0 0.25rem 0; font-size: 1.3rem; }
+    .dashboard-hero p { margin: 0; font-size: 0.9rem; opacity: 0.95; }
+    .feedback-quick .feedback-label { font-size: 0.85rem; color: var(--gray); margin-right: 0.5rem; }
+    .feedback-add-row { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+    .feedback-add-row input { flex: 1; min-width: 180px; padding: 0.5rem 0.75rem; border-radius: 10px; border: 1px solid #dee2e6; font-size: 0.9rem; }
+    .feedback-entry { padding: 0.6rem 1rem; background: #f8f9fa; border-radius: 10px; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center; }
+    .feedback-entry .date { font-size: 0.75rem; color: var(--gray); }
+    .feedback-entry .text { flex: 1; margin-right: 0.5rem; }
+    .feedback-chip { padding: 0.3rem 0.6rem; border-radius: 8px; font-size: 0.8rem; background: rgba(247,127,0,0.15); color: #c2410c; border: none; cursor: pointer; margin: 0.2rem; }
+    .feedback-chip:hover { background: rgba(247,127,0,0.25); }
+    .checkin-row { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+    .checkin-row select { padding: 0.5rem; border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.9rem; }
+    .task-item { display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 1rem; background: #f8f9fa; border-radius: 10px; margin-bottom: 0.5rem; }
+    .task-item.done { opacity: 0.6; }
+    .task-item input[type="checkbox"] { flex-shrink: 0; }
+    .task-item .text { flex: 1; font-size: 0.9rem; }
+    .task-item .due { font-size: 0.75rem; color: var(--gray); }
+    .next-meal-tip { padding: 0.9rem 1rem; background: linear-gradient(135deg, var(--accent-muted) 0%, rgba(64,145,108,0.08) 100%); border-radius: 10px; margin-bottom: 1rem; border-left: 4px solid var(--accent); font-size: 0.95rem; }
+    .next-meal-tip strong { color: var(--accent); }
+    .next-meal-with-img { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
+    .next-meal-with-img .tip-text { flex: 1; min-width: 200px; }
+    .next-meal-with-img .meal-proposal-img { width: 160px; height: 120px; object-fit: cover; border-radius: 12px; box-shadow: var(--shadow); flex-shrink: 0; }
+    .hero-page { position: fixed; inset: 0; z-index: 300; background: linear-gradient(160deg, var(--accent) 0%, var(--accent-light) 50%, #1b4332 100%); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
+    .hero-page.hidden { display: none; }
+    .hero-page h1 { font-family: 'Space Grotesk', sans-serif; font-size: 2.5rem; margin: 0 0 0.5rem 0; }
+    .hero-page .tagline { font-size: 1.1rem; opacity: 0.95; max-width: 400px; margin: 0 0 2rem 0; line-height: 1.5; }
+    .hero-page .btn-hero { padding: 0.9rem 2rem; font-size: 1.1rem; border-radius: 14px; background: white; color: var(--accent); font-weight: 700; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.2); transition: transform 0.2s; }
+    .hero-page .btn-hero:hover { transform: scale(1.05); }
+    .app-wrap { display: none; }
+    .app-wrap.visible { display: block; }
+    body.coach-open .app-wrap { margin-right: 400px; transition: margin-right 0.2s ease; }
+    .target-row { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; margin-top: 0.5rem; }
+    .target-row input, .target-row select { padding: 0.5rem; border-radius: 8px; border: 1px solid #dee2e6; font-size: 0.9rem; }
+    .target-row input[type="number"] { width: 80px; }
+    .target-row input[type="date"] { min-width: 140px; }
+    .target-badge { display: inline-block; padding: 0.4rem 0.8rem; border-radius: 10px; font-size: 0.85rem; font-weight: 600; margin-top: 0.5rem; }
+    .target-badge.lose { background: rgba(45,106,79,0.15); color: var(--green); }
+    .target-badge.maintain { background: rgba(108,117,125,0.15); color: var(--gray); }
+    .target-badge.build { background: rgba(247,127,0,0.15); color: var(--orange); }
+  </style>
+</head>
+<body>
+  <!-- Hero: first screen before entering app -->
+  <div class="hero-page" id="heroPage">
+    <h1>HappyDiet</h1>
+    <p class="tagline">Your AI diet coach — type or speak freely. Track meals, weight, and goals. The coach is always here.</p>
+    <button class="btn-hero" id="heroEnterBtn">Get started</button>
+  </div>
+
+  <div class="app-wrap" id="appWrap">
+  <header class="app-header">
+    <div>
+      <h1>HappyDiet</h1>
+      <div class="tagline">AI diet coach — Type or speak freely. Coach replies in text + voice.</div>
+    </div>
+  </header>
+
+  <nav class="nav-tabs">
+    <button class="nav-tab active" data-tab="dashboard">📊 Dashboard</button>
+    <button class="nav-tab" data-tab="diet">📋 Diet Rules</button>
+    <button class="nav-tab" data-tab="analyze">📷 Analyze Meal</button>
+  </nav>
+
+  <main class="content">
+    <!-- DIET: Upload, parse, save rules -->
+    <div id="panel-diet" class="panel">
+      <div class="card">
+        <h2>Upload or type your diet plan</h2>
+        <p class="config">From text or image (printed plan, handwritten notes, PDF screenshot)</p>
+        <textarea id="dietText" placeholder="e.g. No sugar, no soda, avoid white bread. Allowed: vegetables, lean protein, whole grains. Max 2 coffees per day."></textarea>
+        <div class="btn-row">
+          <button class="btn btn-secondary" id="parseBtn">Parse</button>
+          <button class="btn btn-primary" id="saveBtn">Parse & Save</button>
+          <button class="btn btn-secondary" id="dietFromImageBtn">📷 From image</button>
+          <button class="btn btn-secondary" id="dietTakePhotoBtn">📷 Take photo</button>
+          <button class="btn btn-secondary" id="loadRulesBtn">Load saved</button>
+        </div>
+        <input type="file" id="dietFile" accept="image/*" style="display:none">
+        <input type="file" id="dietFileCapture" accept="image/*" capture="environment" style="display:none">
+        <div id="dietImagePreview" style="display:none;margin-top:0.75rem">
+          <img id="dietPreviewImg" class="preview" style="max-height:140px">
+          <div class="btn-row">
+            <button class="btn btn-secondary" id="parseDietImageBtn">Parse image</button>
+            <button class="btn btn-primary" id="saveDietImageBtn">Parse & Save</button>
+          </div>
+        </div>
+        <div id="rulesPreview" style="font-size:0.85rem;color:var(--gray);margin-top:0.5rem"></div>
+      </div>
+      <div class="card" id="rulesListCard" style="display:none">
+        <h2>Your diet plan</h2>
+        <div class="rules-intro">
+          <h3>How it works</h3>
+          <p>Your plan is parsed into four types of rules. The coach and meal analyzer use these to guide you — ask "why can't I eat X?" and the coach will explain based on your rules.</p>
+        </div>
+        <div class="rules-how" id="rulesHow">
+          <div class="rules-how-item forbidden"><span class="icon">🚫</span><span class="label">Avoid</span><span class="desc">Foods to skip</span></div>
+          <div class="rules-how-item allowed"><span class="icon">✓</span><span class="label">Prefer</span><span class="desc">Foods to choose</span></div>
+          <div class="rules-how-item limit"><span class="icon">⚖</span><span class="label">Limit</span><span class="desc">Max per day</span></div>
+          <div class="rules-how-item note"><span class="icon">📝</span><span class="label">Notes</span><span class="desc">Tips & reasons</span></div>
+        </div>
+        <div class="rules-plan-grid" id="rulesList"></div>
+      </div>
+      <div class="card" id="feedbackCard">
+        <h2>Compliance feedback — what's difficult?</h2>
+        <p class="config">Log what you struggle with. The coach uses this for coaching sessions to help you improve or stay on track.</p>
+        <div class="feedback-quick">
+          <span class="feedback-label">Quick add:</span>
+          <div class="btn-row" id="feedbackQuickBtns"></div>
+        </div>
+        <div class="feedback-add-row" style="margin-top:0.75rem">
+          <input type="text" id="feedbackInput" placeholder="e.g. Dinners slip when I eat out, soda cravings at 3pm…">
+          <button class="btn btn-primary" id="feedbackAddBtn">Add</button>
+        </div>
+        <div id="feedbackList" style="margin-top:1rem;font-size:0.9rem"></div>
+      </div>
+    </div>
+
+    <!-- ANALYZE: Meal photo → full compliance breakdown -->
+    <div id="panel-analyze" class="panel">
+      <div class="card">
+        <div class="config">
+          <strong>Backend URL</strong>
+          <input type="url" id="url" placeholder="Same origin (leave empty)">
+        </div>
+        <h2>Capture or upload meal photo</h2>
+        <p class="config">Analyze the meal — connect the coach to hear the result in Gemini's voice.</p>
+        <div class="btn-row">
+          <button class="btn btn-primary" id="takePhotoBtn">📷 Take photo</button>
+          <button class="btn btn-secondary" id="uploadBtn">Upload</button>
+        </div>
+        <div class="upload-zone" id="uploadZone">
+          <p style="margin:0;color:var(--gray)">Drop image here or use buttons above</p>
+        </div>
+        <input type="file" id="file" accept="image/*" style="display:none">
+        <input type="file" id="fileCapture" accept="image/*" capture="environment" style="display:none">
+        <img id="preview" class="preview" style="display:none">
+        <button class="btn btn-primary" id="analyzeBtn" disabled style="margin-top:0.75rem">Analyze Meal</button>
+      </div>
+      <div class="card" id="resultCard" style="display:none">
+        <h2>Analysis result</h2>
+        <div id="result"></div>
+        <p class="config" style="margin-top:1rem;font-size:0.85rem">Connect the coach to hear the analysis in Gemini's voice.</p>
+        <div class="meal-checkin" id="mealCheckin" style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee">
+          <h4 style="margin:0 0 0.5rem 0;font-size:0.95rem">Quick check-in (optional)</h4>
+          <p class="config" style="margin-bottom:0.5rem">Weight & how you feel — the coach uses this. Or ask in chat: "How's my weight today?"</p>
+          <div class="checkin-row">
+            <input type="number" id="checkinWeight" placeholder="Weight (kg)" step="0.1" min="30" max="300" style="width:90px">
+            <select id="checkinEnergy"><option value="">Energy</option><option value="great">Great</option><option value="okay">Okay</option><option value="tired">Tired</option></select>
+            <select id="checkinMood"><option value="">Mood</option><option value="good">Good</option><option value="neutral">Neutral</option><option value="low">Low</option></select>
+            <select id="checkinHunger"><option value="">Hunger</option><option value="satisfied">Satisfied</option><option value="okay">Okay</option><option value="hungry">Hungry</option></select>
+            <button class="btn btn-primary" id="checkinSaveBtn">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- DASHBOARD -->
+    <div id="panel-dashboard" class="panel active">
+      <div class="dashboard-hero">
+        <h2>Your progress</h2>
+        <p>Track weight, compliance, and meals. Good choices add up — the coach explains the impact below.</p>
+      </div>
+      <div class="card">
+        <h2>Your targets</h2>
+        <p class="config">Set your goals — the coach uses these to guide you.</p>
+        <div class="target-row">
+          <select id="targetGoal">
+            <option value="lose">Lose weight</option>
+            <option value="maintain">Maintain</option>
+            <option value="build">Build muscle</option>
+          </select>
+          <input type="number" id="targetWeight" placeholder="Target kg" step="0.1" min="30" max="300">
+          <input type="date" id="targetDate" placeholder="Target date">
+          <button class="btn btn-primary" id="targetSaveBtn">Save</button>
+        </div>
+        <div id="targetDisplay" style="margin-top:0.75rem;font-size:0.9rem"></div>
+      </div>
+      <div class="card" id="nextMealTipCard">
+        <h2>Next meal time</h2>
+        <div id="nextMealTipDashboard" class="next-meal-tip"></div>
+      </div>
+      <div class="card" id="insightsCard" style="display:none">
+        <h2>Insights & meal suggestions</h2>
+        <p class="config">Tips to steer your diet and meal ideas based on your plan.</p>
+        <div id="insightsList"></div>
+        <div id="mealSuggestionsList" style="margin-top:1rem"></div>
+        <div class="generate-image-row" style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid #eee">
+          <h4 style="margin:0 0 0.5rem 0;font-size:0.95rem">Generate meal image</h4>
+          <p class="config" style="margin-bottom:0.5rem">Create a visual of a compliant meal based on your plan.</p>
+          <div class="btn-row">
+            <button class="btn btn-secondary" id="genBreakfastBtn">🍳 Breakfast</button>
+            <button class="btn btn-secondary" id="genLunchBtn">🥗 Lunch</button>
+            <button class="btn btn-secondary" id="genDinnerBtn">🍽 Dinner</button>
+          </div>
+          <div id="generatedImageWrap" style="display:none;margin-top:1rem">
+            <img id="generatedImage" class="generated-meal-img" alt="Generated meal">
+            <div id="generatedExplanation" class="generated-explanation" style="display:none;margin-top:0.75rem;padding:0.75rem;background:var(--accent-muted);border-radius:10px;font-size:0.9rem;line-height:1.5"></div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Weight & self-reported</h2>
+        <p class="config">Log your weight and optional note (e.g. how you feel, hunger level).</p>
+        <div class="weight-input-row">
+          <input type="number" id="weightInput" placeholder="kg" step="0.1" min="30" max="300">
+          <input type="text" id="weightNoteInput" placeholder="Optional: e.g. felt bloated, good energy">
+          <button class="btn btn-primary" id="logWeightBtn">Log</button>
+        </div>
+        <div id="weightList" style="margin-top:1rem;font-size:0.9rem"></div>
+      </div>
+      <div class="card">
+        <h2>Compliance trend (14 days)</h2>
+        <div class="trend-chart" id="trendChart"></div>
+        <div class="trend-labels" id="trendLabels"></div>
+      </div>
+      <div class="card">
+        <h2>Impact: good vs poor compliance</h2>
+        <p class="config">What the coach says about sticking to your plan — and what happens when you slip.</p>
+        <div class="impact-card good">
+          <h4>✓ Good results (80%+ compliance)</h4>
+          <p>More energy, steadier weight, better sleep. Your body responds when you stay consistent — the coach celebrates wins and helps you keep the momentum.</p>
+        </div>
+        <div class="impact-card bad">
+          <h4>✗ Poor results (&lt;50% compliance)</h4>
+          <p>Slips happen. The coach doesn't judge — it helps you understand why certain foods set you back and suggests small swaps to get back on track.</p>
+        </div>
+      </div>
+      <div class="card">
+        <h2>Coach tasks</h2>
+        <p class="config">Tasks from your coach to keep you engaged. Mark done when complete.</p>
+        <div id="tasksList" style="margin-top:0.5rem"></div>
+      </div>
+      <div class="card">
+        <h2>Recent meals</h2>
+        <button class="btn btn-secondary" id="refreshMeals">Refresh</button>
+        <div id="mealsList" style="margin-top:1rem"></div>
+      </div>
+    </div>
+  </main>
+  </div>
+
+  <!-- Coach popup: visible after entering from hero -->
+  <div class="coach-float" id="coachFloat" style="display:none">
+    <div class="coach-float-panel" id="coachPanel">
+      <div class="coach-float-header">
+        <h4>💬 Ask your coach</h4>
+        <button class="coach-float-close" id="coachCloseBtn" title="Minimize">−</button>
+      </div>
+      <div class="coach-float-body">
+        <div class="btn-row">
+          <button class="btn btn-primary" id="chatConnectBtn">Connect</button>
+          <button class="btn btn-secondary" id="chatDisconnectBtn" disabled>Disconnect</button>
+        </div>
+        <div class="chat-status-bar" id="chatStatusBar">
+          <span class="status-item"><span class="status-dot" id="statusDotConn"></span><span class="status-label" id="statusConn">Disconnected</span></span>
+          <span class="status-item"><span class="status-dot" id="statusDotMic"></span><span class="status-label" id="statusMic">Mic off</span></span>
+          <span class="status-item"><span class="status-dot" id="statusDotCoach"></span><span class="status-label" id="statusCoach">Coach idle</span></span>
+        </div>
+        <div class="chat-messages" id="chatMessages"></div>
+        <div class="chat-input-row">
+          <label class="btn btn-secondary disabled" id="chatImageBtn" title="Share meal photo — connect first" style="margin:0;cursor:pointer">📷</label>
+          <input type="file" id="chatImageFile" accept="image/*" style="display:none">
+          <button type="button" class="btn btn-secondary chatMicBtn" id="chatMicBtn" disabled title="Tap to speak — coach will hear you">🎤</button>
+          <input type="text" id="chatInput" placeholder="Type or speak — ask anything…" disabled>
+          <button type="button" class="btn btn-primary" id="chatSendBtn" disabled>Send</button>
+        </div>
+        <div id="coachTasksMini" style="margin-top:0.5rem;font-size:0.8rem;max-height:60px;overflow-y:auto"></div>
+        <div style="margin-top:0.75rem;margin-bottom:0.25rem;font-size:0.85rem"><strong>Add task:</strong></div>
+        <div id="coachPredefinedTasks" class="predefined-tasks"></div>
+        <div style="margin-top:0.75rem;margin-bottom:0.25rem;font-size:0.85rem"><strong>My diet profile:</strong></div>
+        <div id="coachProfile" class="profile-chips"></div>
+        <div style="margin-top:0.75rem;margin-bottom:0.25rem">Quick prompts:</div>
+        <div id="coachPrompts"></div>
+      </div>
+    </div>
+    <button class="coach-float-btn" id="coachToggleBtn" title="Open coach">💬</button>
+  </div>
+
+  <div id="cameraModal" class="camera-modal">
+    <video id="cameraVideo" autoplay playsinline muted></video>
+    <div>
+      <button class="btn btn-primary" id="captureBtn">Capture</button>
+      <button class="btn btn-secondary" id="cancelCameraBtn">Cancel</button>
+    </div>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const url = () => {
+      const val = $('url').value?.trim();
+      if (val) return val.replace(/\/$/, '');
+      const o = window.location.origin;
+      if (o && o !== 'null' && !o.startsWith('file:')) return o.replace(/\/$/, '');
+      return 'http://localhost:8080';
+    };
+    const wsUrl = () => { const u = url(); return (u.startsWith('https') ? 'wss' : 'ws') + '://' + (new URL(u)).host + '/live'; };
+
+    const MOCK_MEALS = [
+      { mealMoment: 'breakfast', ingredients: ['oatmeal', 'banana', 'almonds'], estimatedKcal: 380, complianceScore: 92 },
+      { mealMoment: 'lunch', ingredients: ['grilled chicken', 'salad', 'quinoa'], estimatedKcal: 520, complianceScore: 95 },
+      { mealMoment: 'dinner', ingredients: ['pizza', 'soda'], estimatedKcal: 720, complianceScore: 35 },
+      { mealMoment: 'breakfast', ingredients: ['greek yogurt', 'berries', 'honey'], estimatedKcal: 280, complianceScore: 78 },
+      { mealMoment: 'lunch', ingredients: ['grilled fish', 'spinach', 'sweet potato'], estimatedKcal: 480, complianceScore: 98 },
+    ];
+    const MOCK_RULES = [
+      { type: 'forbidden', items: ['sugar', 'soda', 'white bread', 'pastries', 'fried food'] },
+      { type: 'allowed', items: ['vegetables', 'lean protein', 'whole grains', 'fruits'] },
+      { type: 'limit', items: ['coffee'], maxPerDay: 2, unit: 'cups' },
+      { type: 'note', text: 'Drink 2L water daily. Prefer grilled over fried.' },
+    ];
+    const MOCK_TREND = [72, 78, 85, 82, 88, 65, 90, 92, 88, 75, 82, 86, 91, 84];
+    const MOCK_WEIGHT = [
+      { date: new Date().toISOString().slice(0,10), kg: 71.8, note: 'Good energy' },
+      { date: new Date(Date.now()-864e5).toISOString().slice(0,10), kg: 72.1, note: '' },
+      { date: new Date(Date.now()-2*864e5).toISOString().slice(0,10), kg: 72.5, note: 'Bloated' },
+      { date: new Date(Date.now()-3*864e5).toISOString().slice(0,10), kg: 72.8, note: '' },
+    ];
+    const MEAL_SUGGESTIONS = {
+      breakfast: ['Oatmeal with berries and almonds', 'Greek yogurt with banana', 'Eggs with avocado and whole grain toast', 'Smoothie with spinach, banana, protein'],
+      lunch: ['Grilled chicken salad with quinoa', 'Turkey wrap with hummus and carrots', 'Grilled fish with spinach and sweet potato', 'Chicken stir-fry with vegetables and brown rice'],
+      dinner: ['Salmon with broccoli and rice', 'Grilled chicken with vegetables', 'Lean protein with salad and whole grains'],
+    };
+    const FEEDBACK_QUICK = ['Dinners', 'Weekends', 'Eating out', 'Soda cravings', 'Stress eating', 'Breakfast skip', 'Social events'];
+    const MEAL_PROPOSAL_IMGS = {
+      breakfast: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=320&h=240&fit=crop',
+      lunch: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=320&h=240&fit=crop',
+      dinner: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=320&h=240&fit=crop',
+    };
+
+    let chatWs = null;
+    function updateStatusBar(conn, mic, coach) {
+      const connLabels = { disconnected: 'Disconnected', connecting: 'Connecting…', connected: 'Connected', error: 'Error' };
+      const micLabels = { off: 'Mic off', listening: 'Listening — speak now', voice_failed: 'Voice failed', voice_not_supported: 'Voice not supported', voice_no_mic: 'Allow mic access', voice_network: 'Voice needs internet' };
+      const coachLabels = { idle: 'Coach idle', speaking: 'Coach speaking…', connect_first: 'Connect first' };
+      if (conn === 'disconnected' || conn === 'error') { mic = mic ?? 'off'; coach = coach ?? 'idle'; }
+      if (conn !== undefined) {
+        $('statusDotConn').className = 'status-dot' + (conn === 'connected' ? ' connected' : conn === 'error' ? '' : '');
+        $('statusConn').textContent = connLabels[conn] || conn;
+        $('statusConn').className = 'status-label' + (conn === 'connected' ? ' active' : '');
+      }
+      if (mic !== undefined) {
+        $('statusDotMic').className = 'status-dot' + (mic === 'listening' ? ' listening' : '');
+        $('statusMic').textContent = micLabels[mic] || mic;
+        $('statusMic').className = 'status-label' + (mic === 'listening' ? ' listening' : '');
+      }
+      if (coach !== undefined) {
+        $('statusDotCoach').className = 'status-dot' + (coach === 'speaking' ? ' speaking' : '');
+        $('statusCoach').textContent = coachLabels[coach] || coach;
+        $('statusCoach').className = 'status-label' + (coach === 'speaking' ? ' speaking' : '');
+      }
+    }
+    let currentBase64 = null;
+    let dietImageBase64 = null;
+    let cameraStream = null;
+    let cameraForDiet = false;
+    let lastRules = MOCK_RULES;
+
+    const PREDEFINED_TASKS = [
+      { task: 'Log my weight tomorrow morning', due: 'tomorrow' },
+      { task: 'Eat a compliant breakfast 5 days this week', due: 'this week' },
+      { task: 'Share my next meal photo', due: '' },
+      { task: 'Drink 2L water today', due: 'today' },
+      { task: 'No soda for 3 days', due: '3 days' },
+    ];
+    const DIET_PROFILES = [
+      { id: 'weekend_slip', label: 'I slip on weekends' },
+      { id: 'stress_eat', label: 'I eat more when stressed' },
+      { id: 'skip_breakfast', label: 'I often skip breakfast' },
+      { id: 'social_eat', label: 'I struggle eating out' },
+      { id: 'late_snack', label: 'I snack late at night' },
+    ];
+
+    const COACH_PROMPTS = {
+      diet: [
+        'Let\'s do a coaching session on my compliance',
+        'What I find difficult: [see my feedback]',
+        'Help me improve where I slip',
+        'Give me tasks to work on',
+        'What\'s my overall status and what do you advise?',
+      ],
+      analyze: [
+        'What made this meal non-compliant?',
+        'How\'s my weight today? How do I feel?',
+        'Suggest a similar compliant meal',
+        'Give me tasks to work on',
+        'What\'s my overall status and what do you advise?',
+      ],
+      dashboard: [
+        'Let\'s do a coaching session on my compliance',
+        'Am I on track with my weight?',
+        'What does my compliance trend mean?',
+        'Give me tasks to work on',
+        'What\'s my overall status and what do you advise?',
+      ],
+    };
+
+    function openCoachPopup() {
+      $('coachPanel').classList.remove('collapsed');
+      document.body.classList.add('coach-open');
+      renderCoachTasksMini();
+      renderCoachPredefinedTasks();
+      renderCoachProfile();
+    }
+
+    function renderCoachPredefinedTasks() {
+      const el = $('coachPredefinedTasks');
+      if (!el) return;
+      el.innerHTML = PREDEFINED_TASKS.map((t, i) => `<button class="task-chip" data-i="${i}">+ ${escapeHtml(t.task)}</button>`).join('');
+      el.querySelectorAll('.task-chip').forEach(btn => {
+        btn.onclick = () => {
+          const t = PREDEFINED_TASKS[parseInt(btn.dataset.i || '0', 10)];
+          if (t) addTask(t.task, t.due);
+          renderCoachTasksMini();
+        };
+      });
+    }
+
+    function getDietProfile() {
+      try {
+        const raw = localStorage.getItem('happydiet_profile');
+        if (raw) return JSON.parse(raw);
+      } catch (_) {}
+      return [];
+    }
+    function saveDietProfile(ids) {
+      localStorage.setItem('happydiet_profile', JSON.stringify(ids));
+    }
+    function toggleProfile(id) {
+      const ids = getDietProfile();
+      const i = ids.indexOf(id);
+      if (i >= 0) ids.splice(i, 1);
+      else ids.push(id);
+      saveDietProfile(ids);
+      renderCoachProfile();
+    }
+    function renderCoachProfile() {
+      const el = $('coachProfile');
+      if (!el) return;
+      const selected = getDietProfile();
+      el.innerHTML = DIET_PROFILES.map(p => `<button class="profile-chip ${selected.includes(p.id) ? 'selected' : ''}" data-id="${p.id}">${escapeHtml(p.label)}</button>`).join('');
+      el.querySelectorAll('.profile-chip').forEach(btn => {
+        btn.onclick = () => toggleProfile(btn.dataset.id || '');
+      });
+    }
+
+    function closeCoachPopup() {
+      $('coachPanel').classList.add('collapsed');
+      document.body.classList.remove('coach-open');
+    }
+
+    function renderCoachPrompts(tab) {
+      const prompts = COACH_PROMPTS[tab] || COACH_PROMPTS.diet;
+      $('coachPrompts').innerHTML = prompts.map(p => `<button class="prompt-btn" data-prompt="${escapeHtml(p)}">${escapeHtml(p)}</button>`).join('');
+      $('coachPrompts').querySelectorAll('.prompt-btn').forEach(btn => {
+        btn.onclick = () => {
+          openCoachPopup();
+          $('chatInput').value = btn.dataset.prompt;
+          $('chatInput').focus();
+        };
+      });
+    }
+
+    $('coachToggleBtn').onclick = () => {
+      if ($('coachPanel').classList.contains('collapsed')) openCoachPopup();
+      else closeCoachPopup();
+    };
+    $('coachCloseBtn').onclick = closeCoachPopup;
+
+    document.querySelectorAll('.nav-tab').forEach(t => {
+      t.onclick = () => {
+        document.querySelectorAll('.nav-tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        $(`panel-${t.dataset.tab}`).classList.add('active');
+        renderCoachPrompts(t.dataset.tab);
+        if (t.dataset.tab === 'dashboard') { renderDashboard(); renderWeightList(); renderTasks(); renderTargetDisplay(); }
+        if (t.dataset.tab === 'diet') { loadRules(); renderFeedbackList(); }
+      };
+    });
+
+    function buildCoachContext() {
+      const r = lastRules || [];
+      const forbidden = r.filter(x => x?.type === 'forbidden').flatMap(x => x.items || []);
+      const allowed = r.filter(x => x?.type === 'allowed').flatMap(x => x.items || []);
+      const limits = r.filter(x => x?.type === 'limit');
+      const notes = r.filter(x => x?.type === 'note').map(x => x.text).filter(Boolean);
+      let rules = '';
+      if (forbidden.length) rules += 'Avoid: ' + forbidden.join(', ') + '. ';
+      if (allowed.length) rules += 'Prefer: ' + allowed.join(', ') + '. ';
+      if (limits.length) rules += limits.map(l => `Limit ${(l.items||[]).join(', ')} to ${l.maxPerDay} ${l.unit}/day`).join('. ') + '. ';
+      if (notes.length) rules += 'Notes: ' + notes.join('; ');
+      const weightEntries = getWeightEntries().slice(0, 7);
+      const weight = weightEntries.length ? weightEntries.map(e => `${e.date}: ${e.kg} kg${e.note ? ' (' + e.note + ')' : ''}`).join('\n') : '';
+      const meals = MOCK_MEALS.slice(0, 6).map(m => `${m.mealMoment}: ${(m.ingredients||[]).join(', ')} — ${m.complianceScore}%`).join('\n');
+      const trend = MOCK_TREND.join(', ') + ' (compliance % last 14 days)';
+      const feedbackEntries = getFeedbackEntries().slice(0, 10);
+      const feedback = feedbackEntries.length ? feedbackEntries.map(e => `${e.date}: ${e.text}`).join('\n') : undefined;
+      const checkins = getCheckins().slice(0, 7).map(e => `${e.date}: ${[e.weight && e.weight + 'kg', e.energy, e.mood, e.hunger].filter(Boolean).join(', ')}`).join('\n') || undefined;
+      const tasks = getTasks().filter(t => !t.done).map(t => t.task + (t.due ? ` (${t.due})` : '')).join('\n') || undefined;
+      const tg = getTargets();
+      const targets = [tg.goal && `Goal: ${tg.goal}`, tg.targetWeight && `Target weight: ${tg.targetWeight} kg`, tg.targetDate && `By: ${tg.targetDate}`].filter(Boolean).join('. ') || undefined;
+      const profileIds = getDietProfile();
+      const profile = profileIds.length ? DIET_PROFILES.filter(p => profileIds.includes(p.id)).map(p => p.label).join('; ') : undefined;
+      return { rules: rules.trim() || undefined, weight: weight || undefined, meals: meals || undefined, trend: trend || undefined, feedback, checkins, tasks, targets, profile };
+    }
+
+    // --- CHAT (Live API WebSocket) ---
+    $('chatConnectBtn').onclick = () => {
+      try {
+        chatWs = new WebSocket(wsUrl());
+        updateStatusBar('connecting');
+        $('chatConnectBtn').disabled = true;
+        chatWs.onopen = () => {
+          updateStatusBar('connecting');
+          appendChat('coach', 'Connecting to your AI diet coach…');
+          const ctx = buildCoachContext();
+          chatWs.send(JSON.stringify({ type: 'context', payload: ctx }));
+        };
+        chatWs.onclose = () => {
+          updateStatusBar('disconnected');
+          $('chatConnectBtn').disabled = false;
+          $('chatInput').disabled = true;
+          $('chatSendBtn').disabled = true;
+          $('chatImageBtn').classList.add('disabled'); $('chatImageBtn').removeAttribute('for');
+          $('chatMicBtn').disabled = true;
+          $('chatDisconnectBtn').disabled = true;
+        };
+        chatWs.onerror = () => { updateStatusBar('error', undefined, undefined); $('statusConn').textContent = 'Connection failed'; $('chatConnectBtn').disabled = false; };
+        chatWs.onmessage = (e) => {
+          try {
+            const d = JSON.parse(e.data);
+            if (d.type === 'error') {
+              updateStatusBar('error'); $('statusConn').textContent = 'Error';
+              appendChat('coach', 'Sorry, the coach connection failed: ' + (d.message || 'unknown error') + '. Check that GOOGLE_CLOUD_PROJECT is set and gcloud auth is configured.');
+              return;
+            }
+            if (d.type === 'task') {
+              addTask(d.task || '', d.due || '');
+              renderCoachTasksMini();
+              openCoachPopup();
+              return;
+            }
+            if (d.setup_complete || d.setupComplete) {
+              updateStatusBar('connected', 'off', 'idle');
+              $('chatInput').disabled = false;
+              $('chatSendBtn').disabled = false;
+              $('chatImageBtn').classList.remove('disabled'); $('chatImageBtn').setAttribute('for', 'chatImageFile');
+              $('chatMicBtn').disabled = false;
+              $('chatDisconnectBtn').disabled = false;
+              appendChat('coach', 'Hey! I\'m your diet coach. Ask me anything — why certain foods are off limits, how you\'re doing, or share a meal photo. I\'ll reply in text and voice.');
+              return;
+            }
+            const inputTrans = d?.inputTranscription ?? d?.input_transcription ?? d?.serverContent?.inputTranscription ?? d?.server_content?.input_transcription;
+            if (inputTrans && typeof inputTrans === 'object') {
+              const txt = inputTrans.text ?? inputTrans;
+              const finished = inputTrans.finished ?? false;
+              if (typeof txt === 'string' && txt.trim()) {
+                if (!window._userVoiceBuffer) window._userVoiceBuffer = '';
+                window._userVoiceBuffer += txt.trim() + ' ';
+                if (finished && window._userVoiceBuffer) {
+                  appendChat('user', window._userVoiceBuffer.trim());
+                  window._userVoiceBuffer = '';
+                }
+              }
+            }
+            const trans = d?.outputTranscription ?? d?.output_transcription ?? d?.serverContent?.outputTranscription ?? d?.server_content?.output_transcription;
+            const parts = d?.serverContent?.modelTurn?.parts ?? d?.server_content?.model_turn?.parts;
+            const sc = d?.serverContent ?? d?.server_content;
+            const turnComplete = sc?.turnComplete ?? sc?.turn_complete ?? d?.turnComplete ?? d?.turn_complete;
+            const genComplete = sc?.generationComplete ?? sc?.generation_complete;
+            const text = trans?.text ?? trans;
+            if (typeof text === 'string' && text.trim()) {
+              if (!window._coachTextBuffer) window._coachTextBuffer = '';
+              window._coachTextBuffer += text.trim() + ' ';
+            }
+            if (turnComplete || genComplete) {
+              if (window._coachTextBuffer) {
+                appendChat('coach', window._coachTextBuffer.trim());
+                window._coachTextBuffer = '';
+              }
+            }
+            if (parts) {
+              for (const p of parts) {
+                if (p.text && typeof p.text === 'string') {
+                  if (!window._coachTextBuffer) window._coachTextBuffer = '';
+                  window._coachTextBuffer += p.text;
+                }
+                const audioB64 = p.inlineData?.data ?? p.inline_data?.data;
+                if (audioB64) playPCMBase64(audioB64);
+              }
+            }
+          } catch (_) {}
+        };
+      } catch (e) {
+        updateStatusBar('error'); $('statusConn').textContent = 'Error: ' + e.message;
+        $('chatConnectBtn').disabled = false;
+      }
+    };
+
+    $('chatDisconnectBtn').onclick = () => { if (chatWs) { chatWs.close(); chatWs = null; } };
+
+    function appendChat(role, text) {
+      const div = document.createElement('div');
+      div.className = 'chat-msg ' + role;
+      div.textContent = text;
+      $('chatMessages').appendChild(div);
+      $('chatMessages').scrollTop = $('chatMessages').scrollHeight;
+    }
+
+    let audioCtx = null;
+    let audioNextStart = 0;
+    const audioQueue = [];
+    let audioPlaying = false;
+    function getAudioContext() {
+      if (!audioCtx || audioCtx.state === 'closed') {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      return audioCtx;
+    }
+    function playPCMBase64(b64) {
+      audioQueue.push(b64);
+      if (audioPlaying) return;
+      processAudioQueue();
+    }
+    function processAudioQueue() {
+      if (!audioQueue.length) { audioPlaying = false; updateStatusBar(undefined, undefined, 'idle'); return; }
+      audioPlaying = true;
+      updateStatusBar(undefined, undefined, 'speaking');
+      const ctx = getAudioContext();
+      if (ctx.state === 'suspended') ctx.resume();
+      const now = ctx.currentTime;
+      if (audioNextStart < now) audioNextStart = now;
+      while (audioQueue.length) {
+        const b64 = audioQueue.shift();
+        try {
+          const bytes = Uint8Array.from(atob(b64), c => c.charCodeAt(0));
+          const buf = ctx.createBuffer(1, bytes.length / 2, 24000);
+          const ch = buf.getChannelData(0);
+          const dv = new DataView(bytes.buffer);
+          for (let i = 0; i < ch.length; i++) ch[i] = dv.getInt16(i * 2, true) / 32768;
+          const src = ctx.createBufferSource();
+          src.buffer = buf;
+          src.connect(ctx.destination);
+          src.start(audioNextStart);
+          src.stop(audioNextStart + buf.duration);
+          audioNextStart += buf.duration;
+        } catch (_) {}
+      }
+      const durationMs = Math.max(0, (audioNextStart - ctx.currentTime) * 1000) + 50;
+      setTimeout(() => { audioPlaying = false; updateStatusBar(undefined, undefined, 'idle'); if (audioQueue.length) processAudioQueue(); }, durationMs);
+    }
+
+    $('chatSendBtn').onclick = sendChat;
+    $('chatInput').onkeydown = e => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        sendChat();
+      }
+    };
+
+    let liveMicStream = null;
+    let liveMicProcessor = null;
+    let liveMicCtx = null;
+    let liveMicSource = null;
+
+    function floatTo16BitPCM(float32, sampleRate) {
+      const outRate = 16000;
+      const ratio = sampleRate / outRate;
+      const len = Math.floor(float32.length / ratio);
+      const out = new Int16Array(len);
+      for (let i = 0; i < len; i++) {
+        const src = i * ratio;
+        const idx = Math.floor(src);
+        const frac = src - idx;
+        const s = idx < float32.length - 1
+          ? float32[idx] * (1 - frac) + float32[idx + 1] * frac
+          : float32[Math.min(idx, float32.length - 1)];
+        out[i] = Math.max(-32768, Math.min(32767, Math.round(s * 32768)));
+      }
+      return out;
+    }
+
+    function base64FromInt16(arr) {
+      const u8 = new Uint8Array(arr.buffer);
+      let b = '';
+      for (let i = 0; i < u8.length; i++) b += String.fromCharCode(u8[i]);
+      return btoa(b);
+    }
+
+    $('chatMicBtn').onclick = async () => {
+      if (!chatWs || chatWs.readyState !== WebSocket.OPEN) {
+        updateStatusBar(undefined, undefined, 'connect_first');
+        return;
+      }
+      if (liveMicStream) {
+        liveMicStream.getTracks().forEach(t => t.stop());
+        liveMicStream = null;
+        if (liveMicProcessor) try { liveMicProcessor.disconnect(); } catch (_) {}
+        if (liveMicSource) try { liveMicSource.disconnect(); } catch (_) {}
+        liveMicProcessor = null;
+        liveMicSource = null;
+        try { chatWs.send(JSON.stringify({ realtimeInput: { audioStreamEnd: true } })); } catch (_) {}
+        updateStatusBar(undefined, 'off');
+        $('chatMicBtn').textContent = '🎤';
+        $('chatMicBtn').classList.remove('listening');
+        $('chatMicBtn').title = 'Tap to speak — coach will hear you';
+        return;
+      }
+      try {
+        liveMicStream = await navigator.mediaDevices.getUserMedia({ audio: { sampleRate: 16000, channelCount: 1 } });
+      } catch (e) {
+        try {
+          liveMicStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        } catch (err) {
+          updateStatusBar(undefined, 'voice_no_mic');
+          if ($('statusMic')) $('statusMic').textContent = 'Allow mic in browser';
+          return;
+        }
+      }
+      liveMicCtx = new (window.AudioContext || window.webkitAudioContext)();
+      if (liveMicCtx.state === 'suspended') await liveMicCtx.resume();
+      liveMicSource = liveMicCtx.createMediaStreamSource(liveMicStream);
+      const bufferSize = 4096;
+      liveMicProcessor = liveMicCtx.createScriptProcessor(bufferSize, 1, 1);
+      liveMicProcessor.onaudioprocess = (e) => {
+        if (!chatWs || chatWs.readyState !== WebSocket.OPEN || !liveMicStream) return;
+        const input = e.inputBuffer.getChannelData(0);
+        const pcm = floatTo16BitPCM(input, liveMicCtx.sampleRate);
+        if (pcm.length > 0) {
+          try {
+            chatWs.send(JSON.stringify({
+              realtimeInput: { audio: { data: base64FromInt16(pcm), mimeType: 'audio/pcm;rate=16000' } }
+            }));
+          } catch (_) {}
+        }
+      };
+      const gain = liveMicCtx.createGain();
+      gain.gain.value = 0;
+      liveMicSource.connect(liveMicProcessor);
+      liveMicProcessor.connect(gain);
+      gain.connect(liveMicCtx.destination);
+      updateStatusBar(undefined, 'listening');
+      $('chatMicBtn').textContent = '⏹';
+      $('chatMicBtn').classList.add('listening');
+      $('chatMicBtn').title = 'Stop — tap to stop';
+    };
+    $('chatImageFile').onchange = e => {
+      const f = e.target.files[0];
+      if (!f || !f.type.startsWith('image/')) return;
+      e.target.value = '';
+      const mime = f.type || 'image/jpeg';
+      const r = new FileReader();
+      r.onload = () => {
+        const d = r.result;
+        const b64 = d.includes(',') ? d.split(',')[1] : d;
+        sendChatImage(b64, mime);
+      };
+      r.readAsDataURL(f);
+    };
+
+    function sendChatImage(base64, mimeType) {
+      if (!chatWs || chatWs.readyState !== WebSocket.OPEN) return;
+      if (window._coachTextBuffer) window._coachTextBuffer = '';
+      appendChat('user', '[Meal photo]');
+      const mime = mimeType || 'image/jpeg';
+      chatWs.send(JSON.stringify({
+        realtimeInput: { mediaChunks: [{ data: base64, mimeType: mime }] }
+      }));
+      setTimeout(() => {
+        chatWs.send(JSON.stringify({
+          clientContent: { turns: [{ role: 'user', parts: [{ text: 'What do you see in this meal? Analyze it for my diet.' }] }], turnComplete: true }
+        }));
+      }, 300);
+    }
+
+    function sendChat() {
+      const text = ($('chatInput')?.value || '').trim();
+      if (!text) return;
+      if (!chatWs || chatWs.readyState !== WebSocket.OPEN) {
+        updateStatusBar(undefined, undefined, 'connect_first');
+        return;
+      }
+      if (window._coachTextBuffer) window._coachTextBuffer = '';
+      appendChat('user', text);
+      $('chatInput').value = '';
+      chatWs.send(JSON.stringify({
+        clientContent: { turns: [{ role: 'user', parts: [{ text }] }], turnComplete: true }
+      }));
+    }
+
+    // --- DIET: Parse, save, load ---
+    async function parseDiet(save) {
+      const text = $('dietText').value.trim();
+      if (!text) { $('rulesPreview').textContent = 'Enter diet description first.'; return; }
+      $('rulesPreview').textContent = 'Parsing…';
+      try {
+        const res = await fetch(url() + '/parse-diet', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ diet_text: text, user_id: 'demo', save }),
+        });
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.rules) && data.rules.length) {
+          lastRules = data.rules;
+          $('rulesPreview').textContent = `Parsed ${data.rules.length} rule(s).` + (data.saved ? ' Saved.' : '');
+          $('rulesListCard').style.display = 'block';
+          renderRulesList(data.rules);
+        } else {
+          $('rulesPreview').textContent = data.error || data.detail || 'Parse failed.';
+        }
+      } catch (e) {
+        $('rulesPreview').textContent = 'Error: ' + e.message;
+      }
+    }
+
+    function handleDietImage(file) {
+      const r = new FileReader();
+      r.onload = () => {
+        const d = r.result;
+        dietImageBase64 = d.includes(',') ? d.split(',')[1] : d;
+        $('dietPreviewImg').src = d;
+        $('dietImagePreview').style.display = 'block';
+      };
+      r.readAsDataURL(file);
+    }
+
+    async function parseDietFromImage(save) {
+      if (!dietImageBase64) { $('rulesPreview').textContent = 'Add an image first.'; return; }
+      $('rulesPreview').textContent = 'Parsing image…';
+      try {
+        const res = await fetch(url() + '/parse-diet', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image_base64: dietImageBase64, user_id: 'demo', save }),
+        });
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.rules) && data.rules.length) {
+          lastRules = data.rules;
+          $('rulesPreview').textContent = `Parsed ${data.rules.length} rule(s) from image.` + (data.saved ? ' Saved.' : '');
+          $('rulesListCard').style.display = 'block';
+          renderRulesList(data.rules);
+        } else {
+          $('rulesPreview').textContent = data.error || data.detail || 'Parse failed.';
+        }
+      } catch (e) {
+        $('rulesPreview').textContent = 'Error: ' + e.message;
+      }
+    }
+
+    const RULE_WHY = {
+      forbidden: 'These foods work against your goals. The coach can explain why each is restricted when you ask.',
+      allowed: 'These fit your plan. Prioritize them when building meals — the coach can suggest combos.',
+      limit: 'Enjoy in moderation. Staying under the limit keeps you on track.',
+      note: 'Extra guidance from your plan. Use these to steer daily choices.',
+    };
+
+    function normalizeRules(rules) {
+      if (!rules) return [];
+      if (typeof rules === 'string') {
+        try { rules = JSON.parse(rules); } catch (_) { return []; }
+      }
+      if (Array.isArray(rules)) return rules;
+      if (rules && typeof rules === 'object' && (rules.type === 'forbidden' || rules.type === 'allowed' || rules.type === 'limit' || rules.type === 'note')) return [rules];
+      return [];
+    }
+
+    function toItemString(x) {
+      if (typeof x === 'string') return x.trim();
+      if (x && typeof x === 'object') {
+        const s = (x.name || x.item || x.value || x.text);
+        if (typeof s === 'string') return s.trim();
+      }
+      return '';
+    }
+
+    function renderRulesList(rules) {
+      const r = normalizeRules(rules || lastRules);
+      const forbidden = r.filter(x => x?.type === 'forbidden').flatMap(x => (x.items || []).map(toItemString).filter(Boolean));
+      const allowed = r.filter(x => x?.type === 'allowed').flatMap(x => (x.items || []).map(toItemString).filter(Boolean));
+      const limits = r.filter(x => x?.type === 'limit');
+      const notes = r.filter(x => x?.type === 'note').map(x => (x.text || '').trim()).filter(Boolean);
+      let html = '';
+      if (forbidden.length) html += `<div class="rule-section not-allowed"><h3>🚫 Avoid</h3><div class="rule-items">${forbidden.map(i => `<span>${escapeHtml(i)}</span>`).join('')}</div><p class="why">${RULE_WHY.forbidden}</p></div>`;
+      if (allowed.length) html += `<div class="rule-section allowed"><h3>✓ Prefer</h3><div class="rule-items">${allowed.map(i => `<span>${escapeHtml(i)}</span>`).join('')}</div><p class="why">${RULE_WHY.allowed}</p></div>`;
+      if (limits.length) html += limits.map(l => {
+        const items = (l.items || []).map(toItemString).filter(Boolean);
+        const max = l.maxPerDay ?? 1;
+        const unit = l.unit || 'servings';
+        return `<div class="rule-section limit"><h3>⚖ Limit</h3><div class="rule-items">${items.map(i => `<span>${escapeHtml(i)}</span>`).join('')}</div><p class="limit-max">max ${max} ${unit}/day</p><p class="why">${RULE_WHY.limit}</p></div>`;
+      }).join('');
+      if (notes.length) html += `<div class="rule-section note"><h3>📝 Notes & reasons</h3><p class="note-text">${escapeHtml(notes.join(' • '))}</p><p class="why">${RULE_WHY.note}</p></div>`;
+      $('rulesList').innerHTML = html || '<p style="color:var(--gray);grid-column:1/-1;padding:1.5rem">No rules yet. Upload or type your diet plan above.</p>';
+      renderInsightsAndSuggestions(r);
+    }
+
+    function escapeHtml(s) {
+      const d = document.createElement('div');
+      d.textContent = s;
+      return d.innerHTML;
+    }
+
+    function getNextMealTip() {
+      const h = new Date().getHours();
+      if (h >= 5 && h < 9) return { text: 'Breakfast time — aim for 7–9am. Start with something compliant to set the tone.', meal: 'breakfast' };
+      if (h >= 9 && h < 11) return { text: 'Your next meal: Lunch could be around 12–1pm. Plan a compliant option now.', meal: 'lunch' };
+      if (h >= 11 && h < 14) return { text: 'Lunch time — around 12–2pm. Keep it balanced and on plan.', meal: 'lunch' };
+      if (h >= 14 && h < 17) return { text: 'Your next meal: Dinner could be around 6–8pm. Prep something you\'ll enjoy.', meal: 'dinner' };
+      if (h >= 17 && h < 21) return { text: 'Dinner time — around 6–8pm. End the day strong with a compliant meal.', meal: 'dinner' };
+      return { text: 'It\'s late — your next meal: Breakfast around 7–9am. Rest well!', meal: 'breakfast' };
+    }
+
+    function renderNextMealTip() {
+      const tip = getNextMealTip();
+      const mealLabel = tip.meal.charAt(0).toUpperCase() + tip.meal.slice(1);
+      const icon = tip.meal === 'breakfast' ? '🍳' : tip.meal === 'lunch' ? '🥗' : '🍽';
+      const imgUrl = MEAL_PROPOSAL_IMGS[tip.meal] || MEAL_PROPOSAL_IMGS.breakfast;
+      const html = `<div class="next-meal-with-img">
+        <div class="tip-text"><strong>${icon} ${mealLabel}:</strong> ${tip.text}</div>
+        <img class="meal-proposal-img" src="${imgUrl}" alt="Meal suggestion: ${mealLabel}" loading="lazy">
+      </div>`;
+      const el = $('nextMealTip');
+      if (el) el.innerHTML = html;
+      const dash = $('nextMealTipDashboard');
+      if (dash) dash.innerHTML = html;
+    }
+
+    function renderInsightsAndSuggestions(rules) {
+      $('insightsCard').style.display = 'block';
+      renderNextMealTip();
+      const insights = [
+        '<strong>Steer your diet:</strong> Focus on dinners — they tend to slip. Prep compliant options on Sunday.',
+        '<strong>Tip:</strong> Swap soda for sparkling water. Keep allowed snacks visible.',
+        '<strong>Trend:</strong> Breakfasts are your strongest. Replicate that structure for lunch.',
+      ];
+      $('insightsList').innerHTML = insights.map(i => `<div class="insight-card">${i}</div>`).join('');
+      let sugHtml = '<h4 style="margin:0 0 0.5rem 0;font-size:0.95rem">Meal ideas (based on your plan)</h4>';
+      for (const [meal, ideas] of Object.entries(MEAL_SUGGESTIONS)) {
+        sugHtml += ideas.slice(0, 2).map(idea => `<div class="meal-suggestion"><span class="meal-type">${meal}:</span>${idea}</div>`).join('');
+      }
+      $('mealSuggestionsList').innerHTML = sugHtml;
+    }
+
+    async function loadRules() {
+      try {
+        const res = await fetch(url() + '/rules?user_id=demo');
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.rules) && data.rules.length) {
+          lastRules = data.rules;
+          $('rulesListCard').style.display = 'block';
+          renderRulesList(data.rules);
+          $('rulesPreview').textContent = 'Loaded ' + data.rules.length + ' rule(s).';
+        } else {
+          renderRulesList(MOCK_RULES);
+          $('rulesListCard').style.display = 'block';
+          $('rulesPreview').textContent = 'Using demo rules. Parse & save to store yours.';
+        }
+      } catch (_) {
+        renderRulesList(MOCK_RULES);
+        $('rulesListCard').style.display = 'block';
+      }
+    }
+
+    function getFeedbackEntries() {
+      try {
+        const raw = localStorage.getItem('happydiet_feedback');
+        if (raw) return JSON.parse(raw);
+      } catch (_) {}
+      return [];
+    }
+
+    function saveFeedbackEntries(entries) {
+      localStorage.setItem('happydiet_feedback', JSON.stringify(entries));
+    }
+
+    function renderFeedbackList() {
+      const entries = getFeedbackEntries();
+      $('feedbackQuickBtns').innerHTML = FEEDBACK_QUICK.map(q => `<button class="feedback-chip" data-q="${escapeHtml(q)}">${escapeHtml(q)}</button>`).join('');
+      $('feedbackQuickBtns').querySelectorAll('.feedback-chip').forEach(btn => {
+        btn.onclick = () => addFeedback(btn.dataset.q);
+      });
+      if (!entries.length) {
+        $('feedbackList').innerHTML = '<p style="color:var(--gray)">No entries yet. Add what you find difficult — the coach will use this in coaching sessions.</p>';
+        return;
+      }
+      $('feedbackList').innerHTML = entries.slice(0, 15).map(e => `
+        <div class="feedback-entry">
+          <span class="text">${escapeHtml(e.text)}</span>
+          <span class="date">${e.date}</span>
+        </div>
+      `).join('');
+    }
+
+    function addFeedback(text) {
+      const t = (text || $('feedbackInput').value || '').trim();
+      if (!t) return;
+      const entries = getFeedbackEntries();
+      entries.unshift({ date: new Date().toISOString().slice(0,10), text: t });
+      saveFeedbackEntries(entries);
+      $('feedbackInput').value = '';
+      renderFeedbackList();
+    }
+
+    function getCheckins() {
+      try {
+        const raw = localStorage.getItem('happydiet_checkins');
+        if (raw) return JSON.parse(raw);
+      } catch (_) {}
+      return [];
+    }
+
+    function saveCheckins(entries) {
+      localStorage.setItem('happydiet_checkins', JSON.stringify(entries));
+    }
+
+    function getWeightEntries() {
+      try {
+        const raw = localStorage.getItem('happydiet_weight');
+        if (raw) return JSON.parse(raw);
+      } catch (_) {}
+      return MOCK_WEIGHT;
+    }
+
+    function saveWeightEntries(entries) {
+      localStorage.setItem('happydiet_weight', JSON.stringify(entries));
+    }
+
+    function renderWeightList() {
+      const entries = getWeightEntries();
+      if (!entries.length) {
+        $('weightList').innerHTML = '<p style="color:var(--gray)">No entries yet. Log your weight above.</p>';
+        return;
+      }
+      $('weightList').innerHTML = entries.slice(0, 10).map(e => `
+        <div class="weight-row">
+          <div><strong>${e.kg} kg</strong> — ${e.date} ${e.note ? `<span style="color:var(--gray)">• ${e.note}</span>` : ''}</div>
+        </div>
+      `).join('');
+    }
+
+    $('checkinSaveBtn').onclick = saveMealCheckin;
+    function saveMealCheckin() {
+      const kg = parseFloat($('checkinWeight').value);
+      const energy = $('checkinEnergy').value;
+      const mood = $('checkinMood').value;
+      const hunger = $('checkinHunger').value;
+      if (!kg && !energy && !mood && !hunger) return;
+      const entries = getCheckins();
+      entries.unshift({
+        date: new Date().toISOString().slice(0,10),
+        weight: kg || undefined,
+        energy: energy || undefined,
+        mood: mood || undefined,
+        hunger: hunger || undefined,
+      });
+      saveCheckins(entries);
+      if (kg && kg >= 30 && kg <= 300) {
+        const wEntries = getWeightEntries();
+        wEntries.unshift({ date: new Date().toISOString().slice(0,10), kg, note: [energy, mood, hunger].filter(Boolean).join(', ') || '' });
+        saveWeightEntries(wEntries);
+        renderWeightList();
+      }
+      $('checkinWeight').value = '';
+      $('checkinEnergy').value = '';
+      $('checkinMood').value = '';
+      $('checkinHunger').value = '';
+    }
+
+    function getTasks() {
+      try {
+        const raw = localStorage.getItem('happydiet_tasks');
+        if (raw) return JSON.parse(raw);
+      } catch (_) {}
+      return [];
+    }
+
+    function saveTasks(entries) {
+      localStorage.setItem('happydiet_tasks', JSON.stringify(entries));
+    }
+
+    function addTask(task, due) {
+      const entries = getTasks();
+      const t = (task || '').trim();
+      const d = (due || '').trim();
+      const exists = entries.some(e => !e.done && (e.task || '').trim() === t && (e.due || '').trim() === d);
+      if (exists) return;
+      entries.unshift({ id: Date.now(), task: t, due: d, done: false });
+      saveTasks(entries);
+      renderTasks();
+      if (typeof renderCoachTasksMini === 'function') renderCoachTasksMini();
+    }
+
+    function toggleTaskDone(id) {
+      const entries = getTasks().map(t => t.id === id ? { ...t, done: !t.done } : t);
+      saveTasks(entries);
+      renderTasks();
+      if (typeof renderCoachTasksMini === 'function') renderCoachTasksMini();
+    }
+
+    function renderTasks() {
+      const tasks = getTasks();
+      if (!tasks.length) {
+        $('tasksList').innerHTML = '<p style="color:var(--gray)">No tasks yet. The coach will assign some when you chat.</p>';
+        return;
+      }
+      $('tasksList').innerHTML = tasks.map(t => `
+        <div class="task-item ${t.done ? 'done' : ''}">
+          <input type="checkbox" ${t.done ? 'checked' : ''} data-id="${t.id}">
+          <span class="text">${escapeHtml(t.task)}</span>
+          ${t.due ? `<span class="due">${escapeHtml(t.due)}</span>` : ''}
+        </div>
+      `).join('');
+      $('tasksList').querySelectorAll('input[data-id]').forEach(cb => {
+        cb.onchange = () => toggleTaskDone(Number(cb.dataset.id));
+      });
+    }
+
+    function renderCoachTasksMini() {
+      const tasks = getTasks().filter(t => !t.done).slice(0, 3);
+      const el = $('coachTasksMini');
+      if (!el) return;
+      if (!tasks.length) { el.innerHTML = ''; return; }
+      el.innerHTML = '<strong>Tasks:</strong> ' + tasks.map(t => escapeHtml(t.task)).join(' • ');
+    }
+
+    $('logWeightBtn').onclick = () => {
+      const kg = parseFloat($('weightInput').value);
+      const note = ($('weightNoteInput').value || '').trim();
+      if (!kg || kg < 30 || kg > 300) return;
+      const entries = getWeightEntries();
+      entries.unshift({ date: new Date().toISOString().slice(0,10), kg, note });
+      saveWeightEntries(entries);
+      $('weightInput').value = '';
+      $('weightNoteInput').value = '';
+      renderWeightList();
+    };
+
+    $('parseBtn').onclick = () => parseDiet(false);
+    $('saveBtn').onclick = () => parseDiet(true);
+    $('dietFromImageBtn').onclick = () => $('dietFile').click();
+    $('dietTakePhotoBtn').onclick = () => { cameraForDiet = true; openCamera(); };
+    $('dietFile').onchange = e => { const f = e.target.files[0]; if (f) handleDietImage(f); e.target.value = ''; };
+    $('dietFileCapture').onchange = e => { const f = e.target.files[0]; if (f) handleDietImage(f); e.target.value = ''; };
+    $('parseDietImageBtn').onclick = () => parseDietFromImage(false);
+    $('saveDietImageBtn').onclick = () => parseDietFromImage(true);
+    $('loadRulesBtn').onclick = loadRules;
+    $('feedbackAddBtn').onclick = () => addFeedback();
+    $('feedbackInput').onkeydown = e => { if (e.key === 'Enter') addFeedback(); };
+
+    async function generateMealImage(mealType) {
+      const r = lastRules || [];
+      const allowed = r.filter(x => x?.type === 'allowed').flatMap(x => x.items || []);
+      const forbidden = r.filter(x => x?.type === 'forbidden').flatMap(x => x.items || []);
+      const ingredients = allowed.length ? allowed.slice(0, 4).join(', ') : 'vegetables, lean protein, whole grains';
+      const prompt = `A healthy ${mealType} meal with ${ingredients}, on a white plate, photorealistic, appetizing, professional food photography`;
+      const btn = $('gen' + mealType.charAt(0).toUpperCase() + mealType.slice(1) + 'Btn');
+      if (btn) { btn.disabled = true; btn.textContent = 'Generating…'; }
+      $('generatedExplanation').style.display = 'none';
+      $('generatedExplanation').textContent = '';
+      try {
+        const res = await fetch(url() + '/generate-image', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt }),
+        });
+        if (res.ok && res.headers.get('content-type')?.startsWith('image/')) {
+          const blob = await res.blob();
+          $('generatedImage').src = URL.createObjectURL(blob);
+          $('generatedImageWrap').style.display = 'block';
+          $('generatedExplanation').textContent = 'Generating explanation…';
+          $('generatedExplanation').style.display = 'block';
+          try {
+            const exRes = await fetch(url() + '/explain-meal', {
+              method: 'POST', headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ meal_type: mealType, prompt, allowed, forbidden }),
+            });
+            const exData = await exRes.json();
+            if (exRes.ok && exData.explanation) {
+              $('generatedExplanation').textContent = exData.explanation;
+            } else {
+              $('generatedExplanation').textContent = 'This meal fits your plan. Enjoy!';
+            }
+          } catch (_) {
+            $('generatedExplanation').textContent = 'This meal fits your plan. Enjoy!';
+          }
+        } else {
+          const err = await res.json().catch(() => ({}));
+          $('rulesPreview').textContent = err.detail || err.error || 'Image generation failed. Imagen may need to be enabled.';
+        }
+      } catch (e) {
+        $('rulesPreview').textContent = 'Error: ' + e.message;
+      }
+      if (btn) { btn.disabled = false; btn.textContent = mealType === 'breakfast' ? '🍳 Breakfast' : mealType === 'lunch' ? '🥗 Lunch' : '🍽 Dinner'; }
+    }
+    $('genBreakfastBtn').onclick = () => generateMealImage('breakfast');
+    $('genLunchBtn').onclick = () => generateMealImage('lunch');
+    $('genDinnerBtn').onclick = () => generateMealImage('dinner');
+
+    // --- ANALYZE: Meal + rich result ---
+    $('uploadBtn').onclick = () => $('file').click();
+    $('uploadZone').onclick = () => $('file').click();
+    $('uploadZone').ondragover = e => { e.preventDefault(); $('uploadZone').classList.add('dragover'); };
+    $('uploadZone').ondragleave = () => $('uploadZone').classList.remove('dragover');
+    $('uploadZone').ondrop = e => {
+      e.preventDefault();
+      $('uploadZone').classList.remove('dragover');
+      const f = e.dataTransfer.files[0];
+      if (f && f.type.startsWith('image/')) handleFile(f);
+    };
+
+    $('file').onchange = e => { const f = e.target.files[0]; if (f) handleFile(f); e.target.value = ''; };
+    $('fileCapture').onchange = e => { const f = e.target.files[0]; if (f) handleFile(f); e.target.value = ''; };
+
+    function setImage(dataUrl) {
+      currentBase64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+      $('preview').src = dataUrl;
+      $('preview').style.display = 'block';
+      $('analyzeBtn').disabled = false;
+    }
+
+    function handleFile(file) {
+      const r = new FileReader();
+      r.onload = () => setImage(r.result);
+      r.readAsDataURL(file);
+    }
+
+    async function openCamera() {
+      if (!navigator.mediaDevices?.getUserMedia) { $('fileCapture').click(); return; }
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        $('cameraVideo').srcObject = cameraStream;
+        $('cameraModal').classList.add('active');
+      } catch (e) {
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          $('cameraVideo').srcObject = cameraStream;
+          $('cameraModal').classList.add('active');
+        } catch (e2) { $('fileCapture').click(); }
+      }
+    }
+
+    function closeCamera() {
+      if (cameraStream) { cameraStream.getTracks().forEach(t => t.stop()); cameraStream = null; }
+      $('cameraModal').classList.remove('active');
+    }
+
+    $('takePhotoBtn').onclick = () => { cameraForDiet = false; openCamera(); };
+    $('cancelCameraBtn').onclick = closeCamera;
+
+    $('captureBtn').onclick = () => {
+      const video = $('cameraVideo');
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      if (cameraForDiet) {
+        dietImageBase64 = canvas.toDataURL('image/jpeg', 0.9).split(',')[1];
+        $('dietPreviewImg').src = canvas.toDataURL('image/jpeg', 0.9);
+        $('dietImagePreview').style.display = 'block';
+      } else setImage(canvas.toDataURL('image/jpeg', 0.9));
+      closeCamera();
+    };
+
+    function renderResult(data) {
+      const score = data.score ?? 0;
+      const cls = score >= 80 ? 'score-high' : score >= 50 ? 'score-mid' : 'score-low';
+      let html = `<div class="compliance-hero">
+        <div><div class="score ${cls}">${Math.round(score)}/100</div><div class="message">${data.message || ''}</div></div>
+        <button class="btn btn-primary ask-coach-btn" style="padding:0.4rem 0.75rem;font-size:0.9rem" title="Coach speaks with Gemini voice">💬 Hear from coach</button>
+      </div>`;
+      html += '<div class="analysis-grid">';
+      if (data.ingredients?.length) {
+        html += `<div class="analysis-block ingredients"><h4>Detected ingredients</h4><ul>${data.ingredients.map(i => `<li>${i}</li>`).join('')}</ul></div>`;
+      }
+      if (data.compliantItems?.length) {
+        html += `<div class="analysis-block compliant"><h4>✓ Compliant</h4><ul>${data.compliantItems.map(i => `<li>${i}</li>`).join('')}</ul></div>`;
+      }
+      if (data.nonCompliantItems?.length) {
+        html += `<div class="analysis-block noncompliant"><h4>✗ Not compliant</h4><ul>${data.nonCompliantItems.map(i => `<li>${i}</li>`).join('')}</ul></div>`;
+      }
+      if (data.suggestions?.length && data.suggestions[0] !== 'Keep up the good choices!') {
+        html += `<div class="analysis-block suggestions"><h4>Suggestions</h4><ul>${data.suggestions.map(s => `<li>${s}</li>`).join('')}</ul></div>`;
+      }
+      html += '</div>';
+      if (data.estimatedKcal) html += `<p style="font-size:0.9rem;color:var(--gray);margin-top:0.5rem">Est. ${data.estimatedKcal} kcal</p>`;
+      $('result').innerHTML = html;
+      $('resultCard').style.display = 'block';
+      window._lastResult = data;
+      $('result').querySelector('.ask-coach-btn')?.addEventListener('click', () => askCoachForMeal());
+      if (data.message && chatWs && chatWs.readyState === WebSocket.OPEN && currentBase64) {
+        openCoachPopup();
+        sendChatImage(currentBase64);
+      }
+    }
+
+    async function analyze() {
+      if (!currentBase64) return;
+      $('analyzeBtn').disabled = true;
+      $('result').innerHTML = '<p>Analyzing…</p>';
+      $('resultCard').style.display = 'block';
+      try {
+        const body = { image_base64: currentBase64, user_id: 'demo' };
+        const dietText = $('dietText').value.trim();
+        if (dietText) body.diet_text = dietText;
+        else if (lastRules.length) body.diet_rules = lastRules;
+        const res = await fetch(url() + '/analyze-meal', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
+        });
+        const data = await res.json();
+        if (res.status === 503) $('result').innerHTML = '<p style="color:var(--red)">Backend not configured. Set GOOGLE_CLOUD_PROJECT.</p>';
+        else if (res.ok) renderResult(data);
+        else $('result').innerHTML = `<p style="color:var(--red)">Error: ${data.error || res.status}</p>`;
+      } catch (e) {
+        $('result').innerHTML = `<p style="color:var(--red)">Network error: ${e.message}</p>`;
+      }
+      $('analyzeBtn').disabled = false;
+    }
+
+    $('analyzeBtn').onclick = analyze;
+
+    function askCoachForMeal() {
+      openCoachPopup();
+      if (!currentBase64) return;
+      if (!chatWs || chatWs.readyState !== WebSocket.OPEN) return;
+      sendChatImage(currentBase64);
+    }
+
+    // --- DASHBOARD ---
+    function renderDashboard() {
+      renderWeightList();
+      renderNextMealTip();
+      const trend = MOCK_TREND;
+      const max = Math.max(...trend);
+      $('trendChart').innerHTML = trend.map(v => `<div class="trend-bar" style="height:${(v / max) * 100}%"></div>`).join('');
+      $('trendLabels').innerHTML = trend.map((_, i) => `<span>D${i + 1}</span>`).join('');
+      $('mealsList').innerHTML = MOCK_MEALS.map(m => {
+        const sc = m.complianceScore || 0;
+        const cls = sc >= 80 ? 'score-high' : sc >= 50 ? 'score-mid' : 'score-low';
+        return `<div class="meal-row">
+          <div><strong>${m.mealMoment}</strong> — ${(m.ingredients || []).join(', ')} ${m.estimatedKcal ? `• ${m.estimatedKcal} kcal` : ''}</div>
+          <span class="meal-score ${cls}">${Math.round(sc)}%</span>
+        </div>`;
+      }).join('');
+    }
+
+    $('refreshMeals').onclick = async () => {
+      try {
+        const res = await fetch(url() + '/meals?user_id=demo');
+        const data = await res.json();
+        if (res.ok && data.meals?.length) {
+          $('mealsList').innerHTML = data.meals.slice(0, 10).map(m => {
+            const sc = m.complianceScore || 0;
+            const cls = sc >= 80 ? 'score-high' : sc >= 50 ? 'score-mid' : 'score-low';
+            return `<div class="meal-row"><div><strong>${m.mealMoment || 'meal'}</strong> — ${(m.ingredients || []).slice(0, 3).join(', ')} ${m.estimatedKcal ? `• ${m.estimatedKcal} kcal` : ''}</div><span class="meal-score ${cls}">${Math.round(sc)}%</span></div>`;
+          }).join('');
+        } else renderDashboard();
+      } catch (_) { renderDashboard(); }
+    };
+
+    function enterApp() {
+      $('heroPage').classList.add('hidden');
+      $('appWrap').classList.add('visible');
+      $('coachFloat').style.display = '';
+      if (!$('coachPanel').classList.contains('collapsed')) document.body.classList.add('coach-open');
+      localStorage.setItem('happydiet_seen_hero', '1');
+      renderDashboard();
+      renderNextMealTip();
+      renderTasks();
+      renderTargetDisplay();
+    }
+
+    $('heroEnterBtn').onclick = enterApp;
+
+    if (localStorage.getItem('happydiet_seen_hero')) {
+      $('heroPage').classList.add('hidden');
+      $('appWrap').classList.add('visible');
+      $('coachFloat').style.display = '';
+      if (!$('coachPanel').classList.contains('collapsed')) document.body.classList.add('coach-open');
+      renderDashboard();
+      renderNextMealTip();
+      renderTasks();
+      renderTargetDisplay();
+    }
+
+    function getTargets() {
+      try {
+        const raw = localStorage.getItem('happydiet_targets');
+        if (raw) return JSON.parse(raw);
+      } catch (_) {}
+      return { goal: 'maintain', targetWeight: null, targetDate: null };
+    }
+
+    function saveTargets(t) {
+      localStorage.setItem('happydiet_targets', JSON.stringify(t));
+    }
+
+    function renderTargetDisplay() {
+      const t = getTargets();
+      const el = $('targetDisplay');
+      if (!el) return;
+      if (!t.targetWeight && !t.targetDate) {
+        el.innerHTML = '<span style="color:var(--gray)">Set your target to track progress.</span>';
+        return;
+      }
+      const parts = [];
+      if (t.goal) parts.push(`<span class="target-badge ${t.goal}">${t.goal === 'lose' ? 'Lose weight' : t.goal === 'maintain' ? 'Maintain' : 'Build muscle'}</span>`);
+      if (t.targetWeight) parts.push(`Target: ${t.targetWeight} kg`);
+      if (t.targetDate) parts.push(`By ${t.targetDate}`);
+      el.innerHTML = parts.join(' • ');
+    }
+
+    $('targetSaveBtn').onclick = () => {
+      const goal = $('targetGoal').value;
+      const targetWeight = parseFloat($('targetWeight').value);
+      const targetDate = $('targetDate').value || null;
+      saveTargets({ goal, targetWeight: targetWeight || null, targetDate });
+      renderTargetDisplay();
+    };
+
+    loadRules();
+    renderWeightList();
+    renderFeedbackList();
+    renderTasks();
+    renderCoachTasksMini();
+    renderCoachPredefinedTasks();
+    renderCoachProfile();
+    renderCoachPrompts('dashboard');
+  </script>
+</body>
+</html>

@@ -1,0 +1,39 @@
+---
+description: "Always use the project documentation for rules and standards"
+globs: ["**/*"]
+alwaysApply: true
+---
+
+# Project Rules & Standards
+
+Refer to the following files in the `docs/` folder for all coding, architecture, and styling rules:
+
+- **@docs/coding-standards.md** — TDD, DDD, project structure, secrets
+- **@docs/architecture.md** — Tech stack, data flow, components
+- **@docs/api-guidelines.md** — API contract, testing (100% coverage)
+- **@docs/agents.md** — 3-agent architecture (Reader, Processor, Reporter)
+- **@docs/persistence.md** — Storage separation, durability, retries
+- **@docs/features.md** — Feature inventory and status
+
+## Architecture — Must Follow
+
+- **Storage:** 2 collections — `meals` (happydiet), `diet_rules` (rules) — separate concerns.
+- **3 agents:** Reader (image→text, persist); Processor (match, persist); Reporter (dashboard, compliance, audio).
+- **Persistence:** Correct, durable writes; retries on failure; see persistence.md.
+
+## Testing — Mandatory
+
+- **Tests must always pass** before merge or deploy.
+- **Unit + integration:** 100% coverage for `domain/` and `application/`.
+- **E2E:** All HTTP endpoints covered.
+- **Commands:** `npm test` (local), `npm run test:ci` (CI with JUnit).
+- **After each feature:** Run `npm test`; do not continue if red.
+
+## Meta Rule — Evolving Rules
+
+When developing, we learn more rules. **Integrate them into the docs:**
+
+- Add or update rules in `scope.md`, `design.md`, `agents.md`, `persistence.md`, `features.md`
+- Keep docs in sync with implementation
+- Update `tasks.md` when new work is identified
+- Update this rule file if new standards emerge

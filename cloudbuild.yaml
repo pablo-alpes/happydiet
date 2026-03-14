@@ -1,0 +1,29 @@
+# HappyDiet CI/CD - tests before deploy (test:ci produces JUnit report)
+# If tests fail, deploy step does not run
+# Run from repo root: gcloud builds submit --config cloudbuild.yaml .
+# Cloud Build provides PROJECT_ID automatically
+steps:
+  - name: 'node:20'
+    entrypoint: npm
+    args: ['ci']
+    dir: 'backend'
+  - name: 'node:20'
+    id: 'test'
+    entrypoint: npm
+    args: ['run', 'test:ci']
+    dir: 'backend'
+  - name: 'gcr.io/cloud-builders/gcloud'
+    id: 'deploy'
+    waitFor: ['test']
+    args:
+      - 'run'
+      - 'deploy'
+      - 'happydiet-backend'
+      - '--source'
+      - '.'
+      - '--region'
+      - 'us-central1'
+      - '--allow-unauthenticated'
+      - '--set-env-vars'
+      - 'GOOGLE_CLOUD_PROJECT=${PROJECT_ID},GOOGLE_CLOUD_LOCATION=us-central1'
+    dir: 'backend'

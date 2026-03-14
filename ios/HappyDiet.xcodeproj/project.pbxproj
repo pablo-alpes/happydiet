@@ -1,0 +1,529 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		076FA5DAABFEEA232388ABB8 /* AppState.swift in Sources */ = {isa = PBXBuildFile; fileRef = 6052D97768C1F51EE993CC0A /* AppState.swift */; };
+		0AA27457273BE1524304FB85 /* LiveAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF63531B51E8CD5A79B8912 /* LiveAPIClient.swift */; };
+		2F530DA66A6A2E5E5E240875 /* HappyDietApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8C90C56EAF1399EEA5FDFE5C /* HappyDietApp.swift */; };
+		45D5945A30543DC539C5C72E /* LiveCoachView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E77A8995D39CAB4F2DCAB03 /* LiveCoachView.swift */; };
+		4F8417A3C14AE9ED9A0D1F7B /* ImagePicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = DDA101703CE87D2AFC7DDE99 /* ImagePicker.swift */; };
+		517AC6B70A12AE1E05C96A20 /* QCSDK.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5EE35213629BC2623AF16A4D /* QCSDK.framework */; };
+		6438240345E48ADA0E66EBAD /* HeyCyanCaptureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 58EDB6C2645445E597BA87A2 /* HeyCyanCaptureSheet.swift */; };
+		74B40A145B89C7699AB031C7 /* TTSHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5A5E699725AE848D78F09AC2 /* TTSHelper.swift */; };
+		74EA320A0AAB1A7BBA25E7FD /* HeyCyanService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 69688F17066CF1A41E427E63 /* HeyCyanService.swift */; };
+		7719176DE200DA630DE661D7 /* DietView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A62F707711FFAC27395B3B37 /* DietView.swift */; };
+		7A07302367B579BECB380FB8 /* HeyCyanSDKBridge.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7EF6B0498052C19A0B1C4192 /* HeyCyanSDKBridge.swift */; };
+		83355514510E9E73DE4EB31F /* QCScanViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 596F969C1DF1EDC4729B4AD2 /* QCScanViewController.m */; };
+		9AFD9EE4E1FAEEF16CC55340 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E4917F2A26CFC8DF10BF51C /* Config.swift */; };
+		A4F9735886A2475B25BEF775 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FBF8855044CED2641B77E8E7 /* DashboardView.swift */; };
+		B9489BA97D9B15DCFC9F3601 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = D5FBDCF421645B6AC2FBE026 /* MainTabView.swift */; };
+		C55AC08872A04A6EA83AC18F /* AnalyzeFlowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5951FA1407DB867787C5176B /* AnalyzeFlowView.swift */; };
+		C6FC36FEABE215F30B21FAAF /* BackendClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = AFFB96ACBCAC9646FF85FD54 /* BackendClient.swift */; };
+		CC7D8D162CA7990B10C67100 /* CaptureSource.swift in Sources */ = {isa = PBXBuildFile; fileRef = E72BBDDEE42D601D12AD1E6F /* CaptureSource.swift */; };
+		E52950D2CCCD09CCA85C7D91 /* QCCentralManager.m in Sources */ = {isa = PBXBuildFile; fileRef = AB0E863950D9D14494011E71 /* QCCentralManager.m */; };
+		FAB154AA73421CC03BAD4269 /* QCSDK.framework in Embed Frameworks */ = {isa = PBXBuildFile; fileRef = 5EE35213629BC2623AF16A4D /* QCSDK.framework */; settings = {ATTRIBUTES = (CodeSignOnCopy, RemoveHeadersOnCopy, ); }; };
+		FEABD43126D2C4E43B24FF55 /* QCScanView.m in Sources */ = {isa = PBXBuildFile; fileRef = A8E887F899AC6898E2E0E828 /* QCScanView.m */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		25E375C795786AAF961FDA66 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				FAB154AA73421CC03BAD4269 /* QCSDK.framework in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		4D051415AD30AFE724B47DD7 /* HappyDiet-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "HappyDiet-Bridging-Header.h"; sourceTree = "<group>"; };
+		4E4917F2A26CFC8DF10BF51C /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		4E77A8995D39CAB4F2DCAB03 /* LiveCoachView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveCoachView.swift; sourceTree = "<group>"; };
+		58EDB6C2645445E597BA87A2 /* HeyCyanCaptureSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeyCyanCaptureSheet.swift; sourceTree = "<group>"; };
+		5951FA1407DB867787C5176B /* AnalyzeFlowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyzeFlowView.swift; sourceTree = "<group>"; };
+		596F969C1DF1EDC4729B4AD2 /* QCScanViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QCScanViewController.m; sourceTree = "<group>"; };
+		5A5E699725AE848D78F09AC2 /* TTSHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TTSHelper.swift; sourceTree = "<group>"; };
+		5C2E9A5700BF866CF117C955 /* QCScanView.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QCScanView.h; sourceTree = "<group>"; };
+		5EE35213629BC2623AF16A4D /* QCSDK.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QCSDK.framework; path = Frameworks/QCSDK.framework; sourceTree = "<group>"; };
+		5F223312063EA4382505C692 /* QCCentralManager.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QCCentralManager.h; sourceTree = "<group>"; };
+		6052D97768C1F51EE993CC0A /* AppState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppState.swift; sourceTree = "<group>"; };
+		69688F17066CF1A41E427E63 /* HeyCyanService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeyCyanService.swift; sourceTree = "<group>"; };
+		79DEE71AFCF258DCB7294381 /* HappyDiet.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = HappyDiet.xcconfig; sourceTree = "<group>"; };
+		7EF6B0498052C19A0B1C4192 /* HeyCyanSDKBridge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HeyCyanSDKBridge.swift; sourceTree = "<group>"; };
+		8BF63531B51E8CD5A79B8912 /* LiveAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveAPIClient.swift; sourceTree = "<group>"; };
+		8C90C56EAF1399EEA5FDFE5C /* HappyDietApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HappyDietApp.swift; sourceTree = "<group>"; };
+		A62F707711FFAC27395B3B37 /* DietView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DietView.swift; sourceTree = "<group>"; };
+		A8E887F899AC6898E2E0E828 /* QCScanView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QCScanView.m; sourceTree = "<group>"; };
+		AB0E863950D9D14494011E71 /* QCCentralManager.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = QCCentralManager.m; sourceTree = "<group>"; };
+		ACA59CEB6AE9E985CB11BF80 /* QCScanViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = QCScanViewController.h; sourceTree = "<group>"; };
+		AFFB96ACBCAC9646FF85FD54 /* BackendClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BackendClient.swift; sourceTree = "<group>"; };
+		D5FBDCF421645B6AC2FBE026 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		D8562750923012F3F2A8F970 /* HappyDiet.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = HappyDiet.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DDA101703CE87D2AFC7DDE99 /* ImagePicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImagePicker.swift; sourceTree = "<group>"; };
+		E72BBDDEE42D601D12AD1E6F /* CaptureSource.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptureSource.swift; sourceTree = "<group>"; };
+		FBF8855044CED2641B77E8E7 /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		EA369FDA708A76F4470B851D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				517AC6B70A12AE1E05C96A20 /* QCSDK.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		293CDD3B7B162A4CA578B34D /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				5EE35213629BC2623AF16A4D /* QCSDK.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		32597B567D78978CAD9959D2 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				FBF8855044CED2641B77E8E7 /* DashboardView.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		3FE58AEC35A6068059C3E25A = {
+			isa = PBXGroup;
+			children = (
+				F9A795516AD896C02265AC50 /* HappyDiet */,
+				293CDD3B7B162A4CA578B34D /* Frameworks */,
+				50B97D4CCCB8E2BA2A917FAC /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		41816AE5D73F7CB6D3FFDA03 /* Integrations */ = {
+			isa = PBXGroup;
+			children = (
+				C3B7F0AC65A0BF9B89D34331 /* HeyCyan */,
+			);
+			path = Integrations;
+			sourceTree = "<group>";
+		};
+		50B97D4CCCB8E2BA2A917FAC /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D8562750923012F3F2A8F970 /* HappyDiet.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		72B09E6657D01AD441491DF6 /* Features */ = {
+			isa = PBXGroup;
+			children = (
+				A043FCCE1E189A78F38B7C30 /* Analyze */,
+				A4FE9E9A664A0A95B3B35503 /* Camera */,
+				32597B567D78978CAD9959D2 /* Dashboard */,
+				9B6C4707343E3F91E3F74348 /* Diet */,
+				A9BD5F5D7DC7ABFEC1043457 /* LiveCoach */,
+				D5FBDCF421645B6AC2FBE026 /* MainTabView.swift */,
+			);
+			path = Features;
+			sourceTree = "<group>";
+		};
+		9B6C4707343E3F91E3F74348 /* Diet */ = {
+			isa = PBXGroup;
+			children = (
+				A62F707711FFAC27395B3B37 /* DietView.swift */,
+			);
+			path = Diet;
+			sourceTree = "<group>";
+		};
+		9EC5FFAB1C836D1E358A5152 /* Core */ = {
+			isa = PBXGroup;
+			children = (
+				6052D97768C1F51EE993CC0A /* AppState.swift */,
+				AFFB96ACBCAC9646FF85FD54 /* BackendClient.swift */,
+				E72BBDDEE42D601D12AD1E6F /* CaptureSource.swift */,
+				4E4917F2A26CFC8DF10BF51C /* Config.swift */,
+				8BF63531B51E8CD5A79B8912 /* LiveAPIClient.swift */,
+				5A5E699725AE848D78F09AC2 /* TTSHelper.swift */,
+			);
+			path = Core;
+			sourceTree = "<group>";
+		};
+		A043FCCE1E189A78F38B7C30 /* Analyze */ = {
+			isa = PBXGroup;
+			children = (
+				5951FA1407DB867787C5176B /* AnalyzeFlowView.swift */,
+			);
+			path = Analyze;
+			sourceTree = "<group>";
+		};
+		A4FE9E9A664A0A95B3B35503 /* Camera */ = {
+			isa = PBXGroup;
+			children = (
+				DDA101703CE87D2AFC7DDE99 /* ImagePicker.swift */,
+			);
+			path = Camera;
+			sourceTree = "<group>";
+		};
+		A9BD5F5D7DC7ABFEC1043457 /* LiveCoach */ = {
+			isa = PBXGroup;
+			children = (
+				4E77A8995D39CAB4F2DCAB03 /* LiveCoachView.swift */,
+			);
+			path = LiveCoach;
+			sourceTree = "<group>";
+		};
+		C3B7F0AC65A0BF9B89D34331 /* HeyCyan */ = {
+			isa = PBXGroup;
+			children = (
+				E6F9CE9223F571AC154EF67A /* QCSDK */,
+				58EDB6C2645445E597BA87A2 /* HeyCyanCaptureSheet.swift */,
+				7EF6B0498052C19A0B1C4192 /* HeyCyanSDKBridge.swift */,
+				69688F17066CF1A41E427E63 /* HeyCyanService.swift */,
+			);
+			path = HeyCyan;
+			sourceTree = "<group>";
+		};
+		E6F9CE9223F571AC154EF67A /* QCSDK */ = {
+			isa = PBXGroup;
+			children = (
+				5F223312063EA4382505C692 /* QCCentralManager.h */,
+				AB0E863950D9D14494011E71 /* QCCentralManager.m */,
+				5C2E9A5700BF866CF117C955 /* QCScanView.h */,
+				A8E887F899AC6898E2E0E828 /* QCScanView.m */,
+				ACA59CEB6AE9E985CB11BF80 /* QCScanViewController.h */,
+				596F969C1DF1EDC4729B4AD2 /* QCScanViewController.m */,
+			);
+			path = QCSDK;
+			sourceTree = "<group>";
+		};
+		F9A795516AD896C02265AC50 /* HappyDiet */ = {
+			isa = PBXGroup;
+			children = (
+				9EC5FFAB1C836D1E358A5152 /* Core */,
+				72B09E6657D01AD441491DF6 /* Features */,
+				41816AE5D73F7CB6D3FFDA03 /* Integrations */,
+				4D051415AD30AFE724B47DD7 /* HappyDiet-Bridging-Header.h */,
+				79DEE71AFCF258DCB7294381 /* HappyDiet.xcconfig */,
+				8C90C56EAF1399EEA5FDFE5C /* HappyDietApp.swift */,
+			);
+			path = HappyDiet;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		DB7D50A73CCD9C8A12B461C5 /* HappyDiet */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 69F9B47D3239F51C0FD67B38 /* Build configuration list for PBXNativeTarget "HappyDiet" */;
+			buildPhases = (
+				412344A9FD81A7A3FC310BA6 /* Sources */,
+				EA369FDA708A76F4470B851D /* Frameworks */,
+				25E375C795786AAF961FDA66 /* Embed Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = HappyDiet;
+			packageProductDependencies = (
+			);
+			productName = HappyDiet;
+			productReference = D8562750923012F3F2A8F970 /* HappyDiet.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		23A6892256E75B902CD01B26 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					DB7D50A73CCD9C8A12B461C5 = {
+						DevelopmentTeam = M7W9HYCCHN;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = 7FA191801289A6FDD292D4BB /* Build configuration list for PBXProject "HappyDiet" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 3FE58AEC35A6068059C3E25A;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 50B97D4CCCB8E2BA2A917FAC /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				DB7D50A73CCD9C8A12B461C5 /* HappyDiet */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		412344A9FD81A7A3FC310BA6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				C55AC08872A04A6EA83AC18F /* AnalyzeFlowView.swift in Sources */,
+				076FA5DAABFEEA232388ABB8 /* AppState.swift in Sources */,
+				C6FC36FEABE215F30B21FAAF /* BackendClient.swift in Sources */,
+				CC7D8D162CA7990B10C67100 /* CaptureSource.swift in Sources */,
+				9AFD9EE4E1FAEEF16CC55340 /* Config.swift in Sources */,
+				A4F9735886A2475B25BEF775 /* DashboardView.swift in Sources */,
+				7719176DE200DA630DE661D7 /* DietView.swift in Sources */,
+				2F530DA66A6A2E5E5E240875 /* HappyDietApp.swift in Sources */,
+				6438240345E48ADA0E66EBAD /* HeyCyanCaptureSheet.swift in Sources */,
+				7A07302367B579BECB380FB8 /* HeyCyanSDKBridge.swift in Sources */,
+				74EA320A0AAB1A7BBA25E7FD /* HeyCyanService.swift in Sources */,
+				4F8417A3C14AE9ED9A0D1F7B /* ImagePicker.swift in Sources */,
+				0AA27457273BE1524304FB85 /* LiveAPIClient.swift in Sources */,
+				45D5945A30543DC539C5C72E /* LiveCoachView.swift in Sources */,
+				B9489BA97D9B15DCFC9F3601 /* MainTabView.swift in Sources */,
+				E52950D2CCCD09CCA85C7D91 /* QCCentralManager.m in Sources */,
+				FEABD43126D2C4E43B24FF55 /* QCScanView.m in Sources */,
+				83355514510E9E73DE4EB31F /* QCScanViewController.m in Sources */,
+				74B40A145B89C7699AB031C7 /* TTSHelper.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		131E27A0305AA9350EBA1756 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = M7W9HYCCHN;
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SRCROOT)/Frameworks",
+					"\"Frameworks\"",
+				);
+				INFOPLIST_FILE = HappyDiet/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.happydiet.app;
+				PRODUCT_NAME = HappyDiet;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				UILaunchScreen = "[:]";
+				UISupportedInterfaceOrientations = (
+					UIInterfaceOrientationPortrait,
+					UIInterfaceOrientationLandscapeLeft,
+					UIInterfaceOrientationLandscapeRight,
+				);
+				"UISupportedInterfaceOrientations~ipad" = (
+					UIInterfaceOrientationPortrait,
+					UIInterfaceOrientationPortraitUpsideDown,
+					UIInterfaceOrientationLandscapeLeft,
+					UIInterfaceOrientationLandscapeRight,
+				);
+			};
+			name = Release;
+		};
+		3574C09375B212AC1446D301 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		37AFF5E2F37929018600094E /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "Apple Development";
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = M7W9HYCCHN;
+				ENABLE_PREVIEWS = YES;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(SRCROOT)/Frameworks",
+					"\"Frameworks\"",
+				);
+				INFOPLIST_FILE = HappyDiet/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.happydiet.app;
+				PRODUCT_NAME = HappyDiet;
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				UILaunchScreen = "[:]";
+				UISupportedInterfaceOrientations = (
+					UIInterfaceOrientationPortrait,
+					UIInterfaceOrientationLandscapeLeft,
+					UIInterfaceOrientationLandscapeRight,
+				);
+				"UISupportedInterfaceOrientations~ipad" = (
+					UIInterfaceOrientationPortrait,
+					UIInterfaceOrientationPortraitUpsideDown,
+					UIInterfaceOrientationLandscapeLeft,
+					UIInterfaceOrientationLandscapeRight,
+				);
+			};
+			name = Debug;
+		};
+		D83944FD8CF440B734B16577 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		69F9B47D3239F51C0FD67B38 /* Build configuration list for PBXNativeTarget "HappyDiet" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				37AFF5E2F37929018600094E /* Debug */,
+				131E27A0305AA9350EBA1756 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		7FA191801289A6FDD292D4BB /* Build configuration list for PBXProject "HappyDiet" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				3574C09375B212AC1446D301 /* Debug */,
+				D83944FD8CF440B734B16577 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 23A6892256E75B902CD01B26 /* Project object */;
+}

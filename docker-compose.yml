@@ -1,0 +1,26 @@
+# HappyDiet - modular local development
+# Run: docker compose up
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
+      - GOOGLE_CLOUD_LOCATION=${GOOGLE_CLOUD_LOCATION:-us-central1}
+      - API_KEY=${API_KEY}
+    env_file:
+      - .env
+    restart: unless-stopped
+
+  # Optional: Firestore emulator for local testing without GCP
+  # Uncomment to run backend against local Firestore
+  # firestore-emulator:
+  #   image: gcr.io/google.com/cloudsdktool/google-cloud-cli:emulators
+  #   command: gcloud emulators firestore start --host-port=0.0.0.0:8081
+  #   ports:
+  #     - "8081:8081"

@@ -1,0 +1,561 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HappyDiet — Dev Playground</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 1.5rem;
+      background: #f0f4f8;
+    }
+    h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+    .subtitle { color: #6c757d; font-size: 0.9rem; margin-bottom: 1.5rem; }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+    @media (max-width: 700px) { .grid { grid-template-columns: 1fr; } }
+    .card {
+      background: white;
+      border-radius: 12px;
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+    }
+    .card h2 { font-size: 1rem; margin: 0 0 0.75rem 0; color: #333; }
+    .upload-zone {
+      border: 2px dashed #ced4da;
+      border-radius: 12px;
+      padding: 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+    .upload-zone:hover, .upload-zone.dragover { border-color: #1a73e8; background: #f0f7ff; }
+    .upload-zone input { display: none; }
+    .preview { max-width: 100%; max-height: 180px; border-radius: 8px; margin-top: 0.5rem; }
+    .btn {
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      margin-right: 0.5rem;
+      margin-top: 0.5rem;
+    }
+    .btn-primary { background: #1a73e8; color: white; }
+    .btn-primary:hover { background: #1557b0; }
+    .btn-primary:disabled { background: #adb5bd; cursor: not-allowed; }
+    .btn-secondary { background: #e9ecef; color: #333; }
+    .btn-secondary:hover { background: #dee2e6; }
+    textarea {
+      width: 100%;
+      min-height: 80px;
+      padding: 0.5rem;
+      border: 1px solid #ced4da;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      resize: vertical;
+    }
+    .score-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 1.1rem;
+    }
+    .score-high { background: #d4edda; color: #155724; }
+    .score-mid { background: #fff3cd; color: #856404; }
+    .score-low { background: #f8d7da; color: #721c24; }
+    .message { margin: 1rem 0; line-height: 1.5; }
+    .items { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem; }
+    .item { padding: 0.25rem 0.5rem; border-radius: 6px; font-size: 0.85rem; }
+    .compliant { background: #d4edda; color: #155724; }
+    .noncompliant { background: #f8d7da; color: #721c24; }
+    .suggestions { background: #e7f3ff; padding: 0.75rem; border-radius: 8px; margin-top: 0.5rem; font-size: 0.9rem; }
+    .meal-row {
+      padding: 0.75rem;
+      border-bottom: 1px solid #eee;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .meal-row:last-child { border-bottom: none; }
+    .status { padding: 0.25rem 0.5rem; font-size: 0.8rem; border-radius: 4px; }
+    .status.ok { background: #d4edda; }
+    .status.err { background: #f8d7da; }
+    .config { font-size: 0.85rem; color: #6c757d; margin-bottom: 1rem; }
+    .config input { width: 100%; padding: 0.4rem; margin-top: 0.25rem; }
+    .tabs { display: flex; gap: 0.5rem; margin-bottom: 1rem; }
+    .tab {
+      padding: 0.5rem 1rem;
+      border: none;
+      background: #e9ecef;
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 0.95rem;
+    }
+    .tab.active { background: #1a73e8; color: white; }
+    .tab:hover:not(.active) { background: #dee2e6; }
+    .panel { display: none; }
+    .panel.active { display: block; }
+    .tts-row { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; }
+    .tts-row button { flex-shrink: 0; }
+    .rules-preview { font-size: 0.8rem; color: #6c757d; margin-top: 0.25rem; }
+    .rule-section { padding: 0.75rem 1rem; border-radius: 8px; margin-top: 0.5rem; }
+    .rule-section h3 { margin: 0 0 0.5rem 0; font-size: 0.95rem; }
+    .rule-items { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+    .rule-items span { padding: 0.2rem 0.5rem; border-radius: 6px; font-size: 0.9rem; }
+    .not-allowed-section { background: #f8d7da; color: #721c24; }
+    .not-allowed-section .rule-items span { background: #fff; color: #721c24; border: 1px solid #f5c6cb; }
+    .allowed-section { background: #d4edda; color: #155724; }
+    .allowed-section .rule-items span { background: #fff; color: #155724; border: 1px solid #c3e6cb; }
+    .limit-section { background: #fff3cd; color: #856404; }
+    .limit-section .rule-items span { background: #fff; color: #856404; border: 1px solid #ffeaa7; }
+    .note-section { background: #e7f3ff; color: #004085; }
+    .meal-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+    .camera-modal {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 100;
+      display: none; align-items: center; justify-content: center; flex-direction: column;
+    }
+    .camera-modal.active { display: flex; }
+    .camera-modal video { max-width: 100%; max-height: 70vh; border-radius: 8px; }
+    .camera-modal .btn { margin: 0.5rem; }
+  </style>
+</head>
+<body>
+  <h1>HappyDiet — Dev Playground</h1>
+  <p class="subtitle">Diet input → Parse & save → Upload meal → Compliance + TTS</p>
+
+  <div class="config card">
+    <strong>Backend</strong>
+    <input type="url" id="url" placeholder="Same as this page" value="">
+    <p class="config" style="margin-top:0.25rem">Leave empty to use current page origin. On phone, ensure backend is reachable (same network).</p>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="full">Full View</button>
+    <button class="tab" data-tab="rules">Rules</button>
+    <button class="tab" data-tab="dashboard">Dashboard</button>
+  </div>
+
+  <div id="panel-full" class="panel active">
+    <div class="grid">
+      <div class="card">
+        <h2>1. Diet rules</h2>
+        <p style="font-size:0.85rem;color:#6c757d;margin-bottom:0.5rem;">From text or from image (photo of diet plan, handwritten rules, etc.)</p>
+        <textarea id="dietText" placeholder="e.g. No sugar, no soda, avoid bread, no pizza"></textarea>
+        <div class="meal-actions" style="margin-top:0.5rem">
+          <button class="btn btn-secondary" id="parseBtn">Parse text</button>
+          <button class="btn btn-primary" id="saveBtn">Parse & Save</button>
+          <button class="btn btn-secondary" id="dietFromImageBtn">📷 From image</button>
+          <button class="btn btn-secondary" id="dietTakePhotoBtn">📷 Take photo of diet</button>
+        </div>
+        <input type="file" id="dietFile" accept="image/*" style="display:none">
+        <input type="file" id="dietFileCapture" accept="image/*" capture="environment" style="display:none">
+        <div id="dietImagePreview" style="display:none;margin-top:0.5rem">
+          <img id="dietPreviewImg" class="preview" style="max-height:120px">
+          <button class="btn btn-secondary" id="parseDietImageBtn" style="margin-top:0.25rem">Parse image</button>
+          <button class="btn btn-primary" id="saveDietImageBtn" style="margin-top:0.25rem">Parse & Save</button>
+        </div>
+        <div id="rulesPreview" class="rules-preview"></div>
+      </div>
+      <div class="card">
+        <h2>2. Meal image</h2>
+        <div class="meal-actions">
+          <button class="btn btn-primary" id="takePhotoBtn">📷 Take photo</button>
+          <button class="btn btn-secondary" id="uploadBtn">📁 Upload file</button>
+        </div>
+        <input type="file" id="file" accept="image/*" style="display:none">
+        <input type="file" id="fileCapture" accept="image/*" capture="environment" style="display:none">
+        <div class="upload-zone" id="uploadZone" style="margin-top:0.5rem">
+          <p>Drop image here or use buttons above</p>
+        </div>
+        <img id="preview" class="preview" style="display:none;">
+        <button class="btn btn-primary" id="analyzeBtn" disabled>Analyze Meal</button>
+      </div>
+    </div>
+    <div class="card" id="resultCard" style="display:none;">
+      <h2>3. Result</h2>
+      <div id="result"></div>
+      <div class="tts-row">
+        <button class="btn btn-secondary" id="speakBtn">🔊 Speak</button>
+        <span id="ttsStatus" style="font-size:0.85rem;color:#6c757d;"></span>
+      </div>
+    </div>
+  </div>
+
+  <div id="cameraModal" class="camera-modal">
+    <video id="cameraVideo" autoplay playsinline muted></video>
+    <div>
+      <button class="btn btn-primary" id="captureBtn">Capture</button>
+      <button class="btn btn-secondary" id="cancelCameraBtn">Cancel</button>
+    </div>
+  </div>
+
+  <div id="panel-rules" class="panel">
+    <div class="card">
+      <h2>Full diet rules</h2>
+      <p class="config">Complete parsed diet: not allowed, allowed, limits, notes.</p>
+      <button class="btn btn-secondary" id="refreshRules">Refresh from backend</button>
+      <div id="rulesList" style="margin-top:1rem;"></div>
+    </div>
+  </div>
+
+  <div id="panel-dashboard" class="panel">
+    <div class="card">
+      <button class="btn btn-primary" id="refreshMeals">Refresh Meals</button>
+      <div id="mealsList" style="margin-top:1rem;"></div>
+    </div>
+  </div>
+
+  <script>
+    const $ = id => document.getElementById(id);
+    const url = () => ($('url').value || window.location.origin).replace(/\/$/, '');
+
+    document.querySelectorAll('.tab').forEach(t => {
+      t.onclick = () => {
+        document.querySelectorAll('.tab').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.panel').forEach(x => x.classList.remove('active'));
+        t.classList.add('active');
+        $(`panel-${t.dataset.tab}`).classList.add('active');
+        if (t.dataset.tab === 'dashboard') loadMeals();
+        if (t.dataset.tab === 'rules') renderRulesList();
+      };
+    });
+
+    let currentBase64 = null;
+    let dietImageBase64 = null;
+    let cameraStream = null;
+    let cameraForDiet = false;
+
+    $('uploadBtn').onclick = () => $('file').click();
+    $('uploadZone').onclick = () => $('file').click();
+    $('uploadZone').ondragover = e => { e.preventDefault(); $('uploadZone').classList.add('dragover'); };
+    $('uploadZone').ondragleave = () => $('uploadZone').classList.remove('dragover');
+    $('uploadZone').ondrop = e => {
+      e.preventDefault();
+      $('uploadZone').classList.remove('dragover');
+      const f = e.dataTransfer.files[0];
+      if (f && f.type.startsWith('image/')) handleFile(f);
+    };
+
+    $('file').onchange = e => { const f = e.target.files[0]; if (f) handleFile(f); e.target.value = ''; };
+    $('fileCapture').onchange = e => { const f = e.target.files[0]; if (f) handleFile(f); e.target.value = ''; };
+
+    function setImageFromDataUrl(dataUrl) {
+      currentBase64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+      $('preview').src = dataUrl;
+      $('preview').style.display = 'block';
+      $('analyzeBtn').disabled = false;
+    }
+
+    function handleFile(file) {
+      const r = new FileReader();
+      r.onload = () => setImageFromDataUrl(r.result);
+      r.readAsDataURL(file);
+    }
+
+    async function openCamera() {
+      if (!navigator.mediaDevices?.getUserMedia) {
+        $('fileCapture').click();
+        return;
+      }
+      try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+        $('cameraVideo').srcObject = cameraStream;
+        $('cameraModal').classList.add('active');
+      } catch (e) {
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+          $('cameraVideo').srcObject = cameraStream;
+          $('cameraModal').classList.add('active');
+        } catch (e2) {
+          $('fileCapture').click();
+        }
+      }
+    }
+
+    function closeCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(t => t.stop());
+        cameraStream = null;
+      }
+      $('cameraModal').classList.remove('active');
+    }
+
+    $('takePhotoBtn').onclick = () => { cameraForDiet = false; openCamera(); };
+    $('dietTakePhotoBtn').onclick = () => { cameraForDiet = true; openCamera(); };
+    $('cancelCameraBtn').onclick = closeCamera;
+
+    $('captureBtn').onclick = () => {
+      const video = $('cameraVideo');
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
+      if (cameraForDiet) {
+        dietImageBase64 = dataUrl.includes(',') ? dataUrl.split(',')[1] : dataUrl;
+        $('dietPreviewImg').src = dataUrl;
+        $('dietImagePreview').style.display = 'block';
+      } else {
+        setImageFromDataUrl(dataUrl);
+      }
+      closeCamera();
+    };
+
+    async function parseDiet(save) {
+      const text = $('dietText').value.trim();
+      if (!text) {
+        $('rulesPreview').textContent = 'Enter diet description first.';
+        return;
+      }
+      try {
+        const res = await fetch(url() + '/parse-diet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ diet_text: text, user_id: 'demo', save }),
+        });
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.rules) && data.rules.length) {
+          window._lastParsedRules = data.rules;
+          const f = data.rules.filter(r => r?.type === 'forbidden').flatMap(r => r.items || []);
+          const a = data.rules.filter(r => r?.type === 'allowed').flatMap(r => r.items || []);
+          let txt = `Parsed ${data.rules.length} rule(s). Not allowed: ${f.length ? f.join(', ') : '—'}`;
+          if (a.length) txt += `. Allowed: ${a.join(', ')}`;
+          if (data.saved) txt += ' (saved)';
+          $('rulesPreview').textContent = txt;
+        } else {
+          $('rulesPreview').textContent = data.error || data.detail || 'Parse failed';
+        }
+      } catch (e) {
+        $('rulesPreview').textContent = 'Error: ' + e.message;
+      }
+    }
+
+    function handleDietImage(file) {
+      const r = new FileReader();
+      r.onload = () => {
+        const data = r.result;
+        dietImageBase64 = data.includes(',') ? data.split(',')[1] : data;
+        $('dietPreviewImg').src = data;
+        $('dietImagePreview').style.display = 'block';
+      };
+      r.readAsDataURL(file);
+    }
+
+    async function parseDietFromImage(save) {
+      if (!dietImageBase64) {
+        $('rulesPreview').textContent = 'Add an image first (From image).';
+        return;
+      }
+      $('rulesPreview').textContent = 'Parsing image…';
+      try {
+        const res = await fetch(url() + '/parse-diet', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image_base64: dietImageBase64, user_id: 'demo', save }),
+        });
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.rules) && data.rules.length) {
+          window._lastParsedRules = data.rules;
+          const f = data.rules.filter(r => r?.type === 'forbidden').flatMap(r => r.items || []);
+          const a = data.rules.filter(r => r?.type === 'allowed').flatMap(r => r.items || []);
+          let txt = `Parsed ${data.rules.length} rule(s) from image. Not allowed: ${f.length ? f.join(', ') : '—'}`;
+          if (a.length) txt += `. Allowed: ${a.join(', ')}`;
+          if (data.saved) txt += ' (saved)';
+          $('rulesPreview').textContent = txt;
+          $('dietText').value = data.rules.filter(r => r?.type === 'forbidden').map(r => 'Avoid: ' + (r.items || []).join(', ')).join('\n');
+        } else {
+          $('rulesPreview').textContent = data.error || data.detail || 'Parse failed';
+        }
+      } catch (e) {
+        $('rulesPreview').textContent = 'Error: ' + e.message;
+      }
+    }
+
+    $('dietFromImageBtn').onclick = () => {
+      if (navigator.mediaDevices?.getUserMedia) {
+        $('dietFile').click();
+      } else {
+        $('dietFileCapture').click();
+      }
+    };
+    $('dietFile').onchange = e => { const f = e.target.files[0]; if (f) handleDietImage(f); e.target.value = ''; };
+    $('dietFileCapture').onchange = e => { const f = e.target.files[0]; if (f) handleDietImage(f); e.target.value = ''; };
+    $('parseDietImageBtn').onclick = () => parseDietFromImage(false);
+    $('saveDietImageBtn').onclick = () => parseDietFromImage(true);
+
+    $('parseBtn').onclick = () => parseDiet(false);
+    $('saveBtn').onclick = () => parseDiet(true);
+
+    function renderResult(data) {
+      const score = data.score ?? 0;
+      const scoreClass = score >= 80 ? 'score-high' : score >= 50 ? 'score-mid' : 'score-low';
+      let html = `<div><span class="score-badge ${scoreClass}">${score}% compliant</span></div>`;
+      if (data.message) html += `<div class="message">${data.message}</div>`;
+      if (data.ingredients?.length) html += `<p><strong>Ingredients:</strong> ${data.ingredients.join(', ')}</p>`;
+      if (data.compliantItems?.length) {
+        html += `<p><strong>Good choices:</strong><div class="items">${data.compliantItems.map(i => `<span class="item compliant">${i}</span>`).join('')}</div></p>`;
+      }
+      if (data.nonCompliantItems?.length) {
+        html += `<p><strong>Watch out:</strong><div class="items">${data.nonCompliantItems.map(i => `<span class="item noncompliant">${i}</span>`).join('')}</div></p>`;
+      }
+      if (data.suggestions?.length && data.suggestions[0] !== 'Keep up the good choices!') {
+        html += `<div class="suggestions"><strong>Suggestions:</strong> ${data.suggestions.join(' ')}</div>`;
+      }
+      if (data.estimatedKcal) html += `<p style="font-size:0.9rem;color:#6c757d;">Est. ${data.estimatedKcal} kcal</p>`;
+      $('result').innerHTML = html;
+      $('resultCard').style.display = 'block';
+      window._lastResult = data;
+    }
+
+    async function analyze() {
+      if (!currentBase64) return;
+      $('analyzeBtn').disabled = true;
+      $('result').innerHTML = '<p>Analyzing…</p>';
+      $('resultCard').style.display = 'block';
+
+      try {
+        const body = { image_base64: currentBase64, user_id: 'demo' };
+        const dietText = $('dietText').value.trim();
+        if (dietText) body.diet_text = dietText;
+
+        const res = await fetch(url() + '/analyze-meal', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        const data = await res.json();
+
+        if (res.status === 503) {
+          $('result').innerHTML = '<p class="status err">Backend not configured. Set GOOGLE_CLOUD_PROJECT in .env</p>';
+        } else if (res.ok) {
+          renderResult(data);
+        } else {
+          $('result').innerHTML = `<p class="status err">Error ${res.status}: ${data.error || JSON.stringify(data)}</p>`;
+        }
+      } catch (e) {
+        $('result').innerHTML = `<p class="status err">Network error: ${e.message}</p>`;
+      }
+      $('analyzeBtn').disabled = false;
+    }
+
+    $('analyzeBtn').onclick = analyze;
+
+    $('speakBtn').onclick = async () => {
+      const data = window._lastResult;
+      if (!data?.message) {
+        $('ttsStatus').textContent = 'Analyze a meal first.';
+        return;
+      }
+      $('ttsStatus').textContent = 'Speaking…';
+      try {
+        const res = await fetch(url() + '/speak', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text: data.message }),
+        });
+        if (res.ok) {
+          const blob = await res.blob();
+          const audio = new Audio(URL.createObjectURL(blob));
+          audio.onended = () => { $('ttsStatus').textContent = ''; URL.revokeObjectURL(audio.src); };
+          audio.onerror = () => { $('ttsStatus').textContent = 'Playback failed'; };
+          await audio.play();
+        } else {
+          if (res.status === 503 && 'speechSynthesis' in window) {
+            speechSynthesis.cancel();
+            const u = new SpeechSynthesisUtterance(data.message);
+            u.rate = 0.95;
+            u.onstart = () => { $('ttsStatus').textContent = 'Speaking…'; };
+            u.onend = () => { $('ttsStatus').textContent = ''; };
+            speechSynthesis.speak(u);
+          } else {
+            $('ttsStatus').textContent = 'TTS unavailable';
+          }
+        }
+      } catch (e) {
+        if ('speechSynthesis' in window) {
+          speechSynthesis.cancel();
+          const u = new SpeechSynthesisUtterance(data.message);
+          u.onend = () => { $('ttsStatus').textContent = ''; };
+          speechSynthesis.speak(u);
+        } else {
+          $('ttsStatus').textContent = 'Error: ' + e.message;
+        }
+      }
+    };
+
+    function renderRulesList(rules) {
+      const el = $('rulesList');
+      const r = rules || window._lastParsedRules;
+      if (!r || !Array.isArray(r) || r.length === 0) {
+        el.innerHTML = '<p style="color:#6c757d;">No rules yet. Parse diet text or image in Full View, or click Refresh to load from backend.</p>';
+        return;
+      }
+      const forbidden = r.filter(x => x?.type === 'forbidden').flatMap(x => (Array.isArray(x?.items) ? x.items : []).filter(Boolean));
+      const allowed = r.filter(x => x?.type === 'allowed').flatMap(x => (Array.isArray(x?.items) ? x.items : []).filter(Boolean));
+      const limits = r.filter(x => x?.type === 'limit');
+      const notes = r.filter(x => x?.type === 'note').map(x => x.text).filter(Boolean);
+      let html = '';
+      if (forbidden.length) {
+        html += `<div class="rule-section not-allowed-section"><h3>Not allowed</h3><div class="rule-items">${forbidden.map(i => `<span>${i}</span>`).join('')}</div></div>`;
+      }
+      if (allowed.length) {
+        html += `<div class="rule-section allowed-section"><h3>Allowed</h3><div class="rule-items">${allowed.map(i => `<span>${i}</span>`).join('')}</div></div>`;
+      }
+      if (limits.length) {
+        html += limits.map(l => `<div class="rule-section limit-section"><h3>Limit</h3><div class="rule-items">${(l.items || []).map(i => `<span>${i}</span>`).join('')}</div><p style="font-size:0.85rem;margin-top:0.25rem">max ${l.maxPerDay} ${l.unit}/day</p></div>`).join('');
+      }
+      if (notes.length) {
+        html += `<div class="rule-section note-section"><h3>Notes</h3><p>${notes.join(' • ')}</p></div>`;
+      }
+      if (!html) html = '<p style="color:#6c757d;">No structured rules found.</p>';
+      el.innerHTML = html;
+    }
+
+    async function loadRules() {
+      const el = $('rulesList');
+      el.innerHTML = '<p>Loading…</p>';
+      try {
+        const res = await fetch(url() + '/rules?user_id=demo');
+        const data = await res.json();
+        if (res.ok && Array.isArray(data.rules) && data.rules.length) {
+          window._lastParsedRules = data.rules;
+          renderRulesList(data.rules);
+        } else {
+          renderRulesList(window._lastParsedRules);
+        }
+      } catch (e) {
+        el.innerHTML = `<p class="status err">Error: ${e.message}</p>`;
+      }
+    }
+
+    async function loadMeals() {
+      const el = $('mealsList');
+      el.innerHTML = '<p>Loading…</p>';
+      try {
+        const res = await fetch(url() + '/meals?user_id=demo');
+        const data = await res.json();
+        if (res.ok && data.meals?.length) {
+          el.innerHTML = data.meals.map(m => `
+            <div class="meal-row">
+              <div>
+                <strong>${m.complianceScore}%</strong> — ${(m.ingredients || []).slice(0, 3).join(', ')}${(m.ingredients?.length > 3) ? '…' : ''}
+              </div>
+            </div>
+          `).join('');
+        } else {
+          el.innerHTML = '<p style="color:#6c757d;">No meals yet. Analyze a meal first.</p>';
+        }
+      } catch (e) {
+        el.innerHTML = `<p class="status err">Error: ${e.message}</p>`;
+      }
+    }
+
+    $('refreshMeals').onclick = loadMeals;
+    $('refreshRules').onclick = loadRules;
+  </script>
+</body>
+</html>

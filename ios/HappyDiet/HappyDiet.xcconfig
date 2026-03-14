@@ -1,0 +1,6 @@
+// HappyDiet build configuration
+// Edit BACKEND_URL for Cloud Run deployment (e.g. https://your-service-xxx.run.app)
+// Default: http://localhost:8080 for local dev
+
+BACKEND_URL = http://localhost:8080
+API_KEY =
