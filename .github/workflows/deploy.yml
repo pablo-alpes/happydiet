@@ -1,16 +1,35 @@
-# HappyDiet CI/CD — Deploy backend to Cloud Run on push to main
-# Requires GitHub secrets: GCP_PROJECT_ID, GCP_SA_KEY (service account JSON, base64)
+# HappyDiet CI/CD — Deploy backend to Cloud Run
+# Triggers: push to main (prod), push to dev (dev), PRs (test only), manual (workflow_dispatch)
+#
+# REQUIRED: Add these secrets in Settings → Secrets and variables → Actions:
+#   GCP_PROJECT_ID = happydiet-1-490118 (or your project ID)
+#   GCP_SA_KEY    = full JSON of service account key (run ./scripts/bootstrap-cloud.sh to create)
+#
+# Environments:
+#   dev  — happydiet-backend-dev (from dev branch)
+#   prod — happydiet-backend (from main branch)
+#
+# Tests must pass before any deployment.
 name: Deploy to Cloud Run
 
 on:
   push:
-    branches: [main, master]
+    branches: [main, master, dev]
   pull_request:
-    branches: [main, master]
+    branches: [main, master, dev]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        default: 'prod'
+        type: choice
+        options:
+          - prod
+          - dev
 
 env:
   REGION: us-central1
-  SERVICE_NAME: happydiet-backend
 
 jobs:
   test:
@@ -42,17 +61,32 @@ jobs:
           path: backend/test-results/
           retention-days: 7
 
-  deploy:
-    name: Deploy to Cloud Run
+  deploy-dev:
+    name: Deploy to Dev
     needs: test
-    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+    if: |
+      (github.event_name == 'push' && github.ref == 'refs/heads/dev') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'dev')
     runs-on: ubuntu-latest
+    environment: dev
     permissions:
       contents: read
       id-token: write
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Check required secrets
+        run: |
+          if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then
+            echo "::error::GCP_PROJECT_ID secret is not set. Add it in Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+          if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
+            echo "::error::GCP_SA_KEY secret is not set. Add it in Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+          echo "Secrets configured."
 
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
@@ -64,20 +98,82 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Deploy to Cloud Run
+      - name: Deploy to Cloud Run (dev)
         working-directory: backend
         run: |
-          gcloud run deploy ${{ env.SERVICE_NAME }} \
+          gcloud run deploy happydiet-backend-dev \
             --source . \
             --region ${{ env.REGION }} \
             --allow-unauthenticated \
-            --set-env-vars "GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }},GOOGLE_CLOUD_LOCATION=${{ env.REGION }}" \
+            --set-env-vars "GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }},GOOGLE_CLOUD_LOCATION=${{ env.REGION }},ENV=dev" \
             --project ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Get service URL
         id: url
         run: |
-          URL=$(gcloud run services describe ${{ env.SERVICE_NAME }} \
+          URL=$(gcloud run services describe happydiet-backend-dev \
+            --region ${{ env.REGION }} \
+            --format 'value(status.url)' \
+            --project ${{ secrets.GCP_PROJECT_ID }})
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "Deployed to $URL"
+
+      - name: Smoke test
+        run: |
+          curl -sf "${{ steps.url.outputs.url }}/health" || exit 1
+          echo "Health check passed."
+
+  deploy-prod:
+    name: Deploy to Prod
+    needs: test
+    if: |
+      (github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')) ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.environment == 'prod')
+    runs-on: ubuntu-latest
+    environment: prod
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check required secrets
+        run: |
+          if [ -z "${{ secrets.GCP_PROJECT_ID }}" ]; then
+            echo "::error::GCP_PROJECT_ID secret is not set. Add it in Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+          if [ -z "${{ secrets.GCP_SA_KEY }}" ]; then
+            echo "::error::GCP_SA_KEY secret is not set. Add it in Settings → Secrets and variables → Actions"
+            exit 1
+          fi
+          echo "Secrets configured."
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Deploy to Cloud Run (prod)
+        working-directory: backend
+        run: |
+          gcloud run deploy happydiet-backend \
+            --source . \
+            --region ${{ env.REGION }} \
+            --allow-unauthenticated \
+            --set-env-vars "GOOGLE_CLOUD_PROJECT=${{ secrets.GCP_PROJECT_ID }},GOOGLE_CLOUD_LOCATION=${{ env.REGION }},ENV=prod" \
+            --project ${{ secrets.GCP_PROJECT_ID }}
+
+      - name: Get service URL
+        id: url
+        run: |
+          URL=$(gcloud run services describe happydiet-backend \
             --region ${{ env.REGION }} \
             --format 'value(status.url)' \
             --project ${{ secrets.GCP_PROJECT_ID }})
