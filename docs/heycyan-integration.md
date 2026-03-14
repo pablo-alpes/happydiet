@@ -25,7 +25,13 @@ HappyDiet abstracts capture sources via `MealCaptureSource` (see `ios/HappyDiet/
 |---------------|----------|----------------------------------|
 | Camera        | iOS, Web | Implemented                     |
 | Photo Library | iOS, Web | Implemented                     |
-| HeyCyan       | iOS      | **Full BLE + WiFi** when SDK linked; Manual WiFi fallback always available |
+| HeyCyan       | **iOS only** | **Full BLE + WiFi** when SDK linked; Manual WiFi fallback always available |
+
+**HeyCyan requires native iOS.** Web browsers cannot use HeyCyan because:
+- **Web Bluetooth** is not supported on iOS Safari (BLE connection to glasses)
+- **WiFi hotspot** handling for media transfer requires native APIs
+
+Using the web app on an iPhone (e.g. `https://your-app.run.app/`) **does not work** with HeyCyan. Use the native iOS app for glasses.
 
 ---
 
@@ -73,10 +79,16 @@ HeyCyan BLE requires a **physical iOS device**. Build and run on a connected iPh
 
 ---
 
-## Web
+## Web — HeyCyan Not Supported
 
-The web app (`/app.html`) uses **camera** and **file upload** only. Browsers cannot access BLE to HeyCyan glasses directly (Web Bluetooth is limited and not supported on iOS Safari). For web + glasses:
+The web app uses **camera** and **file upload** only. **HeyCyan cannot be used from the web**, including when the web app is opened in a browser on the iPhone:
 
+- **Web Bluetooth** is not supported on iOS Safari
+- **WiFi hotspot** APIs are not exposed to browsers
+
+**To use HeyCyan:** Use the **native iOS app** (not the web app on the phone). See [architecture-diagram.md](./architecture-diagram.md) for the client matrix.
+
+**Workarounds for web + glasses:**
 - **Option A:** Use the iOS app as bridge — capture on phone with glasses, view on web dashboard
 - **Option B:** Connect to glasses WiFi from a device on the same network and fetch `http://{glassesIP}/manifest.json` (requires CORS or same-origin)
 

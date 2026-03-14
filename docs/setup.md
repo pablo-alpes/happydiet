@@ -256,20 +256,38 @@ This creates `HappyDiet.xcodeproj` and opens it in Xcode. **Re-run `xcodegen gen
 
 ### 3.4 Configure Backend URL
 
+There are **two ways** to set the backend URL:
+
+#### Option A: Edit `HappyDietConfig.plist` (build-time default)
+
 Edit `ios/HappyDiet/HappyDietConfig.plist`:
 
 | Scenario | BACKEND_URL |
 |----------|-------------|
 | **Simulator** (default) | `http://localhost:8080` |
-| **Physical iPhone** | `http://YOUR_MAC_IP:8080` (e.g. `http://192.168.1.5:8080`) |
+| **Physical iPhone** | `http://YOUR_MAC_IP:8080` (e.g. `http://192.168.0.21:8080`) |
 | **Production** | `https://YOUR-CLOUD-RUN-URL.run.app` |
 
-**To find your Mac's IP:**
+#### Option B: In-app Settings (runtime, no rebuild needed)
+
+1. Open the app on your device.
+2. Go to **More** tab (last tab) → **Settings**.
+3. Enter the backend URL (e.g. `http://192.168.0.21:8080`).
+4. Tap **Save**.
+5. Tap **Test Connection** to verify the phone can reach the backend.
+   - **"OK — Backend reachable (200)"** → you're good.
+   - **"FAIL: ..."** → check your URL, Wi‑Fi, or firewall.
+6. Go back to the **Coach** tab and tap **Connect**.
+
+The in-app override persists across app restarts and takes priority over `HappyDietConfig.plist`. Clear the field and save to revert to the plist default.
+
+#### Finding your Mac's IP
 
 - macOS: System Settings → Network → Wi‑Fi → Details → IP Address
-- Or: `ipconfig getifaddr en0` (Wi‑Fi) or `ipconfig getifaddr en1`
+- Terminal: `ipconfig getifaddr en0` (Wi‑Fi) or `ipconfig getifaddr en1`
 
-**For physical iPhone:** Mac and iPhone must be on the same Wi‑Fi.
+**Requirements:** Mac and iPhone must be on the **same Wi‑Fi network**.
+
 **API_KEY:** Optional. Set if your backend requires `X-API-Key` header (same value as backend `.env`).
 
 ### 3.5 Run the Backend First
@@ -296,17 +314,21 @@ You should see: `HappyDiet backend listening on port 8080`. Ensure `backend/.env
 
 1. Connect the iPhone via USB.
 2. In Xcode, select your device from the device menu.
-3. Press **⌘R**.
-4. If prompted: on the iPhone, go to Settings → General → VPN & Device Management → trust the developer certificate.
-5. Ensure `BACKEND_URL` in `HappyDietConfig.plist` is your Mac's IP (e.g. `http://192.168.1.5:8080`).
+3. Set your signing team in **Signing & Capabilities**.
+4. Press **⌘R**.
+5. If prompted: on the iPhone, go to Settings → General → VPN & Device Management → trust the developer certificate.
+6. In the app, go to **More → Settings**, enter your Mac's IP (e.g. `http://192.168.0.21:8080`), tap **Save**, then **Test Connection** to verify.
 
 ### 3.7 App Surfaces
 
-The iOS app has three tabs:
+The iOS app has six tabs:
 
-- **Analyze** — Capture meal (camera or photo library) → analyze → compliance score + TTS
+- **Dashboard** — Meal history, compliance trend, weight, tips
 - **Diet** — Enter or capture diet rules, parse, save to backend
-- **Dashboard** — Meal history, compliance scores
+- **Rules** — View saved diet rules
+- **Analyze** — Capture meal (camera, photo library, or HeyCyan lenses) → analyze → compliance score
+- **Coach** — Live voice + vision coach via Gemini Live API (connect, speak, share photos)
+- **More** — Recent Meals, Meal Suggestions, Coach Tasks, Coach Journal, Settings, HeyCyan Lenses
 
 ### 3.8 Troubleshooting iOS
 
@@ -314,7 +336,8 @@ The iOS app has three tabs:
 |-------|-----|
 | "No such module" or project won't build | Run `cd ios && xcodegen generate` again |
 | "Backend not configured" / 503 | Start backend (`npm run dev` in `backend/`); set `GOOGLE_CLOUD_PROJECT` in `.env` |
-| "Could not connect" on phone | Use Mac's IP in `BACKEND_URL`; same Wi‑Fi |
+| "Could not connect" on phone | Use Mac's IP in `BACKEND_URL` (plist or in-app Settings); same Wi‑Fi; use **Test Connection** in More → Settings to diagnose |
+| "Send failed" in Coach | The WebSocket connects asynchronously — wait for "Connected" status before sending. If it fails, check the backend URL in More → Settings |
 | Camera not working | Check Info.plist permissions; grant in Settings |
 | XcodeGen not found | `brew install xcodegen` |
 | `open` opens Finder instead of Xcode | Always use `open -a Xcode HappyDiet.xcodeproj` (the `-a Xcode` forces Xcode) |

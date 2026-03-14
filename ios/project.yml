@@ -37,6 +37,7 @@ targets:
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
         SWIFT_EMIT_LOC_STRINGS: YES
         ENABLE_PREVIEWS: YES
+        LD_RUNPATH_SEARCH_PATHS: "$(inherited) @executable_path/Frameworks"
         UILaunchScreen: {}
         UISupportedInterfaceOrientations:
           - UIInterfaceOrientationPortrait
@@ -57,3 +58,23 @@ targets:
       configs:
         Debug:
           CODE_SIGN_IDENTITY: "Apple Development"
+    preBuildScripts:
+      - script: |
+          PLIST="$SRCROOT/HappyDiet/HappyDietConfig.plist"
+          PORT=8080
+          if [ "$PLATFORM_NAME" = "iphonesimulator" ]; then
+            URL="http://localhost:$PORT"
+          else
+            IP=$(ipconfig getifaddr en0 2>/dev/null || ipconfig getifaddr en1 2>/dev/null)
+            if [ -z "$IP" ]; then
+              echo "warning: Could not detect Mac IP — using localhost"
+              URL="http://localhost:$PORT"
+            else
+              URL="http://$IP:$PORT"
+            fi
+          fi
+          /usr/libexec/PlistBuddy -c "Set :BACKEND_URL $URL" "$PLIST" 2>/dev/null || \
+            /usr/libexec/PlistBuddy -c "Add :BACKEND_URL string $URL" "$PLIST"
+          echo "Backend URL set to $URL (platform: $PLATFORM_NAME)"
+        name: "Auto-detect backend URL"
+        basedOnDependencyAnalysis: false

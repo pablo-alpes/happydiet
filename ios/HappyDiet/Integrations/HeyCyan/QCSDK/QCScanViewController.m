@@ -31,6 +31,7 @@
 - (void)viewDidLoad {
     [super viewDidLoad];
     self.title = @"Search HeyCyan";
+    self.navigationItem.leftBarButtonItem = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCancel target:self action:@selector(cancelTapped)];
     self.scanView = [[QCScanView alloc] initWithFrame:self.view.bounds];
     self.scanView.tableView.delegate = self;
     self.scanView.tableView.dataSource = self;
@@ -39,6 +40,13 @@
     [QCCentralManager shared].delegate = self;
     [[QCCentralManager shared] scan];
     [self.scanView.indicatorView startAnimating];
+}
+
+- (void)cancelTapped {
+    [[QCCentralManager shared] stopScan];
+    [[QCCentralManager shared] remove];
+    UIViewController *presenter = self.navigationController ? self.navigationController.presentingViewController : self.presentingViewController;
+    [presenter dismissViewControllerAnimated:YES completion:nil];
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
@@ -78,11 +86,22 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath {
     [tableView deselectRowAtIndexPath:indexPath animated:YES];
-    [self.scanView.indicatorView stopAnimating];
+    [self.scanView.indicatorView startAnimating];
     [[QCCentralManager shared] stopScan];
 
     QCBlePeripheral *per = self.peripherals[indexPath.row];
-    [[QCCentralManager shared] connect:per.peripheral];
+    [[QCCentralManager shared] connect:per.peripheral timeout:30 deviceType:QCDeviceTypeGlasses];
+}
+
+#pragma mark - QCCentralManagerDelegate (connection failure)
+- (void)didFailConnected:(CBPeripheral *)peripheral error:(NSError *)error {
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [self.scanView.indicatorView stopAnimating];
+        NSString *msg = error.localizedDescription ?: @"Connection failed";
+        UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"Connection Failed" message:msg preferredStyle:UIAlertControllerStyleAlert];
+        [alert addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:nil]];
+        [self presentViewController:alert animated:YES completion:nil];
+    });
 }
 
 @end

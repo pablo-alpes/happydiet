@@ -2,7 +2,7 @@
 //  MainTabView.swift
 //  HappyDiet
 //
-//  Tab navigation: Dashboard | Diet | Rules | Analyze | Agent | More
+//  Tab navigation: Dashboard | Diet | Rules | Analyze | Coach | Meals | Goals | More
 //
 
 import SwiftUI
@@ -21,7 +21,7 @@ struct MainTabView: View {
 
             DietView()
                 .tabItem {
-                    Label("Diet", systemImage: "list.clipboard")
+                    Label("Diet & Behaviour", systemImage: "list.clipboard")
                 }
                 .tag(1)
 
@@ -43,11 +43,23 @@ struct MainTabView: View {
                 }
                 .tag(4)
 
+            MealsView()
+                .tabItem {
+                    Label("Meals", systemImage: "fork.knife")
+                }
+                .tag(5)
+
+            GoalsView()
+                .tabItem {
+                    Label("Goals", systemImage: "target")
+                }
+                .tag(6)
+
             MoreTabView()
                 .tabItem {
                     Label("More", systemImage: "ellipsis.circle")
                 }
-                .tag(5)
+                .tag(7)
         }
         .tint(Theme.accent)
         .environmentObject(appState)

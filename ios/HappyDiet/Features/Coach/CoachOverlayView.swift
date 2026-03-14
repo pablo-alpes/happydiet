@@ -55,6 +55,10 @@ struct CoachPanelView: View {
     @State private var showHeyCyanSheet = false
     @State private var audioPlayer: LivePCMPlayer?
     @State private var liveDelegate: CoachPanelDelegate?
+    @State private var coachTextBuffer = ""
+    @State private var streamingCoachText = ""
+    @State private var waitingForCoachResponse = false
+    @State private var lastSentWasMeal = false
 
     private var currentTabKey: String {
         switch appState.selectedTab {
@@ -117,6 +121,9 @@ struct CoachPanelView: View {
                     }
 
                     chatBubbles
+                    if waitingForCoachResponse {
+                        coachThinkingIndicator
+                    }
                     inputRow
 
                     if !dataStore.activeTasks.isEmpty {
@@ -172,9 +179,23 @@ struct CoachPanelView: View {
         }
     }
 
+    private var coachThinkingIndicator: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(lastSentWasMeal ? "Analyzing meal…" : "Coach is thinking…")
+                .font(.caption)
+                .foregroundStyle(Theme.textMuted)
+            LoadingProgressBar()
+                .frame(height: 6)
+        }
+        .padding(10)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(Color(.tertiarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
     private var chatBubbles: some View {
         Group {
-            if !chatMessages.isEmpty {
+            if !chatMessages.isEmpty || !streamingCoachText.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(Array(chatMessages.enumerated()), id: \.offset) { _, m in
                         HStack {
@@ -188,6 +209,17 @@ struct CoachPanelView: View {
                             if m.role == "coach" { Spacer(minLength: 40) }
                         }
                     }
+                    if !streamingCoachText.isEmpty {
+                        HStack {
+                            Text(streamingCoachText)
+                                .font(.subheadline)
+                                .padding(10)
+                                .background(Color(.tertiarySystemBackground))
+                                .foregroundStyle(.primary)
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            Spacer(minLength: 40)
+                        }
+                    }
                 }
             }
         }
@@ -197,6 +229,15 @@ struct CoachPanelView: View {
         HStack(spacing: 8) {
             TextField("Type or speak…", text: $inputText)
                 .textFieldStyle(.roundedBorder)
+            Button {
+                audioPlayer?.stop()
+                coachTextBuffer = ""
+                streamingCoachText = ""
+            } label: {
+                Image(systemName: "stop.fill")
+            }
+            .buttonStyle(.bordered)
+            .tint(.red)
             Button("Send") { sendText() }
                 .disabled(inputText.isEmpty)
                 .buttonStyle(.borderedProminent)
@@ -334,6 +375,8 @@ struct CoachPanelView: View {
             updateStatus("Connected", "Mic off", "Coach idle")
         case .disconnected(let reason):
             isConnected = false
+            waitingForCoachResponse = false
+            lastSentWasMeal = false
             updateStatus(reason ?? "Disconnected", "Mic off", "Coach idle")
         case .setupComplete:
             isConnected = true
@@ -342,19 +385,39 @@ struct CoachPanelView: View {
             if let img = appState.consumePendingImageForCoach(), let b64 = img.toJPEGBase64() {
                 client?.sendImage(base64: b64)
                 chatMessages.append(("user", "[sent meal photo]"))
+                lastSentWasMeal = true
+                waitingForCoachResponse = true
             }
         case .text(let s):
-            chatMessages.append(("coach", s))
+            coachTextBuffer += s
+            streamingCoachText = coachTextBuffer
+            updateStatus(statusConn, statusMic, "Speaking")
         case .audio(let data):
             updateStatus(statusConn, statusMic, "Speaking")
-            playPCM(data)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                updateStatus(self.statusConn, self.statusMic, "Coach idle")
+            if audioPlayer == nil {
+                audioPlayer = LivePCMPlayer()
             }
-        case .turnComplete: break
+            audioPlayer?.enqueue(data: data)
+        case .turnComplete:
+            waitingForCoachResponse = false
+            lastSentWasMeal = false
+            let trimmed = coachTextBuffer.trimmingCharacters(in: .whitespacesAndNewlines)
+            if !trimmed.isEmpty {
+                chatMessages.append(("coach", trimmed))
+            }
+            coachTextBuffer = ""
+            streamingCoachText = ""
+            updateStatus(statusConn, statusMic, "Coach idle")
         case .interrupted:
-            chatMessages.append(("coach", "[interrupted]"))
+            waitingForCoachResponse = false
+            lastSentWasMeal = false
+            audioPlayer?.stop()
+            coachTextBuffer = ""
+            streamingCoachText = ""
+            updateStatus(statusConn, statusMic, "Coach idle")
         case .error(let msg):
+            waitingForCoachResponse = false
+            lastSentWasMeal = false
             updateStatus("Error", "Mic off", "Coach idle")
             chatMessages.append(("coach", "Error: \(msg)"))
         }
@@ -365,20 +428,18 @@ struct CoachPanelView: View {
         client?.sendText(inputText)
         chatMessages.append(("user", inputText))
         inputText = ""
+        lastSentWasMeal = false
+        waitingForCoachResponse = true
     }
 
     private func handleImagePicked(_ image: UIImage) {
         guard let base64 = image.toJPEGBase64() else { return }
         client?.sendImage(base64: base64)
         chatMessages.append(("user", "[sent meal photo]"))
+        lastSentWasMeal = true
+        waitingForCoachResponse = true
     }
 
-    private func playPCM(_ data: Data) {
-        audioPlayer?.stop()
-        let player = LivePCMPlayer()
-        audioPlayer = player
-        player.play(data: data)
-    }
 }
 
 private final class CoachPanelDelegate: LiveAPIClientDelegate {

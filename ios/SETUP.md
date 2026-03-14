@@ -24,6 +24,8 @@ open -a Xcode HappyDiet.xcodeproj
 
 ## 3. Configure BACKEND_URL
 
+**Option A: Edit plist (build-time default)**
+
 Edit `HappyDiet/HappyDietConfig.plist`:
 
 | Target | BACKEND_URL |
@@ -33,6 +35,15 @@ Edit `HappyDiet/HappyDietConfig.plist`:
 | Production | `https://YOUR-CLOUD-RUN-URL.run.app` |
 
 Mac IP: System Settings → Network → Wi‑Fi → Details, or `ipconfig getifaddr en0`
+
+**Option B: In-app Settings (no rebuild)**
+
+1. Open the app → **More** tab → **Settings**.
+2. Enter the backend URL (e.g. `http://192.168.0.21:8080`).
+3. Tap **Save**, then **Test Connection**.
+4. If "OK — Backend reachable (200)" appears, you're good. Go to Coach tab and connect.
+
+The in-app override persists across restarts and takes priority over the plist. Clear the field to revert.
 
 ## 4. Run backend (separate terminal)
 
@@ -52,28 +63,29 @@ Xcode will ask for your Apple ID to sign the app. Add it in **Xcode → Settings
 
 ## HeyCyan SDK (Lenses BLE)
 
-**Two schemes:**
+**Single scheme — `HappyDiet`** — handles both simulator and device automatically:
 
-| Scheme | Use for | HeyCyan BLE |
-|--------|---------|-------------|
-| **HappyDiet** | Simulator | No (Camera/Photo/WiFi only) |
-| **HappyDiet-Device** | Physical device | Yes (full BLE) |
+| Build target | HeyCyan BLE | How |
+|-------------|-------------|-----|
+| **Simulator** | Disabled (Camera/Photo/WiFi only) | QCSDK `.m` files excluded, flag not set |
+| **Physical device** | Enabled (full BLE + WiFi) | QCSDK linked, `HEYCYAN_SDK_LINKED` set automatically |
 
-QCSDK is device-only (no simulator slice). Use **HappyDiet-Device** when building for a real iPhone.
+QCSDK is a static framework (device-only, no simulator slice). The build system auto-excludes it on simulator.
 
-**First-time setup for device:**
+**First-time setup:**
 ```bash
 ./ios/scripts/setup-heycyan.sh
 cd ios && xcodegen generate
 ```
-Then in Xcode: select scheme **HappyDiet-Device**, choose your iPhone, run (⌘R).
+Then in Xcode: select **HappyDiet** scheme, choose your iPhone, set signing team, run (⌘R).
 
 ## Troubleshooting
 
 | Issue | Fix |
 |-------|-----|
 | XcodeGen not found | `brew install xcodegen` |
-| **Live Coach can't connect** | Start backend: `cd backend && npm run dev`. Simulator: `http://localhost:8080`. Device: `http://YOUR_MAC_IP:8080` in HappyDietConfig.plist. |
-| "Could not connect" on phone | Mac's IP in BACKEND_URL; same Wi‑Fi |
+| **Live Coach can't connect** | Start backend: `cd backend && npm run dev`. Then in-app: More → Settings → enter URL → Test Connection. |
+| "Could not connect" on phone | Use Mac's IP in backend URL; same Wi‑Fi; test with More → Settings → Test Connection |
+| "Send failed" in Coach | Wait for "Connected" before sending. Check backend URL in More → Settings. |
 | 503 from backend | Set `GOOGLE_CLOUD_PROJECT` in `backend/.env` |
-| Code signing / developer certificate | Add Apple ID in Xcode → Settings → Accounts |
+| Code signing / developer certificate | Add Apple ID in Xcode → Settings → Accounts → Signing & Capabilities → set Team |

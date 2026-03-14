@@ -41,7 +41,7 @@ struct DietView: View {
                 .padding(.bottom, 100)
             }
             .background(Theme.bg)
-            .navigationTitle("Diet")
+            .navigationTitle("Diet & Behaviour")
             .sheet(isPresented: $showImagePicker) {
                 if useCamera {
                     ImagePicker(sourceType: .camera, onImagePicked: handleImagePicked, onCancel: { showImagePicker = false })
@@ -416,13 +416,32 @@ struct RuleSectionChips: View {
     let color: Color
     let why: String
 
+    private var cleanedItems: [String] {
+        items.flatMap { item in
+            var s = item
+                .replacingOccurrences(of: "\n", with: " ")
+                .replacingOccurrences(of: "\r", with: " ")
+            while s.contains("  ") { s = s.replacingOccurrences(of: "  ", with: " ") }
+            s = s.trimmingCharacters(in: .whitespaces)
+            // Consolidate parentheticals broken across lines (newlines already replaced above)
+            // Split by semicolons into separate items
+            return s.split(separator: ";").map { String($0).trimmingCharacters(in: .whitespaces) }
+        }
+        .filter { item in
+            let trimmed = item.trimmingCharacters(in: .whitespaces)
+            guard !trimmed.isEmpty else { return false }
+            let withoutPunctuation = trimmed.trimmingCharacters(in: .punctuationCharacters).trimmingCharacters(in: .whitespaces)
+            return !withoutPunctuation.isEmpty
+        }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title)
                 .font(.headline)
                 .foregroundStyle(color)
             FlowLayout(spacing: 8) {
-                ForEach(items, id: \.self) { item in
+                ForEach(cleanedItems, id: \.self) { item in
                     Text(item)
                         .font(.subheadline)
                         .fontWeight(.medium)

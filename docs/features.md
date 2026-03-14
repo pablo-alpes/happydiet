@@ -18,6 +18,7 @@
 | POST | `/speak` | Text-to-speech; returns MP3 audio |
 | GET | `/meals` | List meals for user (`?user_id=`) |
 | GET | `/rules` | List saved diet rules for user (`?user_id=`) |
+| WebSocket | `/live` | Live API proxy → Vertex AI Live API; tool `analyze_meal` |
 
 ### Analyze Meal
 
@@ -59,14 +60,15 @@
 
 | Tab | Features |
 |-----|----------|
-| **Analyze** | Camera or photo library → analyze → compliance card with score, items, suggestions; Speak button (backend TTS or AV fallback) |
-| **Diet** | Text input, camera/photo for diet image; Parse, Parse & Save, Load saved; full diet display (not allowed, allowed, limits, notes) |
+| **Live Coach** | Live API (WebSocket to `/live`); text + image → agent speaks; barge-in supported |
+| **Analyze** | Camera, photo library, or HeyCyan → analyze → compliance card; Speak button (backend TTS or AV fallback) |
+| **Diet** | Text input, camera/photo for diet image; Parse, Parse & Save, Load saved; full diet display |
 | **Dashboard** | Meal history with compliance scores and ingredients |
 
 ### Capabilities
 
-- Camera and photo library access
-- Backend URL config (`HappyDietConfig.plist`: `BACKEND_URL`, `API_KEY`)
+- Camera, photo library, **HeyCyan** (native iOS only — BLE + WiFi)
+- Backend URL config: **More → Settings** (override) or `HappyDietConfig.plist` (`BACKEND_URL`, `API_KEY`)
 - TTS: tries backend `/speak` first, falls back to `AVSpeechSynthesizer`
 
 ---
@@ -75,9 +77,9 @@
 
 **URL:** `http://localhost:8080/app.html` (when backend running)
 
-Same tabs and flow as iOS: Analyze, Diet, Dashboard. Uses camera/upload for capture (HeyCyan requires BLE, not available in browser).
+Same tabs and flow as iOS: Analyze, Diet, Dashboard. Uses camera/upload for capture. **HeyCyan requires native iOS** — web cannot access BLE.
 
-**Showcase (index.html):** Polished web interface at `/` with mock data — Overview, My Plan, Analyze, Dashboard. Demonstrates full potential for demos.
+**Showcase (index.html):** Polished web interface at `/` with **Live API** (WebSocket to `/live`), voice input, image upload, chat, Speak. Demo-ready without phone. Also: Overview, My Plan, Analyze, Dashboard.
 
 ### Tabs
 
@@ -175,10 +177,20 @@ See [heycyan-integration.md](./heycyan-integration.md) for setup.
 
 ---
 
-## 10. Not Yet Implemented
+## 10. Testing
+
+| Component | Location | Command |
+|----------|----------|---------|
+| Backend unit | `backend/tests/unit/` | `npm test` |
+| Backend E2E | `backend/tests/e2e/` | `npm test` |
+| Live API proxy | `backend/tests/unit/live-api-proxy.test.ts` | `npm test` |
+| iOS unit | `ios/HappyDietTests/` | Xcode ⌘U or `xcodebuild test` |
+
+---
+
+## 11. Not Yet Implemented
 
 | Feature | Notes |
 |---------|-------|
-| **Gemini Live API** | WebSocket client in iOS; voice + barge-in |
 | **Demo video** | <4 min for submission |
 | **Production deploy** | First Cloud Run deploy with env vars |

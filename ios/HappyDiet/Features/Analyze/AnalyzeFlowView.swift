@@ -138,9 +138,9 @@ struct AnalyzeFlowView: View {
             if isAnalyzing {
                 VStack(spacing: 12) {
                     ProgressView("Analyzing meal…")
-                    LoadingProgressBar()
-                        .frame(width: 200, height: 6)
-                        .padding(.horizontal)
+                    MealAnalysisProgressBar()
+                        .frame(height: 12)
+                        .padding(.horizontal, 16)
                 }
                 .padding()
             } else if let r = result {
@@ -400,6 +400,7 @@ struct AnalysisBlock: View {
     }
 }
 
+/// Indeterminate loading bar (animated)
 struct LoadingProgressBar: View {
     @State private var isAnimating = false
 
@@ -424,6 +425,43 @@ struct LoadingProgressBar: View {
             withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: false)) {
                 isAnimating = true
             }
+        }
+    }
+}
+
+/// Simulated determinate progress bar for meal analysis (smooth fill over ~6s)
+struct MealAnalysisProgressBar: View {
+    @State private var progress: CGFloat = 0
+
+    var body: some View {
+        VStack(spacing: 6) {
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(Theme.accent.opacity(0.2))
+                    RoundedRectangle(cornerRadius: 4)
+                        .fill(
+                            LinearGradient(
+                                colors: [Theme.accent, Theme.accentLight],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .frame(width: geo.size.width * min(progress, 1))
+                }
+            }
+            Text("\(Int(progress * 100))%")
+                .font(.caption.bold())
+                .foregroundStyle(Theme.accent)
+        }
+        .onAppear {
+            progress = 0
+            withAnimation(.easeInOut(duration: 5.5)) {
+                progress = 0.92
+            }
+        }
+        .onDisappear {
+            progress = 0
         }
     }
 }

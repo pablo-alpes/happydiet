@@ -72,13 +72,22 @@ Full app with Camera + Photo Library, Dashboard, TTS.
 
 4. **Install on your iPhone:**
    - Connect the iPhone via USB
-   - In Xcode: select your device in the toolbar
+   - In Xcode: select your device in the toolbar, set signing team in Signing & Capabilities
    - Press **Run** (⌘R)
    - Trust the developer certificate on the device if asked
 
-5. **Use the app:**
-   - **Analyze** tab: Camera or Photo Library → capture/select meal → see compliance
-   - **Dashboard** tab: meal history
+5. **Configure backend in-app (alternative to editing plist):**
+   - Open the app → **More** tab → **Settings**
+   - Enter the backend URL (e.g. `http://192.168.0.21:8080`)
+   - Tap **Save**, then **Test Connection**
+   - If "OK — Backend reachable (200)" appears, you're connected
+
+6. **Use the app:**
+   - **Dashboard** tab: meal history, compliance trend
+   - **Diet** tab: enter or photograph diet rules → parse & save
+   - **Analyze** tab: Camera, Photo Library, or HeyCyan Lenses → capture meal → see compliance score
+   - **Coach** tab: Connect → voice + vision diet coaching via Gemini Live API
+   - **More** tab: Recent Meals, Meal Suggestions, Settings, HeyCyan Lenses
 
 ---
 
@@ -102,7 +111,9 @@ For testing without your Mac running:
 
 | Issue | Fix |
 |-------|-----|
-| "Could not connect" on phone | Same Wi‑Fi as Mac; correct IP in URL/plist |
+| "Could not connect" on phone | Same Wi‑Fi as Mac; correct IP in URL. Use **More → Settings → Test Connection** to diagnose. |
 | Camera not working (web) | Use HTTPS or localhost; grant camera permission |
 | 503 from backend | Set `GOOGLE_CLOUD_PROJECT` in `backend/.env` |
 | iOS "Untrusted Developer" | Settings → General → VPN & Device Management → Trust |
+| Coach "Send failed" | Wait for "Connected" status. Check backend URL in More → Settings → Test Connection. |
+| Backend URL changed / Mac IP changed | No rebuild needed — update in More → Settings → Save → Test Connection |

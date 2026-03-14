@@ -29,6 +29,7 @@ final class LiveAPIClient: NSObject, URLSessionWebSocketDelegate {
     private let baseURL: URL
     private var session: URLSession!
     private var pendingContext: [String: Any]?
+    private var connectTimeoutTimer: Timer?
 
     init(baseURL: URL = HappyDietConfig.backendURL) {
         self.baseURL = baseURL
@@ -55,11 +56,21 @@ final class LiveAPIClient: NSObject, URLSessionWebSocketDelegate {
         let t = session.webSocketTask(with: url)
         task = t
         t.resume()
+
+        connectTimeoutTimer?.invalidate()
+        connectTimeoutTimer = Timer.scheduledTimer(withTimeInterval: 10, repeats: false) { [weak self] _ in
+            guard let self, self.task != nil else { return }
+            let wsURL = self.liveURL?.absoluteString ?? self.baseURL.absoluteString
+            self.delegate?.liveClient(self, didReceive: .error("Connection timeout (10s). Check backend at \(wsURL). On device use Mac IP in Settings."))
+            self.disconnect()
+        }
     }
 
     // MARK: - URLSessionWebSocketDelegate
 
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didOpenWithProtocol protocol: String?) {
+        connectTimeoutTimer?.invalidate()
+        connectTimeoutTimer = nil
         delegate?.liveClient(self, didReceive: .connected)
         if let ctx = pendingContext, !ctx.isEmpty {
             let msg: [String: Any] = ["type": "context", "payload": ctx]
@@ -70,21 +81,27 @@ final class LiveAPIClient: NSObject, URLSessionWebSocketDelegate {
     }
 
     func urlSession(_ session: URLSession, webSocketTask: URLSessionWebSocketTask, didCloseWith closeCode: URLSessionWebSocketTask.CloseCode, reason: Data?) {
+        connectTimeoutTimer?.invalidate()
+        connectTimeoutTimer = nil
         let reasonStr = reason.flatMap { String(data: $0, encoding: .utf8) }
         delegate?.liveClient(self, didReceive: .disconnected(reasonStr ?? "Connection closed"))
         task = nil
     }
 
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: (any Error)?) {
+        connectTimeoutTimer?.invalidate()
+        connectTimeoutTimer = nil
         guard let error else { return }
         let url = liveURL?.absoluteString ?? baseURL.absoluteString
         let msg = error.localizedDescription
-        let hint = "Backend URL: \(url). On device, use Mac IP (e.g. http://192.168.x.x:8080). Check More → Settings."
+        let hint = "Backend URL: \(url). On device, use Mac IP (e.g. http://192.168.x.x:8080). Check More > Settings."
         delegate?.liveClient(self, didReceive: .error("\(msg). \(hint)"))
         self.task = nil
     }
 
     func disconnect() {
+        connectTimeoutTimer?.invalidate()
+        connectTimeoutTimer = nil
         task?.cancel(with: .goingAway, reason: nil)
         task = nil
     }
@@ -179,16 +196,13 @@ final class LiveAPIClient: NSObject, URLSessionWebSocketDelegate {
 
         let sc = json["server_content"] as? [String: Any] ?? json["serverContent"] as? [String: Any]
 
-        if sc?["turn_complete"] as? Bool == true || sc?["turnComplete"] as? Bool == true {
-            delegate?.liveClient(self, didReceive: .turnComplete)
-            return
-        }
-
         if sc?["interrupted"] != nil {
             delegate?.liveClient(self, didReceive: .interrupted)
             return
         }
 
+        // Process model_turn parts FIRST (text + audio) — same message can have both parts and turn_complete.
+        // If we checked turn_complete first and returned, we'd never deliver the audio.
         let modelTurn = sc?["model_turn"] as? [String: Any] ?? sc?["modelTurn"] as? [String: Any]
         if let partList = modelTurn?["parts"] as? [[String: Any]] {
             for part in partList {
@@ -201,6 +215,15 @@ final class LiveAPIClient: NSObject, URLSessionWebSocketDelegate {
                     delegate?.liveClient(self, didReceive: .audio(audioData))
                 }
             }
+        }
+
+        // Fire turnComplete LAST so progress bar stays until full response (text + audio) is delivered.
+        if sc?["turn_complete"] as? Bool == true || sc?["turnComplete"] as? Bool == true {
+            delegate?.liveClient(self, didReceive: .turnComplete)
+            return
+        }
+        if let gc = sc?["generation_complete"] as? Bool, gc {
+            delegate?.liveClient(self, didReceive: .turnComplete)
         }
     }
 }
