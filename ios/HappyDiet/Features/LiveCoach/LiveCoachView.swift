@@ -698,8 +698,6 @@ final class LivePCMPlayer {
     private var audioQueue: [Data] = []
     private var isPlaying = false
     private let format = AVAudioFormat(standardFormatWithSampleRate: 24000, channels: 1)!
-    /// Schedule up to this many buffers at once so playback is seamless (no gaps between chunks).
-    private let scheduleAheadCount = 5
 
     func enqueue(data: Data) {
         guard data.count >= 2 else { return }
@@ -711,50 +709,39 @@ final class LivePCMPlayer {
         }
     }
 
-    private func makeBuffer(from data: Data) -> AVAudioPCMBuffer? {
+    private func processQueue() {
+        guard !audioQueue.isEmpty else {
+            isPlaying = false
+            return
+        }
+        let data = audioQueue.removeFirst()
         let frameCount = UInt32(data.count / 2)
-        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else { return nil }
+        guard let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else {
+            processQueue()
+            return
+        }
         buffer.frameLength = frameCount
-        guard let dest = buffer.floatChannelData?[0] else { return nil }
+        // standardFormat is Float32; web uses Int16 → Float32 (÷32768). Fill floatChannelData.
+        guard let dest = buffer.floatChannelData?[0] else {
+            processQueue()
+            return
+        }
         data.withUnsafeBytes { raw in
             guard let ptr = raw.bindMemory(to: Int16.self).baseAddress else { return }
             for i in 0..<Int(frameCount) {
                 dest[i] = Float(ptr[i]) / 32768.0
             }
         }
-        return buffer
-    }
-
-    private func processQueue() {
-        guard !audioQueue.isEmpty else {
-            isPlaying = false
-            return
-        }
         if engine == nil {
             DispatchQueue.main.async { [weak self] in
-                self?.setupEngineAndProcessQueue()
+                self?.setupAndStartEngineThenProcessQueue(buffer: buffer)
             }
             return
         }
-        guard let node = playerNode else { isPlaying = false; return }
-        isPlaying = true
-        var scheduled = 0
-        while scheduled < scheduleAheadCount, !audioQueue.isEmpty {
-            let data = audioQueue.removeFirst()
-            guard let buffer = makeBuffer(from: data) else { continue }
-            let isLastOfBatch = audioQueue.isEmpty
-            scheduled += 1
-            node.scheduleBuffer(buffer) { [weak self] in
-                guard let self else { return }
-                if isLastOfBatch {
-                    DispatchQueue.main.async { self.processQueue() }
-                }
-            }
-        }
-        if !node.isPlaying { node.play() }
+        scheduleAndPlay(buffer: buffer)
     }
 
-    private func setupEngineAndProcessQueue() {
+    private func setupAndStartEngineThenProcessQueue(buffer: AVAudioPCMBuffer) {
         setupAudioSession()
         try? AVAudioSession.sharedInstance().setActive(true)
         let eng = AVAudioEngine()
@@ -764,7 +751,22 @@ final class LivePCMPlayer {
         try? eng.start()
         engine = eng
         playerNode = node
-        processQueue()
+        isPlaying = true
+        node.scheduleBuffer(buffer) { [weak self] in
+            DispatchQueue.main.async { self?.processQueue() }
+        }
+        node.play()
+    }
+
+    private func scheduleAndPlay(buffer: AVAudioPCMBuffer) {
+        guard let node = playerNode else { processQueue(); return }
+        isPlaying = true
+        node.scheduleBuffer(buffer) { [weak self] in
+            DispatchQueue.main.async {
+                self?.processQueue()
+            }
+        }
+        node.play()
     }
 
     private func setupAudioSession() {
