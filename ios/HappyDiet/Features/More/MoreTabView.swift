@@ -242,6 +242,35 @@ struct SettingsView: View {
             }
 
             Section {
+                let ttsURL = HappyDietConfig.ttsBaseURL.absoluteString
+                Text("TTS URL: \(ttsURL)")
+                    .font(.caption)
+                    .textSelection(.enabled)
+                if TTSHelper.lastTTSUsedGoogle {
+                    Label("Last coach response: Google TTS", systemImage: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(Theme.accent)
+                } else if let err = TTSHelper.lastTTSError, !err.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Last coach response: device voice")
+                            .font(.caption)
+                        Text("Error: \(err)")
+                            .font(.caption2)
+                            .foregroundStyle(Theme.red)
+                            .textSelection(.enabled)
+                    }
+                } else {
+                    Text("Last coach response: —")
+                        .font(.caption)
+                        .foregroundStyle(Theme.textMuted)
+                }
+            } header: {
+                Text("Coach voice (TTS)")
+            } footer: {
+                Text("Voice uses POST /speak on the TTS URL above. If you see an error here, the app fell back to the device voice.")
+            }
+
+            Section {
                 Button(role: .destructive) {
                     showClearConfirm = true
                 } label: {

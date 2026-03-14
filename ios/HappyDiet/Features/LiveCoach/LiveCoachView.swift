@@ -51,6 +51,8 @@ struct LiveCoachView: View {
     @State private var thinkingTimeoutTask: Task<Void, Never>?
     @State private var receivedAudioThisTurn = false
     @State private var pendingMealPromptToSend: String?
+    /// Same base URL we used for the Live WebSocket; use it for TTS so we hit the same backend (e.g. Cloud Run).
+    @State private var connectedBaseURL: URL?
 
     private let quickPrompts = [
         "Suggest meal ideas and show me what they look like",
@@ -469,6 +471,7 @@ struct LiveCoachView: View {
     }
 
     private func doConnect(baseURL: URL) {
+        connectedBaseURL = baseURL
         connectionStatus = "Connecting..."
         let c = LiveAPIClient(baseURL: baseURL)
         let delegate = LiveCoachDelegate(
@@ -522,6 +525,7 @@ struct LiveCoachView: View {
             thinkingTimeoutTask?.cancel()
             thinkingTimeoutTask = nil
             isConnected = false
+            connectedBaseURL = nil
             connectionStatus = reason ?? "Disconnected"
             coachState = "idle"
             waitingForCoachResponse = false
@@ -563,10 +567,10 @@ struct LiveCoachView: View {
             if !trimmed.isEmpty {
                 messages.append(ChatMessage(role: "coach", text: trimmed))
                 dataStore.addJournalEntry(text: trimmed)
-                // TTS fallback: if we got text but no audio, speak it so the agent is heard
+                // Same as web: prefer streamed PCM (already playing). Only call TTS if we got no audio this turn.
                 if !receivedAudioThisTurn {
                     Task {
-                        await TTSHelper.speak(trimmed, backend: nil)
+                        await TTSHelper.speak(trimmed, backend: BackendClient(baseURL: HappyDietConfig.ttsBaseURL))
                     }
                 }
             }
@@ -699,7 +703,9 @@ final class LivePCMPlayer {
         guard data.count >= 2 else { return }
         audioQueue.append(data)
         if !isPlaying {
-            processQueue()
+            DispatchQueue.main.async { [weak self] in
+                self?.processQueue()
+            }
         }
     }
 
@@ -715,22 +721,44 @@ final class LivePCMPlayer {
             return
         }
         buffer.frameLength = frameCount
+        // standardFormat is Float32; web uses Int16 → Float32 (÷32768). Fill floatChannelData.
+        guard let dest = buffer.floatChannelData?[0] else {
+            processQueue()
+            return
+        }
         data.withUnsafeBytes { raw in
             guard let ptr = raw.bindMemory(to: Int16.self).baseAddress else { return }
-            buffer.int16ChannelData?[0].update(from: ptr, count: Int(frameCount))
+            for i in 0..<Int(frameCount) {
+                dest[i] = Float(ptr[i]) / 32768.0
+            }
         }
         if engine == nil {
-            setupAudioSession()
-            // Re-activate session to ensure we have audio focus for playback
-            try? AVAudioSession.sharedInstance().setActive(true)
-            let eng = AVAudioEngine()
-            let node = AVAudioPlayerNode()
-            eng.attach(node)
-            eng.connect(node, to: eng.mainMixerNode, format: format)
-            try? eng.start()
-            engine = eng
-            playerNode = node
+            DispatchQueue.main.async { [weak self] in
+                self?.setupAndStartEngineThenProcessQueue(buffer: buffer)
+            }
+            return
         }
+        scheduleAndPlay(buffer: buffer)
+    }
+
+    private func setupAndStartEngineThenProcessQueue(buffer: AVAudioPCMBuffer) {
+        setupAudioSession()
+        try? AVAudioSession.sharedInstance().setActive(true)
+        let eng = AVAudioEngine()
+        let node = AVAudioPlayerNode()
+        eng.attach(node)
+        eng.connect(node, to: eng.mainMixerNode, format: format)
+        try? eng.start()
+        engine = eng
+        playerNode = node
+        isPlaying = true
+        node.scheduleBuffer(buffer) { [weak self] in
+            DispatchQueue.main.async { self?.processQueue() }
+        }
+        node.play()
+    }
+
+    private func scheduleAndPlay(buffer: AVAudioPCMBuffer) {
         guard let node = playerNode else { processQueue(); return }
         isPlaying = true
         node.scheduleBuffer(buffer) { [weak self] in

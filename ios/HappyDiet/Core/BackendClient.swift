@@ -219,12 +219,14 @@ final class BackendClient {
         return try JSONDecoder().decode(ParseDietResponse.self, from: data)
     }
 
-    /// POST /speak — returns MP3 audio data
+    /// POST /speak — returns MP3 audio data (Google TTS when backend is Cloud Run).
     func speak(text: String) async throws -> Data {
         let url = baseURL.appendingPathComponent("speak")
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.setValue("audio/mpeg", forHTTPHeaderField: "Accept")
+        request.timeoutInterval = 30
         if let key = apiKey { request.setValue(key, forHTTPHeaderField: "X-API-Key") }
         request.httpBody = try JSONEncoder().encode(["text": text])
 

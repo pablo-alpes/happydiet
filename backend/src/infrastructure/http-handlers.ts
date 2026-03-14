@@ -128,9 +128,14 @@ export function createSpeakHandler(ttsClient: { synthesize: (text: string) => Pr
       return;
     }
     try {
-      const audio = await ttsClient.synthesize(text.trim());
-      res.set('Content-Type', 'audio/mpeg');
-      res.send(audio);
+      const trimmed = text.trim();
+      const limited = trimmed.length > 5000 ? trimmed.slice(0, 5000) : trimmed;
+      const audio = await ttsClient.synthesize(limited);
+      res.writeHead(200, {
+        'Content-Type': 'audio/mpeg',
+        'Content-Length': String(audio.length),
+      });
+      res.end(audio);
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown error';
       console.error('speak error:', err);

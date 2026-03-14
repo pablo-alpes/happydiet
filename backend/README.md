@@ -46,6 +46,21 @@ npm run test:ci # Avec rapport JUnit (test-results/junit.xml)
 | POST | `/analyze-meal` | Analyze meal image (body: `{ image_base64, user_id }`) |
 | GET | `/meals?user_id=demo` | List meals for user |
 
+## Coach voice: Google TTS vs phone voice
+
+The app uses **backend `POST /speak`** (Google Cloud Text-to-Speech) for the coach voice when available. If the backend returns 503/500 or the request fails, the app falls back to the **phone’s built-in TTS** (AVSpeechSynthesizer), so you still hear the coach but with the device voice.
+
+To get **Google’s natural voice** (same as on the web) in the app:
+
+1. **Enable the API** in your GCP project:
+   ```bash
+   gcloud services enable texttospeech.googleapis.com --project=YOUR_PROJECT_ID
+   ```
+   Or in the console: [Cloud Text-to-Speech API](https://console.cloud.google.com/apis/library/texttospeech.googleapis.com) → Enable.
+2. **Cloud Run**: The default service account usually has access. If `/speak` returns 503, grant **Cloud Text-to-Speech User** to the Cloud Run service account in IAM.
+
+Then redeploy; the app will use the same backend URL and get MP3 from `/speak` instead of the phone’s built-in TTS.
+
 ## Deploy to Cloud Run
 
 ```bash

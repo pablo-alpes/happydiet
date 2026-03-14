@@ -37,6 +37,18 @@ enum HappyDietConfig {
         return url
     }
 
+    /// URL to use for /speak (TTS). Prefers Cloud Run when configured so the app gets the same Google voice as the web.
+    static var ttsBaseURL: URL {
+        guard let path = Bundle.main.path(forResource: "HappyDietConfig", ofType: "plist"),
+              let dict = NSDictionary(contentsOfFile: path) as? [String: Any],
+              let urlString = dict["BACKEND_URL"] as? String, !urlString.isEmpty,
+              urlString.contains("run.app"),
+              let url = URL(string: urlString) else {
+            return backendURL
+        }
+        return url
+    }
+
     static var apiKey: String? {
         guard let path = Bundle.main.path(forResource: "HappyDietConfig", ofType: "plist"),
               let dict = NSDictionary(contentsOfFile: path) as? [String: Any],
