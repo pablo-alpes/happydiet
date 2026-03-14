@@ -31,12 +31,13 @@ const DIET_IMAGE_PROMPT = `Extract diet rules from this image (handwritten, prin
 Rules: {"type":"forbidden","items":["food1","food2"]} for not-allowed, {"type":"allowed","items":[...]} for allowed, {"type":"limit","items":[...],"maxPerDay":N,"unit":"servings"}, {"type":"note","text":"..."}.
 Support any language. Return ONLY a valid JSON array, no markdown or extra text.`;
 
+/** Meal image → ingredients. Composite dishes (parrillada, paella) are broken into components for rule matching. */
 const VISION_PROMPT = `Analyze this meal image. Return a JSON object with exactly:
 {
   "ingredients": ["item1", "item2", ...],
   "estimatedKcal": number or null
 }
-List all visible food items. Estimate total kcal if possible. No other text.`;
+List each food item separately. For composite dishes (parrillada, asado, mixed grill, stir-fry, paella, etc.), break them into their actual components so the rule engine can evaluate each: e.g. "parrillada" → ["grilled beef", "chorizo", "morcilla", "bell peppers", "onions"]; "paella" → ["rice", "shrimp", "chicken", "peas", "saffron"]. Be specific: "grilled chicken" not "chicken", "fried potatoes" not "potatoes". Estimate total kcal if possible. No other text.`;
 
 function normalizeParsedRules(arr: unknown[]): DietRule[] {
   const result: DietRule[] = [];

@@ -88,9 +88,11 @@
     .score-high { background: rgba(45,106,79,0.15); color: var(--green); }
     .score-mid { background: rgba(247,127,0,0.15); color: var(--orange); }
     .score-low { background: rgba(214,40,40,0.15); color: var(--red); }
-    .trend-chart { display: flex; align-items: flex-end; gap: 0.4rem; height: 100px; margin-top: 0.75rem; }
-    .trend-bar { flex: 1; background: linear-gradient(180deg, var(--accent-light) 0%, var(--accent) 100%); border-radius: 6px 6px 0 0; min-height: 6px; }
-    .trend-labels { display: flex; justify-content: space-between; margin-top: 0.4rem; font-size: 0.7rem; color: var(--gray); }
+    .trend-chart { display: flex; align-items: flex-end; gap: 0.35rem; height: 110px; margin-top: 0.75rem; }
+    .trend-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; min-width: 0; }
+    .trend-score { font-size: 0.65rem; font-weight: 600; color: var(--accent); margin-bottom: 2px; min-height: 1em; }
+    .trend-bar { width: 100%; background: linear-gradient(180deg, var(--accent-light) 0%, var(--accent) 100%); border-radius: 6px 6px 0 0; min-height: 6px; }
+    .trend-labels { display: flex; justify-content: space-between; margin-top: 0.4rem; font-size: 0.65rem; color: var(--gray); }
     .camera-modal { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 200; display: none; align-items: center; justify-content: center; flex-direction: column; }
     .camera-modal.active { display: flex; }
     .camera-modal video { max-width: 100%; max-height: 70vh; border-radius: 10px; }
@@ -121,6 +123,9 @@
     .compliance-hero { display: flex; align-items: center; justify-content: space-between; padding: 1rem; background: var(--accent-muted); border-radius: var(--radius); margin-bottom: 1rem; }
     .compliance-hero .score { font-size: 2rem; font-weight: 700; }
     .compliance-hero .message { font-size: 0.95rem; color: var(--text-muted); margin-top: 0.25rem; }
+    .loading-bar { height: 6px; background: var(--accent-muted); border-radius: 3px; overflow: hidden; margin-top: 0.75rem; }
+    .loading-bar-inner { height: 100%; width: 35%; background: linear-gradient(90deg, var(--accent) 0%, var(--accent-light) 100%); border-radius: 3px; animation: loading-slide 1.2s ease-in-out infinite; }
+    @keyframes loading-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(400%); } }
     .insight-card { background: linear-gradient(135deg, var(--accent-muted) 0%, rgba(64,145,108,0.08) 100%); border-left: 4px solid var(--accent); padding: 0.9rem 1rem; border-radius: 0 10px 10px 0; margin-bottom: 0.75rem; font-size: 0.9rem; }
     .insight-card strong { color: var(--accent); }
     .meal-suggestion { padding: 0.6rem 1rem; background: #f8f9fa; border-radius: 10px; margin-bottom: 0.5rem; font-size: 0.9rem; }
@@ -192,12 +197,30 @@
     .next-meal-with-img { display: flex; gap: 1rem; align-items: flex-start; flex-wrap: wrap; }
     .next-meal-with-img .tip-text { flex: 1; min-width: 200px; }
     .next-meal-with-img .meal-proposal-img { width: 160px; height: 120px; object-fit: cover; border-radius: 12px; box-shadow: var(--shadow); flex-shrink: 0; }
-    .hero-page { position: fixed; inset: 0; z-index: 300; background: linear-gradient(160deg, var(--accent) 0%, var(--accent-light) 50%, #1b4332 100%); color: white; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; text-align: center; }
+    .meal-proposal-caption { font-size: 0.8rem; color: var(--text-muted); margin-top: 0.35rem; font-style: italic; }
+    .hero-page { position: fixed; inset: 0; z-index: 300; background: linear-gradient(160deg, #0d2818 0%, var(--accent) 35%, var(--accent-light) 70%, #1b4332 100%); color: white; display: flex; overflow-y: auto; }
     .hero-page.hidden { display: none; }
-    .hero-page h1 { font-family: 'Space Grotesk', sans-serif; font-size: 2.5rem; margin: 0 0 0.5rem 0; }
-    .hero-page .tagline { font-size: 1.1rem; opacity: 0.95; max-width: 400px; margin: 0 0 2rem 0; line-height: 1.5; }
-    .hero-page .btn-hero { padding: 0.9rem 2rem; font-size: 1.1rem; border-radius: 14px; background: white; color: var(--accent); font-weight: 700; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.2); transition: transform 0.2s; }
+    .hero-page-inner { display: flex; flex-direction: row; min-height: 100vh; width: 100%; max-width: 1200px; margin: 0 auto; }
+    @media (max-width: 900px) { .hero-page-inner { flex-direction: column; } }
+    .hero-content { flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 2.5rem 2rem; text-align: left; }
+    @media (max-width: 900px) { .hero-content { text-align: center; padding: 2rem 1.5rem; } }
+    .hero-page h1 { font-family: 'Space Grotesk', sans-serif; font-size: 2.75rem; margin: 0 0 0.75rem 0; font-weight: 700; letter-spacing: -0.02em; }
+    @media (max-width: 600px) { .hero-page h1 { font-size: 2rem; } }
+    .hero-page .tagline { font-size: 1.15rem; opacity: 0.95; max-width: 420px; margin: 0 0 1.5rem 0; line-height: 1.6; }
+    @media (max-width: 900px) { .hero-page .tagline { margin-left: auto; margin-right: auto; text-align: center; } }
+    .hero-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.5rem; }
+    @media (max-width: 900px) { .hero-badges { justify-content: center; } }
+    .hero-badge { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.4rem 0.75rem; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); border-radius: 10px; font-size: 0.8rem; font-weight: 500; backdrop-filter: blur(8px); }
+    .hero-badge .check { color: #95d5b2; font-weight: 700; }
+    .hero-impact { background: rgba(255,255,255,0.08); border-radius: 14px; padding: 1.25rem; margin-bottom: 1.5rem; border-left: 4px solid rgba(255,255,255,0.5); }
+    .hero-impact h3 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; margin: 0 0 0.5rem 0; opacity: 0.9; font-weight: 600; }
+    .hero-impact p { margin: 0; font-size: 0.95rem; line-height: 1.55; opacity: 0.95; }
+    .hero-page .btn-hero { align-self: flex-start; padding: 0.9rem 2rem; font-size: 1.1rem; border-radius: 14px; background: white; color: var(--accent); font-weight: 700; border: none; cursor: pointer; box-shadow: 0 4px 20px rgba(0,0,0,0.2); transition: transform 0.2s; }
+    @media (max-width: 900px) { .hero-page .btn-hero { align-self: center; } }
     .hero-page .btn-hero:hover { transform: scale(1.05); }
+    .hero-image-wrap { flex: 0 0 45%; min-height: 400px; display: flex; align-items: center; justify-content: center; padding: 2rem; }
+    @media (max-width: 900px) { .hero-image-wrap { min-height: 280px; padding: 1.5rem; order: -1; } }
+    .hero-image-wrap img { width: 100%; max-width: 480px; height: auto; border-radius: 20px; box-shadow: 0 20px 60px rgba(0,0,0,0.35); object-fit: cover; }
     .app-wrap { display: none; }
     .app-wrap.visible { display: block; }
     body.coach-open .app-wrap { margin-right: 400px; transition: margin-right 0.2s ease; }
@@ -214,9 +237,27 @@
 <body>
   <!-- Hero: first screen before entering app -->
   <div class="hero-page" id="heroPage">
-    <h1>HappyDiet</h1>
-    <p class="tagline">Your AI diet coach — type or speak freely. Track meals, weight, and goals. The coach is always here.</p>
-    <button class="btn-hero" id="heroEnterBtn">Get started</button>
+    <div class="hero-page-inner">
+      <div class="hero-content">
+        <h1>HappyDiet</h1>
+        <p class="tagline">Your AI diet coach — type or speak freely. Track meals, weight, and goals. The coach is always here.</p>
+        <div class="hero-badges" aria-label="Google Cloud compliance">
+          <span class="hero-badge"><span class="check">✓</span> Gemini Live API</span>
+          <span class="hero-badge"><span class="check">✓</span> Vertex AI</span>
+          <span class="hero-badge"><span class="check">✓</span> Cloud Run</span>
+          <span class="hero-badge"><span class="check">✓</span> Firestore</span>
+          <span class="hero-badge"><span class="check">✓</span> GenAI SDK</span>
+        </div>
+        <div class="hero-impact">
+          <h3>Social impact</h3>
+          <p>Making healthy eating accessible to everyone. Voice-first coaching for people who struggle with traditional diet apps. Personalized support without judgment — because lasting change starts with understanding, not shame.</p>
+        </div>
+        <button class="btn-hero" id="heroEnterBtn">Get started</button>
+      </div>
+      <div class="hero-image-wrap">
+        <img src="happydiet-hero.jpg" alt="Fresh, healthy meal — HappyDiet helps you stay on track with your diet" loading="eager">
+      </div>
+    </div>
   </div>
 
   <div class="app-wrap" id="appWrap">
@@ -433,6 +474,7 @@
           <label class="btn btn-secondary disabled" id="chatImageBtn" title="Share meal photo — connect first" style="margin:0;cursor:pointer">📷</label>
           <input type="file" id="chatImageFile" accept="image/*" style="display:none">
           <button type="button" class="btn btn-secondary chatMicBtn" id="chatMicBtn" disabled title="Tap to speak — coach will hear you">🎤</button>
+          <button type="button" class="btn btn-secondary" id="chatStopBtn" style="display:none" title="Stop coach — interrupt while speaking">⏹ Stop</button>
           <input type="text" id="chatInput" placeholder="Type or speak — ask anything…" disabled>
           <button type="button" class="btn btn-primary" id="chatSendBtn" disabled>Send</button>
         </div>
@@ -702,6 +744,7 @@
           try {
             const d = JSON.parse(e.data);
             if (d.type === 'error') {
+              removeChatThinking();
               updateStatusBar('error'); $('statusConn').textContent = 'Error';
               appendChat('coach', 'Sorry, the coach connection failed: ' + (d.message || 'unknown error') + '. Check that GOOGLE_CLOUD_PROJECT is set and gcloud auth is configured.');
               return;
@@ -719,7 +762,7 @@
               $('chatImageBtn').classList.remove('disabled'); $('chatImageBtn').setAttribute('for', 'chatImageFile');
               $('chatMicBtn').disabled = false;
               $('chatDisconnectBtn').disabled = false;
-              appendChat('coach', 'Hey! I\'m your diet coach. Ask me anything — why certain foods are off limits, how you\'re doing, or share a meal photo. I\'ll reply in text and voice.');
+              appendChatThinking('Coach is connecting…');
               return;
             }
             const inputTrans = d?.inputTranscription ?? d?.input_transcription ?? d?.serverContent?.inputTranscription ?? d?.server_content?.input_transcription;
@@ -738,6 +781,14 @@
             const trans = d?.outputTranscription ?? d?.output_transcription ?? d?.serverContent?.outputTranscription ?? d?.server_content?.output_transcription;
             const parts = d?.serverContent?.modelTurn?.parts ?? d?.server_content?.model_turn?.parts;
             const sc = d?.serverContent ?? d?.server_content;
+            const interrupted = sc?.interrupted === true;
+            if (interrupted) {
+              clearAudioQueue();
+              if (window._coachTextBuffer) window._coachTextBuffer = '';
+              removeChatThinking();
+              updateStatusBar(undefined, undefined, 'idle');
+              return;
+            }
             const turnComplete = sc?.turnComplete ?? sc?.turn_complete ?? d?.turnComplete ?? d?.turn_complete;
             const genComplete = sc?.generationComplete ?? sc?.generation_complete;
             const text = trans?.text ?? trans;
@@ -746,6 +797,7 @@
               window._coachTextBuffer += text.trim() + ' ';
             }
             if (turnComplete || genComplete) {
+              removeChatThinking();
               if (window._coachTextBuffer) {
                 appendChat('coach', window._coachTextBuffer.trim());
                 window._coachTextBuffer = '';
@@ -779,6 +831,63 @@
       $('chatMessages').scrollTop = $('chatMessages').scrollHeight;
     }
 
+    function appendChatThinking(message) {
+      removeChatThinking();
+      const msg = message || 'Coach is thinking…';
+      const div = document.createElement('div');
+      div.id = 'chatThinking';
+      div.className = 'chat-msg coach chat-thinking';
+      div.innerHTML = '<span>' + msg + '</span><div class="loading-bar" style="margin-top:0.5rem"><div class="loading-bar-inner"></div></div>';
+      $('chatMessages').appendChild(div);
+      $('chatMessages').scrollTop = $('chatMessages').scrollHeight;
+      showStopButton();
+      startCoachBusyTimeout();
+    }
+
+    function removeChatThinking() {
+      const el = document.getElementById('chatThinking');
+      if (el) el.remove();
+      stopCoachBusyTimeout();
+      if (!audioPlaying) hideStopButton();
+    }
+    let coachBusyTimeoutId = null;
+    function startCoachBusyTimeout() {
+      stopCoachBusyTimeout();
+      coachBusyTimeoutId = setTimeout(() => {
+        coachBusyTimeoutId = null;
+        if (document.getElementById('chatThinking') || audioPlaying) {
+          showStopButton();
+        }
+      }, 45000);
+    }
+    function stopCoachBusyTimeout() {
+      if (coachBusyTimeoutId) {
+        clearTimeout(coachBusyTimeoutId);
+        coachBusyTimeoutId = null;
+      }
+    }
+    function showStopButton() {
+      const btn = document.getElementById('chatStopBtn');
+      if (btn) btn.style.display = 'inline-flex';
+    }
+    function hideStopButton() {
+      const btn = document.getElementById('chatStopBtn');
+      if (btn) btn.style.display = 'none';
+    }
+    function sendInterrupt() {
+      if (!chatWs || chatWs.readyState !== WebSocket.OPEN) return;
+      clearAudioQueue();
+      if (window._coachTextBuffer) window._coachTextBuffer = '';
+      removeChatThinking();
+      hideStopButton();
+      updateStatusBar(undefined, undefined, 'idle');
+      try {
+        chatWs.send(JSON.stringify({
+          clientContent: { turns: [{ role: 'user', parts: [{ text: 'Stop' }] }], turnComplete: true }
+        }));
+      } catch (_) {}
+    }
+
     let audioCtx = null;
     let audioNextStart = 0;
     const audioQueue = [];
@@ -794,12 +903,21 @@
       if (audioPlaying) return;
       processAudioQueue();
     }
-    function processAudioQueue() {
-      if (!audioQueue.length) { audioPlaying = false; updateStatusBar(undefined, undefined, 'idle'); return; }
+    function clearAudioQueue() {
+      audioQueue.length = 0;
+      audioNextStart = 0;
+      audioPlaying = false;
+      hideStopButton();
+      updateStatusBar(undefined, undefined, 'idle');
+    }
+    async function processAudioQueue() {
+      if (!audioQueue.length) { audioPlaying = false; hideStopButton(); updateStatusBar(undefined, undefined, 'idle'); return; }
       audioPlaying = true;
+      showStopButton();
       updateStatusBar(undefined, undefined, 'speaking');
       const ctx = getAudioContext();
-      if (ctx.state === 'suspended') ctx.resume();
+      if (ctx.state === 'suspended') await ctx.resume();
+      if (ctx.state === 'closed') { audioPlaying = false; processAudioQueue(); return; }
       const now = ctx.currentTime;
       if (audioNextStart < now) audioNextStart = now;
       while (audioQueue.length) {
@@ -823,6 +941,8 @@
     }
 
     $('chatSendBtn').onclick = sendChat;
+    const chatStopBtn = document.getElementById('chatStopBtn');
+    if (chatStopBtn) chatStopBtn.onclick = sendInterrupt;
     $('chatInput').onkeydown = e => {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -934,15 +1054,21 @@
       if (!chatWs || chatWs.readyState !== WebSocket.OPEN) return;
       if (window._coachTextBuffer) window._coachTextBuffer = '';
       appendChat('user', '[Meal photo]');
+      appendChatThinking('Analyzing meal…');
       const mime = mimeType || 'image/jpeg';
+      // Send image + text in one clientContent turn so the agent receives both together
       chatWs.send(JSON.stringify({
-        realtimeInput: { mediaChunks: [{ data: base64, mimeType: mime }] }
+        clientContent: {
+          turns: [{
+            role: 'user',
+            parts: [
+              { inlineData: { mimeType: mime, data: base64 } },
+              { text: 'What do you see in this meal? Analyze it for my diet.' }
+            ]
+          }],
+          turnComplete: true
+        }
       }));
-      setTimeout(() => {
-        chatWs.send(JSON.stringify({
-          clientContent: { turns: [{ role: 'user', parts: [{ text: 'What do you see in this meal? Analyze it for my diet.' }] }], turnComplete: true }
-        }));
-      }, 300);
     }
 
     function sendChat() {
@@ -952,8 +1078,10 @@
         updateStatusBar(undefined, undefined, 'connect_first');
         return;
       }
+      clearAudioQueue();
       if (window._coachTextBuffer) window._coachTextBuffer = '';
       appendChat('user', text);
+      appendChatThinking();
       $('chatInput').value = '';
       chatWs.send(JSON.stringify({
         clientContent: { turns: [{ role: 'user', parts: [{ text }] }], turnComplete: true }
@@ -1084,9 +1212,13 @@
       const mealLabel = tip.meal.charAt(0).toUpperCase() + tip.meal.slice(1);
       const icon = tip.meal === 'breakfast' ? '🍳' : tip.meal === 'lunch' ? '🥗' : '🍽';
       const imgUrl = MEAL_PROPOSAL_IMGS[tip.meal] || MEAL_PROPOSAL_IMGS.breakfast;
+      const mealDescription = (MEAL_SUGGESTIONS[tip.meal] || MEAL_SUGGESTIONS.breakfast || [])[0] || 'A compliant meal';
       const html = `<div class="next-meal-with-img">
         <div class="tip-text"><strong>${icon} ${mealLabel}:</strong> ${tip.text}</div>
-        <img class="meal-proposal-img" src="${imgUrl}" alt="Meal suggestion: ${mealLabel}" loading="lazy">
+        <div>
+          <img class="meal-proposal-img" src="${imgUrl}" alt="Meal suggestion: ${mealLabel}" loading="lazy">
+          <div class="meal-proposal-caption">This meal: ${escapeHtml(mealDescription)}</div>
+        </div>
       </div>`;
       const el = $('nextMealTip');
       if (el) el.innerHTML = html;
@@ -1464,7 +1596,7 @@
     async function analyze() {
       if (!currentBase64) return;
       $('analyzeBtn').disabled = true;
-      $('result').innerHTML = '<p>Analyzing…</p>';
+      $('result').innerHTML = '<p>Analyzing meal…</p><div class="loading-bar"><div class="loading-bar-inner"></div></div>';
       $('resultCard').style.display = 'block';
       try {
         const body = { image_base64: currentBase64, user_id: 'demo' };
@@ -1489,19 +1621,70 @@
     function askCoachForMeal() {
       openCoachPopup();
       if (!currentBase64) return;
-      if (!chatWs || chatWs.readyState !== WebSocket.OPEN) return;
+      if (!chatWs || chatWs.readyState !== WebSocket.OPEN) {
+        appendChat('coach', 'Connect the coach first (tap Connect in the status bar).');
+        return;
+      }
       sendChatImage(currentBase64);
     }
 
+    function getTrendDataWithDates(meals) {
+      const days = 14;
+      const now = new Date();
+      const trend = [];
+      const dailyScores = {};
+      if (meals && meals.length) {
+        meals.forEach(m => {
+          const ts = m.timestamp || m.createdAt;
+          const d = ts ? new Date(ts) : null;
+          const key = d ? d.toISOString().slice(0, 10) : null;
+          if (key) {
+            if (!dailyScores[key]) dailyScores[key] = [];
+            dailyScores[key].push(m.complianceScore ?? 0);
+          }
+        });
+      }
+      const mockScores = MOCK_TREND;
+      for (let i = days - 1; i >= 0; i--) {
+        const d = new Date(now);
+        d.setDate(d.getDate() - i);
+        const key = d.toISOString().slice(0, 10);
+        const shortDate = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+        let score;
+        if (dailyScores[key] && dailyScores[key].length) {
+          score = Math.round(dailyScores[key].reduce((a, b) => a + b, 0) / dailyScores[key].length);
+        } else {
+          score = mockScores[days - 1 - i] ?? mockScores[0];
+        }
+        trend.push({ date: key, shortDate, score });
+      }
+      return trend;
+    }
+
+    function renderTrendChart(trendData) {
+      const max = Math.max(...trendData.map(t => t.score), 1);
+      $('trendChart').innerHTML = trendData.map(t =>
+        `<div class="trend-bar-wrap" title="${t.shortDate}: ${t.score}%">
+          <span class="trend-score">${t.score}%</span>
+          <div class="trend-bar" style="height:${(t.score / max) * 100}%"></div>
+        </div>`
+      ).join('');
+      $('trendLabels').innerHTML = trendData.map(t => `<span title="${t.date}">${t.shortDate}</span>`).join('');
+    }
+
     // --- DASHBOARD ---
-    function renderDashboard() {
+    async function renderDashboard() {
       renderWeightList();
       renderNextMealTip();
-      const trend = MOCK_TREND;
-      const max = Math.max(...trend);
-      $('trendChart').innerHTML = trend.map(v => `<div class="trend-bar" style="height:${(v / max) * 100}%"></div>`).join('');
-      $('trendLabels').innerHTML = trend.map((_, i) => `<span>D${i + 1}</span>`).join('');
-      $('mealsList').innerHTML = MOCK_MEALS.map(m => {
+      let meals = MOCK_MEALS;
+      try {
+        const res = await fetch(url() + '/meals?user_id=demo');
+        const data = await res.json();
+        if (res.ok && data.meals?.length) meals = data.meals;
+      } catch (_) {}
+      const trendData = getTrendDataWithDates(meals);
+      renderTrendChart(trendData);
+      $('mealsList').innerHTML = meals.map(m => {
         const sc = m.complianceScore || 0;
         const cls = sc >= 80 ? 'score-high' : sc >= 50 ? 'score-mid' : 'score-low';
         return `<div class="meal-row">
@@ -1516,11 +1699,13 @@
         const res = await fetch(url() + '/meals?user_id=demo');
         const data = await res.json();
         if (res.ok && data.meals?.length) {
-          $('mealsList').innerHTML = data.meals.slice(0, 10).map(m => {
+          const meals = data.meals;
+          $('mealsList').innerHTML = meals.slice(0, 10).map(m => {
             const sc = m.complianceScore || 0;
             const cls = sc >= 80 ? 'score-high' : sc >= 50 ? 'score-mid' : 'score-low';
             return `<div class="meal-row"><div><strong>${m.mealMoment || 'meal'}</strong> — ${(m.ingredients || []).slice(0, 3).join(', ')} ${m.estimatedKcal ? `• ${m.estimatedKcal} kcal` : ''}</div><span class="meal-score ${cls}">${Math.round(sc)}%</span></div>`;
           }).join('');
+          renderTrendChart(getTrendDataWithDates(meals));
         } else renderDashboard();
       } catch (_) { renderDashboard(); }
     };
@@ -1539,16 +1724,7 @@
 
     $('heroEnterBtn').onclick = enterApp;
 
-    if (localStorage.getItem('happydiet_seen_hero')) {
-      $('heroPage').classList.add('hidden');
-      $('appWrap').classList.add('visible');
-      $('coachFloat').style.display = '';
-      if (!$('coachPanel').classList.contains('collapsed')) document.body.classList.add('coach-open');
-      renderDashboard();
-      renderNextMealTip();
-      renderTasks();
-      renderTargetDisplay();
-    }
+    // Hero always shows on load — user clicks "Get started" to enter
 
     function getTargets() {
       try {
