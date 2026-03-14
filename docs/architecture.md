@@ -12,7 +12,7 @@
 
 | Layer | Technology |
 |-------|-------------|
-| Client | iOS (Swift/SwiftUI), Web App (app.html), Dev Playground (dev.html) |
+| Client | Web (index.html, app.html, dev.html), iOS (Swift/SwiftUI) |
 | Backend | Node.js/Express on Cloud Run |
 | Vision | Vertex AI Gemini 2.5 Flash |
 | TTS | Google Cloud Text-to-Speech |
@@ -20,15 +20,26 @@
 
 ---
 
-## Data Flow (Current)
+## Client Matrix
 
-1. iOS or Dev Playground → Backend (HTTP REST)
-2. `POST /analyze-meal` or `POST /parse-diet` or `POST /speak`
-3. Backend: Vision → Rule Engine (fuzzy + LLM semantic) → Firestore
-4. Backend returns JSON; client may call `/speak` for TTS
-5. Dashboard: `GET /meals`, `GET /rules`
+| Client | Live API | HTTP REST | Capture |
+|--------|----------|-----------|---------|
+| Web Showcase (`/`) | ✅ WebSocket `/live` | — | Camera, upload |
+| Web App (`/app.html`) | — | ✅ | Camera, upload |
+| Dev Playground (`/dev.html`) | — | ✅ | Camera, upload |
+| iOS App | ✅ Live Coach | ✅ | Camera, Photo Library, **HeyCyan** (native only) |
 
-**Target (Live API):** iOS → Gemini Live API (WebSocket) → tool call → Backend → JSON → Live API speaks
+**HeyCyan:** Requires native iOS (BLE + WiFi). Web cannot use HeyCyan. See [heycyan-integration.md](./heycyan-integration.md).
+
+---
+
+## Data Flow
+
+**HTTP:** Client → `POST /analyze-meal`, `POST /parse-diet`, `GET /meals`, `GET /rules` → Backend → Vision → Rule Engine → Firestore → JSON. Optional `POST /speak` for TTS.
+
+**Live API:** Client (Web or iOS) → `ws://backend/live` → Vertex AI Live API → tool `analyze_meal` → Backend → JSON → Live API speaks (barge-in supported).
+
+**Agent pipeline:** Both entry points invoke `analyzeMeal()` → `readerAgent()` → `processorAgent()` → `reporterAgent()`. See [agents.md](./agents.md) for implementation (files, orchestration, entry points).
 
 ---
 
@@ -44,7 +55,8 @@
 
 | Component | Responsibility |
 |-----------|----------------|
-| iOS App | Analyze, Diet, Dashboard; TTS; HeyCyan capture (stub) |
+| iOS App | Live Coach (Live API), Analyze, Diet, Dashboard; TTS; HeyCyan capture (native only) |
+| Web Showcase | index.html — Live API (voice + image), chat, Speak |
 | Web App | app.html — same look/feel as iOS: Analyze, Diet, Dashboard |
 | Dev Playground | dev.html — full flow testing: diet parse, meal analyze, TTS, rules, meals |
 | Backend | Vision, parse-diet, rule matching, TTS, Firestore |

@@ -4,10 +4,10 @@ AI diet compliance app for the Gemini Live Agent Challenge. Capture meal photos,
 
 ## Architecture
 
-- **Backend** (Node.js/Express on Cloud Run): Vertex AI Vision → ingredients, rule engine → compliance, Firestore persistence
-- **iOS app** (SwiftUI): Camera/photo capture, backend client, dashboard, TTS fallback
+- **Backend** (Node.js/Express on Cloud Run): Vertex AI Vision → ingredients, rule engine → compliance, Firestore persistence. Live API proxy at `ws://host/live`.
+- **Clients:** Web (index.html with Live API, app.html, dev.html), iOS app (SwiftUI). HeyCyan glasses require native iOS only.
 
-See [docs/architecture-diagram.md](docs/architecture-diagram.md) for the full diagram.
+See [docs/architecture-diagram.md](docs/architecture-diagram.md) for the full diagram and client matrix.
 
 ## Tests (Regression Protection)
 
@@ -32,43 +32,25 @@ npm run dev
 
 Open **http://localhost:8080/dev.html** — upload a meal image, get **real** Vertex AI analysis and Firestore persistence.
 
-**Web showcase (demo):** Open **http://localhost:8080/** — polished interface with mock data: Overview, My Plan, Analyze, Dashboard. Use for demos and to show full potential.
+**Web showcase (demo):** Open **http://localhost:8080/** — Live API (voice + image), chat, Speak. Demo-ready without phone. Also: Overview, My Plan, Analyze, Dashboard.
 
 See [docs/dev-environment.md](docs/dev-environment.md).
 
 ---
 
-## Quick Start — Test on Your Phone
+## How to Launch
 
-### 1. Backend (run locally first)
+**Full guide:** [docs/how-to-launch.md](docs/how-to-launch.md)
 
-```bash
-cd backend
-npm install
-cp .env.example .env   # if needed
-# Edit .env: GOOGLE_CLOUD_PROJECT (see docs/setup.md)
-npm run dev
-```
+### Quick start
 
-Backend runs at `http://localhost:8080`.
+| Step | Command |
+|------|---------|
+| Backend | `cd backend && npm install && npm run dev` |
+| iOS (simulator) | `cd ios && xcodegen generate && open HappyDiet.xcodeproj` → ⌘R |
+| iOS (physical iPhone) | Set `BACKEND_URL` in `HappyDietConfig.plist` to `http://YOUR_MAC_IP:8080` → Add Apple ID in Xcode → ⌘R |
 
-### 2. iOS app
-
-```bash
-cd ios
-brew install xcodegen && xcodegen generate
-open HappyDiet.xcodeproj
-```
-
-**For phone testing:** Edit `HappyDiet/HappyDietConfig.plist`:
-- Set `BACKEND_URL` to `http://YOUR_MAC_IP:8080` (e.g. `http://192.168.1.5:8080`)
-- Mac and iPhone must be on the same Wi‑Fi
-
-See [ios/SETUP.md](ios/SETUP.md) for details.
-
-### 3. Run on device
-
-Connect iPhone → Select device in Xcode → Run (⌘R).
+**Physical device:** Requires Apple ID (free) for signing. See [docs/how-to-launch.md](docs/how-to-launch.md) for details.
 
 ## Project structure
 

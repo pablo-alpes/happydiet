@@ -75,4 +75,4 @@ See **[deployment-cicd.md](./deployment-cicd.md)** for step-by-step instructions
 
 **Never cut:** Deploy to Cloud Run, image capture, compliance reply, README, **Live API**.
 
-**See [prize-readiness.md](./prize-readiness.md)** for consolidated status vs. the big prize.
+**See [prize-readiness.md](./prize-readiness.md)** for consolidated status vs. the big prize. **Web-only demo:** You can demo entirely in the browser (index.html has Live API); no phone or iOS needed. Glasses are optional — omit if unsure.

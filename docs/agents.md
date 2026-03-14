@@ -93,9 +93,67 @@
 
 ---
 
-## Implementation Note
+## Implementation — How Agents Are Defined and Run
 
-For MVP, the three stages are **logical modules** within the same backend (Reader, Processor, Reporter). Each module has clear boundaries and persistence points. Split into separate services later if needed. The **Live Agent** (Gemini Live API) is invoked from the iOS app via WebSocket; the backend serves as the tool.
+The three stages are **functions** in the application layer. They run **sequentially** in the same Node.js process. No separate services or processes.
+
+### Where They Are Defined
+
+| Agent | File | Function |
+|-------|------|----------|
+| **Reader** | `backend/src/application/agent-reader.ts` | `readerAgent()` |
+| **Processor** | `backend/src/application/agent-processor.ts` | `processorAgent()` |
+| **Reporter** | `backend/src/application/agent-reporter.ts` | `reporterAgent()` |
+
+### Orchestration
+
+The use case `analyzeMeal()` in `backend/src/application/analyze-meal.ts` orchestrates the pipeline:
+
+```
+analyzeMeal(input, deps)
+    ├── readerAgent()     → ingredients, estimatedKcal
+    ├── processorAgent()  → score, compliant/non-compliant, persist to Firestore
+    └── reporterAgent()  → message (text for TTS or Live API)
+```
+
+### Each Agent's Logic
+
+| Agent | Input | Process | Output | Persistence |
+|-------|-------|---------|--------|-------------|
+| **Reader** | `imageBase64`, `userId` | `vertexAI.analyzeImage()` (Vision) | `ingredients`, `estimatedKcal` | None |
+| **Processor** | `ingredients`, `userId` | Load rules; `evaluateCompliance()` (rule engine + optional LLM semantic); build meal record | `score`, `compliantItems`, `nonCompliantItems`, `suggestions`, `detalle` | Writes to `meals` |
+| **Reporter** | Processor output | Build human-readable message (verdict + watch-outs + suggestions) | `message`, `score`, items | None |
+
+### Entry Points
+
+| Entry Point | File | Invocation |
+|-------------|------|------------|
+| **HTTP** | `backend/src/infrastructure/http-handlers.ts` | `POST /analyze-meal` → `analyzeMeal()` |
+| **Live API** | `backend/src/infrastructure/live-api-proxy.ts` | Tool `analyze_meal` → `analyzeMeal()` |
+
+Both HTTP and Live API tool calls invoke the same `analyzeMeal()` use case, which runs the three agents in sequence.
+
+### Execution Flow
+
+```
+HTTP POST /analyze-meal  OR  Live API tool call (analyze_meal)
+         │
+         ▼
+   analyzeMeal(input, deps)
+         │
+         ├──► readerAgent()     →  ingredients, kcal
+         │
+         ├──► processorAgent()  →  score, compliant/non-compliant, persist to Firestore
+         │
+         └──► reporterAgent()  →  message (text for TTS or Live API)
+         │
+         ▼
+   Return JSON to client
+```
+
+### Design Note
+
+For MVP, the three stages are **logical modules** within the same backend. Each module has clear boundaries and persistence points. Split into separate services later if needed. The **Live Agent** (Gemini Live API) is invoked from the web or iOS app via WebSocket; the backend serves as the tool.
 
 ---
 

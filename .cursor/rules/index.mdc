@@ -14,6 +14,7 @@ Refer to the following files in the `docs/` folder for all coding, architecture,
 - **@docs/agents.md** — 3-agent architecture (Reader, Processor, Reporter)
 - **@docs/persistence.md** — Storage separation, durability, retries
 - **@docs/features.md** — Feature inventory and status
+- **@docs/how-to-launch.md** — How to run backend and iOS app (simulator, device, HeyCyan)
 
 ## Architecture — Must Follow
 

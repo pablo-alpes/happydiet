@@ -8,8 +8,8 @@
 
 | Layer | Technology | Purpose |
 |-------|------------|---------|
-| **Client** | iOS app (Swift/SwiftUI) | Meal capture, diet rules, compliance display, dashboard, TTS |
-| **Dev Playground** | HTML/JS (backend static) | Full flow testing: diet parse, meal analyze, TTS, rules view |
+| **Client** | Web (index.html, app.html, dev.html), iOS app (Swift/SwiftUI) | Meal capture, diet rules, compliance, dashboard, TTS, Live API |
+| **Web Showcase** | index.html | Live API (voice + image), chat, Speak — demo-ready |
 | **Backend** | Node.js/Express | REST API, 3 agents, Vision, TTS |
 | **Hosting** | Cloud Run | Backend API |
 | **Vision** | Vertex AI Gemini 2.5 Flash | Meal analysis (ingredients, kcal); diet rules parsing (text + image) |
@@ -47,10 +47,11 @@
 | **Deployment** | First production deploy; Cloud Run env vars |
 | **Submission** | Demo video (<4 min), public repo URL |
 
-### Architecture Decision: Dual Client
+### Architecture Decision: Multi-Client
 
-- **Primary:** iOS app — native UX, camera, diet management, dashboard.
-- **Dev/Testing:** Web playground at `/dev.html` — full flow without Xcode, useful for phone testing and demos.
+- **Web Showcase** (`/`): Live API, voice + image, chat — demo-ready without phone.
+- **Web App** (`/app.html`), **Dev Playground** (`/dev.html`): HTTP REST, camera/upload, full flow.
+- **iOS App:** Native UX, camera, HeyCyan (BLE+WiFi), Live Coach. **HeyCyan requires native iOS** — web cannot access BLE on iOS Safari.
 
 ---
 
@@ -59,8 +60,8 @@
 ```
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  CLIENTS                                                                     │
-│  • iOS App: Live Coach | Analyze | Diet | Dashboard                         │
-│  • Dev Playground (http://localhost:8080/dev.html): Full View | Rules | Meals │
+│  • Web: index.html (Live API) | app.html | dev.html                          │
+│  • iOS App: Live Coach | Analyze | Diet | Dashboard | HeyCyan (native only) │
 └──────────────────────────────┬──────────────────────────────────────────────┘
                                │ HTTPS (REST) + WebSocket (/live)
                                ▼
@@ -90,9 +91,11 @@
 1. User captures meal image (iOS or playground).
 2. Client → `POST /analyze-meal` (image_base64, user_id, optional diet_text).
 3. **Reader:** Vertex AI Vision → ingredients, estimatedKcal.
-4. **Processor:** Load rules (Firestore or diet_text override); rule-engine (fuzzy match) + optional LLM semantic check → compliance.
-5. **Reporter:** Build message; save meal to Firestore.
+4. **Processor:** Load rules (Firestore or diet_text override); rule-engine (fuzzy match) + optional LLM semantic check → compliance; save meal to Firestore.
+5. **Reporter:** Build message (text for TTS or Live API).
 6. Response → client; client may call `POST /speak` for TTS.
+
+**Implementation:** See [agents.md](./agents.md) for how Reader, Processor, Reporter are defined and run.
 
 ### Diet Rules
 
@@ -115,8 +118,9 @@
 
 | Component | Responsibility |
 |-----------|----------------|
-| **iOS App** | Image capture, diet rules (parse/save/load), compliance display, dashboard, TTS (backend or AV fallback) |
-| **Dev Playground** | Full flow testing: diet parse, meal analyze, TTS, rules view, meals list |
+| **Web Showcase** | index.html — Live API (voice + image), chat, Speak; demo without phone |
+| **Web App / Dev Playground** | app.html, dev.html — camera/upload, diet parse, meal analyze, TTS, rules, meals |
+| **iOS App** | Image capture (camera, Photo Library, HeyCyan), diet rules, compliance, dashboard, Live Coach, TTS |
 | **Backend** | REST API; Reader, Processor, Reporter; Vision, parse-diet, TTS, Firestore |
 | **Firestore** | `meals`, `diet_rules` |
 | **Vertex AI** | Vision (meal → ingredients), parse diet (text/image → rules), semantic compliance check |
