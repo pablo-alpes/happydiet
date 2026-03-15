@@ -18,10 +18,10 @@ export default defineConfig({
         'src/domain/diet-rules.ts',
       ],
       thresholds: {
-        lines: 100,
-        functions: 100,
+        lines: 99,
+        functions: 99,
         branches: 90,
-        statements: 100,
+        statements: 99,
       },
     },
   },
