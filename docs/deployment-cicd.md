@@ -19,6 +19,39 @@ git checkout main && git pull origin main
 
 ---
 
+## Dev pipeline (deploy without touching prod)
+
+**Use this when:** You want to push and deploy to a **dev** environment so prod stays unchanged.
+
+| Branch | Deploys to | Service name |
+|--------|------------|--------------|
+| `dev` | Dev | `happydiet-backend-dev` |
+| `main` (or `master`) | Prod | `happydiet-backend` |
+
+**First time — create the dev branch and push it:**
+
+```bash
+chmod +x scripts/create-dev-branch.sh
+./scripts/create-dev-branch.sh
+```
+
+**Then:** Push your changes to `dev` instead of `main`. GitHub Actions will run tests and deploy to **happydiet-backend-dev** only. When you’re ready for prod, merge `dev` into `main` and push.
+
+```bash
+# Daily workflow: push to dev for testing
+git checkout dev
+git merge main    # optional: get latest from main
+# ... make changes ...
+git add . && git commit -m "Your message" && git push origin dev
+
+# When ready for prod: merge dev → main
+git checkout main && git merge dev && git push origin main
+```
+
+You can also trigger a deploy from the Actions tab: **Run workflow** → choose branch `dev` or `main` and (for manual run) environment **dev** or **prod**.
+
+---
+
 ## Current Deployment Record
 
 | Item | Value |
@@ -117,9 +150,13 @@ gcloud builds submit --config cloudbuild.yaml .
 | `FIRESTORE_DATABASE_MEALS` | No (default happydiet) | `backend/.env` |
 | `FIRESTORE_DATABASE_RULES` | No (default rules) | `backend/.env` |
 | `API_KEY` | No | `backend/.env` (optional) |
-| `VERTEX_AI_MODEL` | No | `backend/.env` (optional) |
+| `VERTEX_AI_MODEL` | No | Default `gemini-2.5-flash` in code |
 
-The `deploy.sh` script reads `backend/.env` and forwards these to Cloud Run. GitHub Actions and Cloud Build use project/region only; add Firestore DB names via `.env` if using non-default DBs.
+**Region:** One place controls it: `GOOGLE_CLOUD_LOCATION` (default `us-central1`). It is used for Vertex AI (vision, semantic) and for the Live API WebSocket URL. Cloud Build sets it from `_REGION` (us-central1). No need to set a different region elsewhere.
+
+**Model:** Backend uses `gemini-2.5-flash` by default; Live API uses `gemini-live-2.5-flash-native-audio`. Both are set in code; no override in Cloud Build.
+
+The `deploy.sh` script reads `backend/.env` and forwards env vars to Cloud Run. GitHub Actions and Cloud Build use project/region only; add Firestore DB names via `.env` if using non-default DBs.
 
 ### How we ensure CI/CD
 
@@ -384,13 +421,28 @@ Deployment scripts use `--quiet` on gcloud commands to avoid interactive prompts
 
 | Issue | Fix |
 |-------|-----|
-| **Works locally, fails on Cloud** | Cloud Run uses the default compute SA, not your user. Run the "Cloud Run runtime identity" block in `scripts/serviceaccount.sh` to grant that SA `roles/aiplatform.user` and `roles/datastore.user`. Ensure Cloud Build sets env vars (see `cloudbuild.yaml`: FIRESTORE_*, VERTEX_AI_LOCATION=global, VERTEX_AI_MODEL). |
+| **Works locally, fails on Cloud** | **Identity:** locally you use your user (e.g. `gcloud auth application-default login`); Cloud Run uses the default compute service account. Same code, same region, same model. Grant that compute SA `roles/aiplatform.user` and `roles/datastore.user` via the "Cloud Run runtime identity" block in `scripts/serviceaccount.sh`. |
 | 503 from `/analyze-meal` | Set `GOOGLE_CLOUD_PROJECT` on Cloud Run |
-| 404 "model not found" on Cloud | Set `VERTEX_AI_LOCATION=global` and `VERTEX_AI_MODEL=gemini-2.0-flash-001` on Cloud Run; grant compute SA `roles/aiplatform.user` |
+| 404 "model not found" on Cloud | Grant Cloud Run's compute SA `roles/aiplatform.user`; ensure Vertex AI API is enabled. We use `gemini-2.5-flash` in `us-central1` (set via `GOOGLE_CLOUD_LOCATION`). No need to switch to 2.0. |
 | Permission denied | Ensure Cloud Run service account (compute SA) has `roles/aiplatform.user` and `roles/datastore.user` |
 | Build fails | Check `npm run test:ci` passes locally in `backend/` |
 | Deploy from wrong dir | Run `./scripts/deploy.sh` from repo root (it uses `backend/` internally) |
 | Firestore DB errors | Run `./scripts/setup-production.sh` to create DBs; or create manually in [Console](https://console.cloud.google.com/firestore) |
+
+### Using logs to find where analyze-meal fails
+
+After deploying, trigger an analyze-meal request and open **Cloud Run → Logs** (or `gcloud run services logs read happydiet-backend --region=us-central1`). Look for `[analyze-meal]` and `[vertex-ai]`:
+
+1. **Request start** — `[analyze-meal] <requestId> request start | content-length=... hasBody=... bodyKeys=[...]`  
+   - If `hasBody=false` or body is empty: body parser failed (payload too large or invalid JSON). Reduce image size or check client sends JSON.
+2. **Body ok** — `[analyze-meal] <requestId> body ok | userId=... imageBase64Len=...`  
+   - Confirms the handler received the image.
+3. **Stage = reader start** — next step is Vertex Vision.  
+   - If you see **`[vertex-ai] analyzeImage request start`** but no **`analyzeImage generateContent done`**: failure is inside Vertex (network, IAM, model, or timeout). Check `[vertex-ai] analyzeImage generateContent failed after X ms` for the error.
+4. **Stage = reader done** — Vision succeeded. If the failure is later, you’ll see **stage=processor start** and then either **stage=processor done** or an error (e.g. Firestore).
+5. **Failed after Xms** — `[analyze-meal] <requestId> failed after Xms` plus the error. Use the same `requestId` to match all log lines for that request.
+
+The frontend uses a **60s timeout**; if the backend is slow or stuck, you’ll see “Request timed out” and the logs will show how far the request got (e.g. reader start but no reader done = Vertex call hanging or erroring).
 
 ---
 

@@ -148,7 +148,7 @@ happydiet/
 |----------|---------|
 | `GOOGLE_CLOUD_PROJECT` | GCP project (required) |
 | `GOOGLE_CLOUD_LOCATION` | Vertex AI region (default: us-central1) |
-| `VERTEX_AI_MODEL` | Model ID (default: gemini-2.0-flash-001) |
+| `VERTEX_AI_MODEL` | Model ID (default: gemini-2.5-flash) |
 | `API_KEY` | Optional X-API-Key for backend auth |
 
 Auth: `gcloud auth application-default login` or `GOOGLE_APPLICATION_CREDENTIALS`.

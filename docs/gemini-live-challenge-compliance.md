@@ -10,7 +10,7 @@
 
 | Requirement | Status | Implementation |
 |-------------|--------|-----------------|
-| **Use a Gemini model** | ✅ | Vertex AI `gemini-2.0-flash-001` for vision (backend) |
+| **Use a Gemini model** | ✅ | Vertex AI `gemini-2.5-flash` for vision/semantic (backend); `gemini-live-2.5-flash-native-audio` for Live API |
 | **GenAI SDK or ADK** | ✅ | `@google-cloud/vertexai` (official Node.js client for Vertex AI / Gemini) |
 | **At least one Google Cloud service** | ✅ | Vertex AI, Firestore, Cloud Run |
 | **Live Agent category: Gemini Live API** | ⚠️ | Backend is tool-ready; Live API must be invoked from iOS app |
