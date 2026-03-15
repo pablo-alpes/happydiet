@@ -88,4 +88,4 @@ gcloud run services add-iam-policy-binding happydiet-backend-dev \
   --region=us-central1 \
   --member=allUsers \
   --role=roles/run.invoker \
-  --project=happydiet-1-490118 
+  --project=$PROJECT_ID
