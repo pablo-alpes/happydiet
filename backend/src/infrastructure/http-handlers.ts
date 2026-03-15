@@ -8,6 +8,63 @@ import type { VertexAIClient } from './vertex-ai-client.js';
 import type { MealRepository, DietRulesRepository } from './firestore-repository.js';
 import type { DietRule } from '../domain/diet-rules.js';
 
+/** Turn analyze-meal failures into a clear message for the user and a technical string for logs. */
+function analyzeMealError(err: unknown): { userMessage: string; technicalDetail: string } {
+  const message = err instanceof Error ? err.message : String(err);
+  const o = err && typeof err === 'object' ? (err as Record<string, unknown>) : {};
+  const code = o.code != null ? String(o.code) : '';
+  const status = o.status != null ? String(o.status) : '';
+  const reason = o.reason != null ? String(o.reason) : '';
+  const cause = err instanceof Error && err.cause ? String(err.cause) : '';
+  const technicalDetail = [message, code, status, reason, cause].filter(Boolean).join(' | ') || JSON.stringify(err);
+
+  const combined = (message + ' ' + code + ' ' + status + ' ' + reason).toLowerCase();
+
+  if (combined.includes('429') || combined.includes('resource_exhausted') || combined.includes('quota')) {
+    return {
+      userMessage: 'Vertex AI quota exceeded. Wait a few minutes and try again, or increase quotas in GCP Console → Vertex AI.',
+      technicalDetail,
+    };
+  }
+  if (combined.includes('403') || combined.includes('permission_denied') || combined.includes('permission denied') || code === '7') {
+    return {
+      userMessage: 'Vertex AI access denied. In GCP: (1) Enable Vertex AI API for your project. (2) Grant the Cloud Run service account the role "Vertex AI User" in IAM.',
+      technicalDetail,
+    };
+  }
+  if (combined.includes('401') || combined.includes('unauthenticated') || combined.includes('not authenticated') || code === '16') {
+    return {
+      userMessage: 'Vertex AI authentication failed. Check that GOOGLE_CLOUD_PROJECT is set and the service account has Vertex AI User (or use gcloud auth application-default login when running locally).',
+      technicalDetail,
+    };
+  }
+  if (combined.includes('404') || combined.includes('not found')) {
+    return {
+      userMessage: 'Vertex AI or project not found. Check GOOGLE_CLOUD_PROJECT in .env and that the Vertex AI API is enabled for that project.',
+      technicalDetail,
+    };
+  }
+  if (combined.includes('503') || combined.includes('unavailable') || combined.includes('unavailable')) {
+    return {
+      userMessage: 'Vertex AI is temporarily unavailable. Try again in a minute or check status.cloud.google.com.',
+      technicalDetail,
+    };
+  }
+  if (combined.includes('no response') || combined.includes('vision failed')) {
+    return {
+      userMessage: 'The model returned no result for this image. Try a clearer, well-lit photo of the meal.',
+      technicalDetail,
+    };
+  }
+  if (message && message.length <= 300) {
+    return { userMessage: `Analysis failed: ${message}`, technicalDetail };
+  }
+  return {
+    userMessage: 'Analysis failed. Check backend logs for the full error, or try again with a different image.',
+    technicalDetail,
+  };
+}
+
 export function createHealthHandler() {
   return (_req: Request, res: Response) => {
     res.json({ status: 'ok', service: 'happydiet-backend' });
@@ -41,15 +98,6 @@ export function createAnalyzeMealHandler(deps: {
       return;
     }
 
-    const rawBase64 = imageBase64Value.replace(/^data:image\/\w+;base64,/, '');
-    if (rawBase64.length < 100) {
-      res.status(400).json({
-        error: 'Image data too short',
-        detail: 'Base64 payload is too small to be a valid image. Re-upload or capture again.',
-      });
-      return;
-    }
-
     try {
       const result = await analyzeMeal(
         {
@@ -77,28 +125,11 @@ export function createAnalyzeMealHandler(deps: {
         estimatedKcal: result.estimatedKcal,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : String(err);
-      const code = err && typeof err === 'object' && 'code' in err ? String((err as { code: unknown }).code) : '';
-      const fullDetail = [message, code].filter(Boolean).join(' ') || JSON.stringify(err);
+      const { userMessage, technicalDetail } = analyzeMealError(err);
       console.error('analyze-meal error:', err);
-      const lower = (message + ' ' + code).toLowerCase();
-      let hint = 'Could not analyze. Please describe the meal.';
-      if (lower.includes('429') || lower.includes('resource_exhausted') || lower.includes('quota')) {
-        hint = 'Quota exceeded (429). Try again later or check Vertex AI quotas in GCP.';
-      } else if (lower.includes('403') || lower.includes('permission') || lower.includes('not found')) {
-        hint = 'Permission or project error. Check GOOGLE_CLOUD_PROJECT and Vertex AI API is enabled.';
-      } else if (lower.includes('401') || lower.includes('unauthenticated')) {
-        hint = 'Authentication failed. Check service account or gcloud auth application-default login.';
-      } else if (lower.includes('503') || lower.includes('unavailable')) {
-        hint = 'Vertex AI temporarily unavailable. Try again in a moment.';
-      } else if (lower.includes('no response') || lower.includes('vision failed')) {
-        hint = 'Vision returned no result. Try a clearer meal photo.';
-      } else if (message && message.length < 200) {
-        hint = `Could not analyze: ${message}`;
-      }
       res.status(500).json({
-        error: hint,
-        detail: fullDetail,
+        error: userMessage,
+        detail: technicalDetail,
       });
     }
   };
