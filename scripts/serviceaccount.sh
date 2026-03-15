@@ -36,7 +36,14 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member=serviceAccount:$SA_EMAIL \
   --role=roles/logging.viewer
 
+# Allow unauthenticated access (browser / API calls without login)
 gcloud run services add-iam-policy-binding happydiet-backend \
+  --region=$REGION \
+  --member=allUsers \
+  --role=roles/run.invoker \
+  --project=$PROJECT_ID
+
+gcloud run services add-iam-policy-binding happydiet-backend-dev \
   --region=$REGION \
   --member=allUsers \
   --role=roles/run.invoker \
@@ -69,3 +76,16 @@ gcloud run services describe happydiet-backend --region=$REGION --project=$PROJE
 
 # Create key for CI (e.g. GCP_SA_KEY in GitHub Actions) — run once, then add to secrets
 # gcloud iam service-accounts keys create ~/happydiet-sa-key.json --iam-account=$SA_EMAIL
+
+#allow unauthenticated access to the dev service
+gcloud run services add-iam-policy-binding happydiet-backend-dev \
+  --region=$REGION \
+  --member=allUsers \
+  --role=roles/run.invoker \
+  --project=$PROJECT_ID
+
+gcloud run services add-iam-policy-binding happydiet-backend-dev \
+  --region=us-central1 \
+  --member=allUsers \
+  --role=roles/run.invoker \
+  --project=happydiet-1-490118 
