@@ -2,7 +2,7 @@
 # Triggers: push to main (prod), push to dev (dev), PRs (test only), manual (workflow_dispatch)
 #
 # REQUIRED: Add these secrets in Settings → Secrets and variables → Actions:
-#   GCP_PROJECT_ID = happydiet-1-490118 (or your project ID)
+#   GCP_PROJECT_ID = xxxx
 #   GCP_SA_KEY    = full JSON of service account key (run ./scripts/bootstrap-cloud.sh to create)
 #
 # Environments:
@@ -99,8 +99,8 @@ jobs:
             --config cloudbuild.yaml \
             --substitutions=_SERVICE_NAME=happydiet-backend-dev,_REGION=${{ env.REGION }},_ENV=dev \
             --project ${{ secrets.GCP_PROJECT_ID }} \
+            --timeout=3600s \
             .
-
       - name: Smoke test
         run: |
           URL=$(gcloud run services describe happydiet-backend-dev \
@@ -144,8 +144,8 @@ jobs:
             --config cloudbuild.yaml \
             --substitutions=_SERVICE_NAME=happydiet-backend,_REGION=${{ env.REGION }},_ENV=prod \
             --project ${{ secrets.GCP_PROJECT_ID }} \
+            --timeout=3600s \
             .
-
       - name: Smoke test
         run: |
           URL=$(gcloud run services describe happydiet-backend \
