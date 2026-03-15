@@ -38,6 +38,23 @@ export interface AppDeps {
 export function createApp(deps: AppDeps) {
   const app = express();
   app.use(express.json({ limit: '10mb' }));
+  // Catch body parser errors (payload too large, invalid JSON) so we return JSON and log
+  app.use((err: unknown, _req: express.Request, res: express.Response, next: express.NextFunction) => {
+    if (err && typeof err === 'object' && 'type' in err) {
+      const e = err as { type?: string; message?: string; status?: number };
+      if (e.type === 'entity.too.large') {
+        console.warn('[body-parser] payload too large', e.message);
+        res.status(413).json({ error: 'Request body too large', suggestion: 'Reduce image size. Max 10MB.' });
+        return;
+      }
+      if (e.type === 'entity.parse.failed' || (e.message && /JSON|parse/i.test(e.message))) {
+        console.warn('[body-parser] invalid JSON', e.message);
+        res.status(400).json({ error: 'Invalid JSON body', suggestion: 'Send valid JSON with image_base64.' });
+        return;
+      }
+    }
+    next(err);
+  });
   app.use(express.static('public'));
   const tasksRepo: TasksRepository = deps.tasksRepo ?? {
     listByUser: async () => [],

@@ -42,24 +42,33 @@ export async function analyzeMeal(
     getRules: (userId: string) => Promise<DietRule[]>;
   }
 ): Promise<AnalyzeMealOutput> {
+  const t0 = Date.now();
   const { imageBase64, userId, dietRules: overrideRules, dietText } = input;
 
   let rulesOverride: DietRule[] | undefined;
   if (overrideRules && overrideRules.length > 0) {
     rulesOverride = overrideRules;
+    console.info('[analyze-meal] stage=rules_override rulesCount=', overrideRules.length);
   } else if (dietText?.trim()) {
+    const tParse = Date.now();
     rulesOverride = await deps.vertexAI.parseDietText(dietText.trim());
+    console.info('[analyze-meal] stage=parse_diet_text done in', Date.now() - tParse, 'ms rulesCount=', rulesOverride?.length ?? 0);
   }
 
   const getRules = rulesOverride
     ? async () => rulesOverride!
     : deps.getRules;
 
+  const tReader = Date.now();
+  console.info('[analyze-meal] stage=reader start (Vertex Vision)');
   const readerOut = await readerAgent(
     { imageBase64, userId },
     { vertexAI: deps.vertexAI }
   );
+  console.info('[analyze-meal] stage=reader done in', Date.now() - tReader, 'ms ingredients=', readerOut.ingredients?.length ?? 0);
 
+  const tProcessor = Date.now();
+  console.info('[analyze-meal] stage=processor start');
   const processorOut = await processorAgent(
     {
       ingredients: readerOut.ingredients,
@@ -68,7 +77,9 @@ export async function analyzeMeal(
     },
     { mealRepo: deps.mealRepo, getRules, vertexAI: deps.vertexAI }
   );
+  console.info('[analyze-meal] stage=processor done in', Date.now() - tProcessor, 'ms score=', processorOut.score);
 
+  const tReporter = Date.now();
   const reporterOut = reporterAgent({
     score: processorOut.score,
     compliantItems: processorOut.compliantItems,
@@ -83,6 +94,7 @@ export async function analyzeMeal(
     dailyKcalTotal: processorOut.dailyKcalTotal,
     kcalTarget: processorOut.kcalTarget,
   });
+  console.info('[analyze-meal] stage=reporter done in', Date.now() - tReporter, 'ms total=', Date.now() - t0, 'ms');
 
   return {
     score: reporterOut.score,

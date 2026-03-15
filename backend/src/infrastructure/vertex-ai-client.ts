@@ -159,19 +159,45 @@ export function createVertexAIClient(config: {
           },
         };
 
-        const result = await model.generateContent({
-          contents: [{ role: 'user', parts: [{ text: VISION_PROMPT }, imagePart] }],
-        });
+        const t0 = Date.now();
+        console.info('[vertex-ai] analyzeImage request start', { model: modelId, imageDataLen: imagePart.inlineData.data.length });
+        let result: Awaited<ReturnType<typeof model.generateContent>>;
+        try {
+          result = await model.generateContent({
+            contents: [{ role: 'user', parts: [{ text: VISION_PROMPT }, imagePart] }],
+          });
+        } catch (err) {
+          const elapsed = Date.now() - t0;
+          const msg = err instanceof Error ? err.message : String(err);
+          console.error('[vertex-ai] analyzeImage generateContent failed after', elapsed, 'ms', msg);
+          throw err;
+        }
+        const elapsed = Date.now() - t0;
+        console.info('[vertex-ai] analyzeImage generateContent done in', elapsed, 'ms');
 
         const response = result.response;
         const text = response.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
         if (!text) {
-          throw new Error('Vision failed: no response from model');
+          const blockReason = response.promptFeedback?.blockReason ?? response.candidates?.[0]?.finishReason ?? 'unknown';
+          console.error('[vertex-ai] analyzeImage no text in response', { blockReason, candidatesLen: response.candidates?.length });
+          throw new Error(`Vision failed: no response from model (${blockReason})`);
         }
 
         const jsonMatch = text.match(/\{[\s\S]*\}/);
-        const parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : { ingredients: [], estimatedKcal: null };
+        let parsed: { ingredients?: unknown; estimatedKcal?: unknown };
+        try {
+          parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : { ingredients: [], estimatedKcal: null };
+        } catch (parseErr) {
+          const snippet = text.slice(0, 200);
+          const isHtml = /<!DOCTYPE|<\/html>|<\/head>/i.test(text);
+          console.error('[vertex-ai] analyzeImage response parse failed', { isHtml, snippet });
+          throw new Error(
+            isHtml
+              ? 'Vertex returned an HTML error page instead of JSON (check IAM: Vertex AI User, API enabled, model available in region).'
+              : `Vertex response was not valid JSON. Snippet: ${snippet}`
+          );
+        }
 
         console.info('[vertex-ai] analyzeImage', {
           model: modelId,

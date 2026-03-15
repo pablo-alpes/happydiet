@@ -56,6 +56,12 @@ function analyzeMealError(err: unknown): { userMessage: string; technicalDetail:
       technicalDetail,
     };
   }
+  if (combined.includes('unexpected token') || combined.includes('doctype') || combined.includes('is not valid json')) {
+    return {
+      userMessage: 'Vertex AI returned an error page instead of a response. Check that the Cloud Run service account has "Vertex AI User", the Vertex AI API is enabled, and the model is available in your region (e.g. us-central1 with gemini-2.5-flash).',
+      technicalDetail,
+    };
+  }
   if (message && message.length <= 300) {
     return { userMessage: `Analysis failed: ${message}`, technicalDetail };
   }
@@ -71,6 +77,11 @@ export function createHealthHandler() {
   };
 }
 
+/** Short id for log correlation (e.g. "a1b2c3d4") */
+function requestId(): string {
+  return Math.random().toString(36).slice(2, 10);
+}
+
 export function createAnalyzeMealHandler(deps: {
   vertexAI: VertexAIClient;
   mealRepo: MealRepository;
@@ -78,6 +89,12 @@ export function createAnalyzeMealHandler(deps: {
   apiKey?: string;
 }) {
   return async (req: Request, res: Response) => {
+    const rid = requestId();
+    const contentLength = req.headers['content-length'];
+    const hasBody = req.body != null && typeof req.body === 'object';
+    const bodyKeys = hasBody ? Object.keys(req.body) : [];
+    console.info(`[analyze-meal] ${rid} request start | content-length=${contentLength ?? 'missing'} hasBody=${hasBody} bodyKeys=[${bodyKeys.join(', ')}]`);
+
     const apiKey = req.headers['x-api-key'] as string | undefined;
     if (deps.apiKey && apiKey !== deps.apiKey) {
       res.status(401).json({ error: 'Invalid or missing API key' });
@@ -90,6 +107,15 @@ export function createAnalyzeMealHandler(deps: {
     const dietTextValue = diet_text ?? dietText;
     const dietRulesValue = diet_rules as DietRule[] | undefined;
 
+    if (!hasBody || (!imageBase64Value && bodyKeys.length === 0)) {
+      console.warn(`[analyze-meal] ${rid} body missing or empty (body parser may have failed: payload too large or invalid JSON)`);
+      res.status(400).json({
+        error: 'Request body missing or invalid',
+        suggestion: 'Send JSON with image_base64 (base64 string). If the image is very large, reduce size. Max body size is 10MB.',
+      });
+      return;
+    }
+
     if (!imageBase64Value || typeof imageBase64Value !== 'string') {
       res.status(400).json({
         error: 'Missing image_base64 or imageBase64',
@@ -98,6 +124,10 @@ export function createAnalyzeMealHandler(deps: {
       return;
     }
 
+    const imageLen = imageBase64Value.length;
+    console.info(`[analyze-meal] ${rid} body ok | userId=${user} imageBase64Len=${imageLen} hasDietText=${!!dietTextValue} hasDietRules=${!!dietRulesValue?.length}`);
+
+    const t0 = Date.now();
     try {
       const result = await analyzeMeal(
         {
@@ -113,6 +143,8 @@ export function createAnalyzeMealHandler(deps: {
         }
       );
 
+      const elapsed = Date.now() - t0;
+      console.info(`[analyze-meal] ${rid} success in ${elapsed}ms`);
       res.json({
         score: result.score,
         compliantItems: result.compliantItems,
@@ -125,11 +157,13 @@ export function createAnalyzeMealHandler(deps: {
         estimatedKcal: result.estimatedKcal,
       });
     } catch (err) {
+      const elapsed = Date.now() - t0;
       const { userMessage, technicalDetail } = analyzeMealError(err);
-      console.error('analyze-meal error:', err);
+      console.error(`[analyze-meal] ${rid} failed after ${elapsed}ms`, technicalDetail, err);
       res.status(500).json({
         error: userMessage,
         detail: technicalDetail,
+        requestId: rid,
       });
     }
   };

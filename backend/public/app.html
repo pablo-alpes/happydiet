@@ -367,19 +367,24 @@
     async function analyze() {
       if (!currentBase64) return;
       $('analyzeBtn').disabled = true;
-      $('result').innerHTML = '<p>Analyzing…</p>';
+      $('result').innerHTML = '<p>Analyzing… (can take 7–10s)</p>';
       $('resultCard').style.display = 'block';
 
+      const ANALYZE_TIMEOUT_MS = 60000;
       try {
         const body = { image_base64: currentBase64, user_id: 'demo' };
         const dietText = $('dietText').value.trim();
         if (dietText) body.diet_text = dietText;
 
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), ANALYZE_TIMEOUT_MS);
         const res = await fetch(url() + '/analyze-meal', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
+          signal: controller.signal,
         });
+        clearTimeout(timeoutId);
         const text = await res.text();
         let data = {};
         try {
@@ -399,7 +404,10 @@
           $('result').innerHTML = `<p class="status err">Error ${res.status}: ${msg}</p>`;
         }
       } catch (e) {
-        $('result').innerHTML = `<p class="status err">Network error: ${e.message}. Check backend URL and CORS.</p>`;
+        const msg = e.name === 'AbortError'
+          ? 'Request timed out. Analysis often takes 7–10s — try again or check backend logs.'
+          : (e.message || String(e));
+        $('result').innerHTML = `<p class="status err">${msg}. Check backend URL and CORS.</p>`;
       }
       $('analyzeBtn').disabled = false;
     }
