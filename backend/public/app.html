@@ -380,17 +380,26 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(body),
         });
-        const data = await res.json();
+        const text = await res.text();
+        let data = {};
+        try {
+          data = text ? JSON.parse(text) : {};
+        } catch (_) {
+          $('result').innerHTML = `<p class="status err">Analysis failed: server returned an error page (HTTP ${res.status}). Check the backend URL and that the service is running.</p>`;
+          $('analyzeBtn').disabled = false;
+          return;
+        }
 
         if (res.status === 503) {
           $('result').innerHTML = '<p class="status err">Backend not configured. Set GOOGLE_CLOUD_PROJECT in .env</p>';
         } else if (res.ok) {
           renderResult(data);
         } else {
-          $('result').innerHTML = `<p class="status err">Error ${res.status}: ${data.error || JSON.stringify(data)}</p>`;
+          const msg = data.userMessage || data.error || JSON.stringify(data);
+          $('result').innerHTML = `<p class="status err">Error ${res.status}: ${msg}</p>`;
         }
       } catch (e) {
-        $('result').innerHTML = `<p class="status err">Network error: ${e.message}</p>`;
+        $('result').innerHTML = `<p class="status err">Network error: ${e.message}. Check backend URL and CORS.</p>`;
       }
       $('analyzeBtn').disabled = false;
     }

@@ -27,6 +27,17 @@ gcloud projects add-iam-policy-binding $PROJECT_ID \
   --member=serviceAccount:$SA_EMAIL \
   --role=roles/iam.serviceAccountUser
 
+  #logging viewer permission
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member=serviceAccount:$SA_EMAIL \
+  --role=roles/logging.viewer
+
+gcloud run services add-iam-policy-binding happydiet-backend \
+  --region=us-central1 \
+  --member=allUsers \
+  --role=roles/run.invoker \
+  --project=happydiet-1-490118
+
 # --- Cloud Run runtime identity (default compute SA) ---
 # Cloud Run uses this SA when handling requests. Without these, /analyze-meal fails on cloud but works locally.
 PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')

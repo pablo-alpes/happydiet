@@ -2256,15 +2256,23 @@
         const res = await fetch(url() + '/analyze-meal', {
           method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body),
         });
-        const data = await res.json();
+        const text = await res.text();
+        let data = {};
+        try {
+          data = text ? JSON.parse(text) : {};
+        } catch (_) {
+          $('result').innerHTML = `<p style="color:var(--red)">Analysis failed: server returned an error page (HTTP ${res.status}). Check the backend URL and that the service is running. If using Cloud Run, the service may be cold-starting or returning an HTML error.</p>`;
+          $('analyzeBtn').disabled = false;
+          return;
+        }
         if (res.status === 503) $('result').innerHTML = '<p style="color:var(--red)">Backend not configured. Set GOOGLE_CLOUD_PROJECT.</p>';
         else if (res.ok) renderResult(data);
         else {
-          const msg = [data.error, data.detail].filter(Boolean).join(' — ') || `HTTP ${res.status}`;
+          const msg = [data.error, data.userMessage, data.detail].filter(Boolean).join(' — ') || `HTTP ${res.status}`;
           $('result').innerHTML = `<p style="color:var(--red)">${msg}</p>`;
         }
       } catch (e) {
-        $('result').innerHTML = `<p style="color:var(--red)">Network error: ${e.message}</p>`;
+        $('result').innerHTML = `<p style="color:var(--red)">Network error: ${e.message}. Check the backend URL and CORS.</p>`;
       }
       $('analyzeBtn').disabled = false;
     }
