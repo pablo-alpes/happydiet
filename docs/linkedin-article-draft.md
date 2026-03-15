@@ -16,6 +16,8 @@ And here's the thing nobody talks about: **those apps measure the wrong thing.**
 
 I built HappyDiet to fix that. **Take a photo of your meal, and an AI coach tells you — instantly, out loud — whether you're on track with your diet.** No typing. No searching. No calorie math. Just point, shoot, and listen.
 
+> **📱 iOS app + HeyCyan lenses (<$100):** The native iOS app works with affordable smart glasses for hands-free meal capture. Image transfer is manual today (iOS architecture limits); development paused due to budget — seamless auto-transfer would require manufacturer developer program access. This is the direction we're heading: AI on accessible hardware.
+
 ---
 
 ## The Intelligent Loop: See, Think, Speak
@@ -160,7 +162,7 @@ The **Gemini Live Agent Challenge** asks for experiences that go "beyond the tex
 
 Diet-related diseases are the leading preventable cause of death worldwide ([WHO, 2025](https://www.who.int/europe/news/item/25-06-2025-1.8-million-avoidable-deaths-annually-in-europe)). The burden falls hardest on those with the least access to professional guidance.
 
-**Accessibility.** Voice-first, photo-based interaction makes dietary coaching accessible to the elderly, low-literacy populations, people with disabilities, and anyone who struggles with traditional app UIs. No typing. No databases. No math. I also built support for affordable smart lenses (under $100) — the app works with the glasses; image transfer is manual (iOS limits). Development paused due to budget; seamless auto-transfer would require access to the manufacturer's developer program.
+**Accessibility.** Voice-first, photo-based interaction makes dietary coaching accessible to the elderly, low-literacy populations, people with disabilities, and anyone who struggles with traditional app UIs. No typing. No databases. No math. **I also built the iOS app with HeyCyan lenses support — affordable glasses under $100 for hands-free capture.** The app works with the glasses today; image transfer is manual (iOS limits). Development paused due to budget; seamless auto-transfer would require access to the manufacturer's developer program.
 
 **Clinical visibility.** Nutritionists prescribe diets and lose visibility for weeks. HappyDiet generates objective adherence data — automatically, from meal photos. The dashboard is ready for the doctor's follow-up on day one.
 
@@ -195,7 +197,7 @@ HappyDiet is looking for pilot partners (clinics, nutritionists, insurers) and p
 HappyDiet runs entirely on Google Cloud. Built for the Gemini Live Agent Challenge.
 
 - **Web:** Open the Cloud Run URL — no install needed. Live Coach, Analyze, Diet Rules, Dashboard.
-- **iOS:** Native app with camera, photo library, Live Coach, and HeyCyan glasses support.
+- **iOS:** Native app with camera, photo library, Live Coach, and **HeyCyan lenses (<$100)** — hands-free capture; image transfer manual (iOS limits). App works today; seamless auto-transfer on roadmap.
 - **Code:** Public repository with full README, architecture diagrams, and 108 tests (100% coverage).
 
 ---
@@ -216,7 +218,9 @@ HappyDiet runs entirely on Google Cloud. Built for the Gemini Live Agent Challen
 >
 > The gap: every diet app counts calories. None of them check whether what you ate aligns with the specific rules your doctor prescribed. That's what nutritionists actually care about. That's what HappyDiet does.
 >
-> **108 tests. 100% coverage. 3-agent pipeline. Entirely on Google Cloud.** HeyCyan lenses support (<$100) — app works with glasses; image transfer manual (iOS limits). Dev paused (budget); seamless auto-transfer requires manufacturer dev program access.
+> **108 tests. 100% coverage. 3-agent pipeline. Entirely on Google Cloud.**
+>
+> **📱 iOS app + HeyCyan lenses (<$100)** — hands-free capture works today; image transfer manual (iOS limits). Dev paused (budget); seamless auto-transfer requires manufacturer dev program access.
 >
 > Full article below 👇
 >
@@ -235,4 +239,5 @@ When publishing, add these visuals at the relevant section breaks:
 5. **After "The Stack"** — Screenshot of the web showcase Architecture section (layered diagram)
 6. **After "The Engineering Journey"** — Screenshot of the test output (108 passed, 100% coverage)
 7. **After "Impact"** — Screenshot of the Live Coach conversation (voice interaction with meal analysis)
-8. **Author bio** — Your professional headshot
+8. **iOS + Lenses highlight** — Screenshot of the hero showing "📱 iOS app with camera, Live Coach, and HeyCyan lenses (<$100)" — or a photo of the iOS app with glasses
+9. **Author bio** — Your professional headshot

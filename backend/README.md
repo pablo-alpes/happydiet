@@ -61,11 +61,56 @@ To get **Google’s natural voice** (same as on the web) in the app:
 
 Then redeploy; the app will use the same backend URL and get MP3 from `/speak` instead of the phone’s built-in TTS.
 
+## Analyze meal fails ("Could not analyze")
+
+When `POST /analyze-meal` returns 500, the response includes an `error` hint and `detail` (the real exception). Check **backend logs** (Cloud Run → Logs, or `npm run dev` terminal) for the full stack.
+
+**Common causes:**
+
+| Cause | What you see | Fix |
+|-------|----------------|-----|
+| **Quota** | 429, RESOURCE_EXHAUSTED | Wait or increase Vertex AI quota in GCP; free tier has limits. |
+| **Project / API** | 403, "not found" | Set `GOOGLE_CLOUD_PROJECT` in `.env`; enable [Vertex AI API](https://console.cloud.google.com/apis/library/aiplatform.googleapis.com). |
+| **Auth** | 401, unauthenticated | On Cloud Run: service account needs **Vertex AI User**. Local: `gcloud auth application-default login`. |
+| **Service down** | 503, UNAVAILABLE | Retry later; check [GCP status](https://status.cloud.google.com/). |
+| **Vision no result** | "no response from model" | Image too small, blurry, or not a meal; try another photo. |
+
+The web and app show the backend `detail` when present so you can see the exact error.
+
 ## Deploy to Cloud Run
 
-```bash
-gcloud run deploy happydiet-backend \
-  --source . \
-  --region us-central1 \
-  --allow-unauthenticated
-```
+### Option A: From your machine (gcloud CLI)
+
+1. **Install and log in** (if needed):
+   ```bash
+   gcloud auth login
+   gcloud config set project YOUR_GCP_PROJECT_ID
+   ```
+
+2. **From the repo root** (not inside `backend/`), run:
+   ```bash
+   cd /path/to/happydiet
+   gcloud builds submit --config cloudbuild.yaml .
+   ```
+   This runs tests in `backend/` then deploys the backend to Cloud Run. The first time you may be asked to enable the Cloud Build API.
+
+3. **Or deploy only the backend** (no tests, from repo root):
+   ```bash
+   cd backend
+   gcloud run deploy happydiet-backend \
+     --source . \
+     --region us-central1 \
+     --allow-unauthenticated \
+     --set-env-vars "GOOGLE_CLOUD_PROJECT=YOUR_GCP_PROJECT_ID,GOOGLE_CLOUD_LOCATION=us-central1"
+   ```
+   Replace `YOUR_GCP_PROJECT_ID` with your actual GCP project ID (e.g. from the Cloud Run URL or `gcloud config get-value project`).
+
+### Option B: Via GitHub (push to main)
+
+If your repo has the deploy workflow and secrets set (e.g. `GCP_PROJECT_ID`, `GCP_SA_KEY`):
+
+1. Commit and push your changes to `main`:
+   ```bash
+   git add -A && git commit -m "Backend: better analyze-meal errors" && git push origin main
+   ```
+2. Open **Actions** on GitHub and watch the "Deploy to Cloud Run" workflow. When it finishes, the backend is redeployed.

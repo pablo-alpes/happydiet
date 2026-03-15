@@ -73,7 +73,13 @@ See [WIFI_TRANSFER_ARCHITECTURE.md](https://github.com/ebowwa/HeyCyanSmartGlasse
 
 `HEYCYAN_SDK_LINKED` is set in Build Settings when the framework is linked. The setup script and project configuration handle this.
 
-### 4. Wi‑Fi transfer: automatic vs manual
+### 4. Do I need the $99 Apple Developer account?
+
+**No.** Lenses integration works with a **free** Apple ID. You can build and run the app on your device (with a 7‑day certificate), use HeyCyan BLE (take photo, get SSID/password), and transfer photos via **manual** Wi‑Fi: join the glasses’ network in Settings → Wi‑Fi, then tap **Fetch latest photo** in the app.
+
+**Paid ($99/year)** is only required if you want **automatic** join: the in‑app “Join network?” dialog that connects to the glasses’ Wi‑Fi without leaving the app. Without it, you do that one step in Settings instead.
+
+### 5. Wi‑Fi transfer: automatic vs manual
 
 **Automatic join** (dialog → tap Join → app joins and downloads) requires the **Hotspot Configuration** entitlement. That capability can only be enabled in [Certificates, Identifiers & Profiles](https://developer.apple.com/account/resources/identifiers/list), which is available only to **paid Apple Developer Program** members ($99/year). Without it, the entitlement cannot be included in the app’s profile and the project is built without it so it compiles.
 
@@ -81,7 +87,7 @@ See [WIFI_TRANSFER_ARCHITECTURE.md](https://github.com/ebowwa/HeyCyanSmartGlasse
 
 **If you later enroll** in the Apple Developer Program, you can add the Hotspot Configuration capability to your App ID and to the project’s entitlements to get the same automatic flow as the official HeyCyan app.
 
-### 5. Build on Device
+### 6. Build on Device
 
 HeyCyan BLE requires a **physical iOS device**. Build and run on a connected iPhone/iPad; the simulator does not support Bluetooth.
 

@@ -268,6 +268,10 @@ struct AnalyzeFlowView: View {
         case .httpError(let status, let msg):
             if status == 404 { return "Analyze endpoint not found (404). Check backend URL in More → Settings and that the server is deployed." }
             if status == 405 { return "Wrong method (405). Ensure the app is using the correct backend URL." }
+            if status == 500 {
+                if let msg = msg, !msg.isEmpty { return "Analysis failed: \(msg)" }
+                return "Analysis failed (500). Check backend logs or try again."
+            }
             if status == 503 { return "Backend not configured or service unavailable. Check backend URL in More → Settings." }
             return msg ?? "Server error (HTTP \(status))."
         case .decodingError(let err): return "Invalid response: \(err.localizedDescription)"

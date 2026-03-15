@@ -2259,7 +2259,10 @@
         const data = await res.json();
         if (res.status === 503) $('result').innerHTML = '<p style="color:var(--red)">Backend not configured. Set GOOGLE_CLOUD_PROJECT.</p>';
         else if (res.ok) renderResult(data);
-        else $('result').innerHTML = `<p style="color:var(--red)">Error: ${data.error || res.status}</p>`;
+        else {
+          const msg = [data.error, data.detail].filter(Boolean).join(' — ') || `HTTP ${res.status}`;
+          $('result').innerHTML = `<p style="color:var(--red)">${msg}</p>`;
+        }
       } catch (e) {
         $('result').innerHTML = `<p style="color:var(--red)">Network error: ${e.message}</p>`;
       }

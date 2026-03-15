@@ -10,14 +10,14 @@
 
 | Section | Time | Duration | What's on screen |
 |---------|------|----------|------------------|
-| 1. Hook | 0:00 | 20s | You on camera (or showcase hero) |
+| 1. Hook | 0:00 | 20s | You on camera (or showcase hero) — **highlight iOS + lenses line** |
 | 2. Problem | 0:20 | 30s | Showcase: Problem section |
 | 3. Solution | 0:50 | 30s | Showcase: Solution + pipeline |
 | 4. Architecture | 1:20 | 30s | Showcase: Architecture diagram |
 | 5. Google Compliance | 1:50 | 20s | Showcase: Compliance section |
 | 6. Live Demo — Analyze a meal | 2:10 | 50s | App: upload meal → compliance result → speak |
 | 7. Live Demo — Voice Coach | 3:00 | 40s | App: Live Coach conversation + meal photo |
-| 8. Impact + Close | 3:40 | 20s | Showcase: Social Impact + your face |
+| 8. Impact + Close | 3:40 | 20s | Showcase: Social Impact → **end on hero with iOS + lenses visible** |
 | **Total** | | **4:00** | |
 
 ---
@@ -26,11 +26,11 @@
 
 ### 1. HOOK (0:00–0:20)
 
-*[You on camera, or screen on the showcase hero page]*
+*[You on camera, or screen on the showcase hero page — ensure the hero is visible with the iOS + lenses line]*
 
-> "A nutritionist in Madrid told me: 'I prescribe a diet, the patient walks out, and I have zero data until the next appointment.' 80% of diets fail by week 8 — not because the plans are bad, but because tracking is friction. I built HappyDiet to fix that, using Google's Gemini Live API. Let me show you."
+> "A nutritionist in Madrid told me: 'I prescribe a diet, the patient walks out, and I have zero data until the next appointment.' 80% of diets fail by week 8 — not because the plans are bad, but because tracking is friction. I built HappyDiet to fix that, using Google's Gemini Live API. **We also have an iOS app with HeyCyan lenses support — affordable glasses under $100 for hands-free capture.** Let me show you."
 
-*[Click: scroll begins]*
+*[If on screen: briefly point to or highlight the hero line: "📱 iOS app with camera, Live Coach, and HeyCyan lenses (<$100)" before scrolling]*
 
 ---
 
@@ -134,17 +134,26 @@
 
 ### 8. IMPACT + CLOSE (3:40–4:00)
 
-*[Screen: scroll back to the showcase Social Impact section, or switch to camera on you.]*
+*[Screen: scroll back to the showcase hero or Social Impact section. If possible, end on the hero so the iOS + lenses line is visible.]*
 
 > "HappyDiet isn't just a tech demo. Voice-first coaching makes healthy eating accessible to people who can't use traditional diet apps — the elderly, low-literacy populations, anyone who just wants to point a camera and listen.
 >
-> I also built support for affordable smart lenses — under $100 — so users can capture meals hands-free on iOS. The app works with the glasses; image transfer requires a manual trigger due to iOS limits. I stopped development there due to lack of budget — the next step for seamless auto-transfer would require access to the manufacturer's developer program, which is only for enrolled developers or org team members.
+> **I also built the iOS app with HeyCyan lenses support — affordable glasses under $100 for hands-free capture.** The app works with the glasses today; image transfer requires a manual trigger due to iOS limits. I stopped development there due to lack of budget — the next step for seamless auto-transfer would require access to the manufacturer's developer program.
 >
 > A nutrition clinic called it 'ground-breaking.' We're piloting in Madrid and Paris in 2026.
 >
 > HappyDiet — the AI diet coach that sees your plate and speaks your plan. Built entirely on Google Cloud."
 
-*[End on the showcase hero or your face.]*
+*[End on the showcase hero — ensure the "📱 iOS app with camera, Live Coach, and HeyCyan lenses (<$100)" line is visible — or your face.]*
+
+---
+
+## HIGHLIGHT: iOS APP + LENSES
+
+**Ensure this is visible and mentioned:**
+- Hero line: *"📱 iOS app with camera, Live Coach, and HeyCyan lenses (<$100) — hands-free capture; image transfer manual (iOS limits)."*
+- Social Impact card: *"👓 Affordable Smart Lenses"*
+- **Say it aloud** in Hook (brief) and in Impact + Close (full sentence). End on hero so the line is on screen.
 
 ---
 

@@ -41,6 +41,15 @@ export function createAnalyzeMealHandler(deps: {
       return;
     }
 
+    const rawBase64 = imageBase64Value.replace(/^data:image\/\w+;base64,/, '');
+    if (rawBase64.length < 100) {
+      res.status(400).json({
+        error: 'Image data too short',
+        detail: 'Base64 payload is too small to be a valid image. Re-upload or capture again.',
+      });
+      return;
+    }
+
     try {
       const result = await analyzeMeal(
         {
@@ -68,11 +77,28 @@ export function createAnalyzeMealHandler(deps: {
         estimatedKcal: result.estimatedKcal,
       });
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error';
+      const message = err instanceof Error ? err.message : String(err);
+      const code = err && typeof err === 'object' && 'code' in err ? String((err as { code: unknown }).code) : '';
+      const fullDetail = [message, code].filter(Boolean).join(' ') || JSON.stringify(err);
       console.error('analyze-meal error:', err);
+      const lower = (message + ' ' + code).toLowerCase();
+      let hint = 'Could not analyze. Please describe the meal.';
+      if (lower.includes('429') || lower.includes('resource_exhausted') || lower.includes('quota')) {
+        hint = 'Quota exceeded (429). Try again later or check Vertex AI quotas in GCP.';
+      } else if (lower.includes('403') || lower.includes('permission') || lower.includes('not found')) {
+        hint = 'Permission or project error. Check GOOGLE_CLOUD_PROJECT and Vertex AI API is enabled.';
+      } else if (lower.includes('401') || lower.includes('unauthenticated')) {
+        hint = 'Authentication failed. Check service account or gcloud auth application-default login.';
+      } else if (lower.includes('503') || lower.includes('unavailable')) {
+        hint = 'Vertex AI temporarily unavailable. Try again in a moment.';
+      } else if (lower.includes('no response') || lower.includes('vision failed')) {
+        hint = 'Vision returned no result. Try a clearer meal photo.';
+      } else if (message && message.length < 200) {
+        hint = `Could not analyze: ${message}`;
+      }
       res.status(500).json({
-        error: 'Could not analyze. Please describe the meal.',
-        detail: message,
+        error: hint,
+        detail: fullDetail,
       });
     }
   };
