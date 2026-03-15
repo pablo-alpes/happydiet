@@ -17,6 +17,8 @@ import { attachLiveProxy } from './infrastructure/live-api-proxy.js';
 const PORT = parseInt(process.env.PORT ?? '8080', 10);
 const PROJECT_ID = process.env.GOOGLE_CLOUD_PROJECT ?? '';
 const LOCATION = process.env.GOOGLE_CLOUD_LOCATION ?? 'us-central1';
+/** Use "global" if your project gets 404 on regional Gemini (e.g. "model not found or no access"). Live API still uses LOCATION. */
+const VERTEX_AI_LOCATION = process.env.VERTEX_AI_LOCATION ?? LOCATION;
 const FIRESTORE_DATABASE_MEALS = process.env.FIRESTORE_DATABASE_MEALS ?? process.env.FIRESTORE_DATABASE_ID;
 const FIRESTORE_DATABASE_RULES = process.env.FIRESTORE_DATABASE_RULES;
 const VERTEX_AI_MODEL = process.env.VERTEX_AI_MODEL ?? 'gemini-2.5-flash';
@@ -28,7 +30,7 @@ if (!hasGcp) {
 }
 
 const vertexAI = hasGcp
-  ? createVertexAIClient({ projectId: PROJECT_ID, location: LOCATION, model: VERTEX_AI_MODEL })
+  ? createVertexAIClient({ projectId: PROJECT_ID, location: VERTEX_AI_LOCATION, model: VERTEX_AI_MODEL })
   : null;
 const repos = hasGcp
   ? createFirestoreRepositories({

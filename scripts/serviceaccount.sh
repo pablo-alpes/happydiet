@@ -1,0 +1,45 @@
+# Replace these with your actual values
+PROJECT_ID="happydiet-1-490118"
+SA_EMAIL=happydiet-cicd@happydiet-1-490118.iam.gserviceaccount.com
+
+# Grant Cloud Build permission to submit builds
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member=serviceAccount:$SA_EMAIL \
+  --role=roles/cloudbuild.builds.editor
+
+# Grant permission to write logs
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member=serviceAccount:$SA_EMAIL \
+  --role=roles/logging.logWriter
+
+# Grant permission to view/stream logs (fixes gcloud builds submit exit code 1 in GitHub Actions)
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member=serviceAccount:$SA_EMAIL \
+  --role=roles/logging.viewer
+
+# Grant permission to deploy to Cloud Run
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member=serviceAccount:$SA_EMAIL \
+  --role=roles/run.admin
+
+# Grant service account user permission
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member=serviceAccount:$SA_EMAIL \
+  --role=roles/iam.serviceAccountUser
+
+# --- Cloud Run runtime identity (default compute SA) ---
+# Cloud Run uses this SA when handling requests. Without these, /analyze-meal fails on cloud but works locally.
+PROJECT_NUMBER=$(gcloud projects describe $PROJECT_ID --format='value(projectNumber)')
+COMPUTE_SA="${PROJECT_NUMBER}-compute@developer.gserviceaccount.com"
+
+echo "Granting Vertex AI + Firestore to Cloud Run runtime SA: $COMPUTE_SA"
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member=serviceAccount:$COMPUTE_SA \
+  --role=roles/aiplatform.user
+
+gcloud projects add-iam-policy-binding $PROJECT_ID \
+  --member=serviceAccount:$COMPUTE_SA \
+  --role=roles/datastore.user
+
+# Create key for CI (e.g. GCP_SA_KEY in GitHub Actions) — run once, then add to secrets
+# gcloud iam service-accounts keys create ~/happydiet-sa-key.json --iam-account=$SA_EMAIL

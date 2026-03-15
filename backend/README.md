@@ -65,6 +65,10 @@ Then redeploy; the app will use the same backend URL and get MP3 from `/speak` i
 
 When `POST /analyze-meal` returns 500, the response includes an `error` hint and `detail` (the real exception). Check **backend logs** (Cloud Run → Logs, or `npm run dev` terminal) for the full stack.
 
+**404 "Publisher Model was not found or your project does not have access":** Enable Vertex AI API, grant the Cloud Run service account `roles/aiplatform.user`, and ensure billing is on. If it still fails, use the global endpoint and a stable model by setting env vars (e.g. in Cloud Run → Edit → Variables): `VERTEX_AI_LOCATION=global`, `VERTEX_AI_MODEL=gemini-2.0-flash-001`. Then redeploy or restart.
+
+**"The query requires an index" (getDailyKcal):** The `meals` collection needs a composite index on `userId` + `timestamp`. Click the link in the error to create it in Firebase Console, or deploy indexes with `firebase deploy --only firestore:indexes` (requires `firebase.json` pointing at `backend/firestore.indexes.json`). See `backend/firestore.indexes.json` for the definition. Until the index exists, daily kcal defaults to 0 and the rest of the flow still runs.
+
 **Common causes:**
 
 | Cause | What you see | Fix |

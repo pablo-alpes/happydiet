@@ -384,8 +384,10 @@ Deployment scripts use `--quiet` on gcloud commands to avoid interactive prompts
 
 | Issue | Fix |
 |-------|-----|
+| **Works locally, fails on Cloud** | Cloud Run uses the default compute SA, not your user. Run the "Cloud Run runtime identity" block in `scripts/serviceaccount.sh` to grant that SA `roles/aiplatform.user` and `roles/datastore.user`. Ensure Cloud Build sets env vars (see `cloudbuild.yaml`: FIRESTORE_*, VERTEX_AI_LOCATION=global, VERTEX_AI_MODEL). |
 | 503 from `/analyze-meal` | Set `GOOGLE_CLOUD_PROJECT` on Cloud Run |
-| Permission denied | Ensure Cloud Run service account has `roles/aiplatform.user` and Firestore access |
+| 404 "model not found" on Cloud | Set `VERTEX_AI_LOCATION=global` and `VERTEX_AI_MODEL=gemini-2.0-flash-001` on Cloud Run; grant compute SA `roles/aiplatform.user` |
+| Permission denied | Ensure Cloud Run service account (compute SA) has `roles/aiplatform.user` and `roles/datastore.user` |
 | Build fails | Check `npm run test:ci` passes locally in `backend/` |
 | Deploy from wrong dir | Run `./scripts/deploy.sh` from repo root (it uses `backend/` internally) |
 | Firestore DB errors | Run `./scripts/setup-production.sh` to create DBs; or create manually in [Console](https://console.cloud.google.com/firestore) |
