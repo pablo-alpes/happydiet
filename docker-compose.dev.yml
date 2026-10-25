@@ -14,7 +14,6 @@ services:
       - PORT=8080
       - GOOGLE_CLOUD_PROJECT=${GOOGLE_CLOUD_PROJECT}
       - GOOGLE_CLOUD_LOCATION=${GOOGLE_CLOUD_LOCATION:-us-central1}
-      - API_KEY=${API_KEY}
     env_file:
       - .env
     command: sh -c "npm install && npx tsx watch src/main.ts"
